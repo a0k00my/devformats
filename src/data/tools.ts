@@ -186,7 +186,7 @@ export const tools: Tool[] = [
     metaDescription: 'Decode JWT header, payload, and signature. Shows algorithm, expiry as relative time, and warns on alg:none or expired tokens. Runs locally.',
     keywords: ['jwt decoder', 'decode jwt', 'jwt debugger', 'json web token decoder'],
     icon: 'KeyRound',
-    related: ['base64', 'json-formatter'],
+    related: ['base64', 'json-formatter', 'json-viewer'],
     status: 'planned',
     addedAt: '2026-07-22',
   },
@@ -461,9 +461,17 @@ export function getRecentTools(limit = 8): Tool[] {
   return [...tools].sort((a, b) => b.addedAt.localeCompare(a.addedAt)).slice(0, limit);
 }
 
+// Guarantees >=3 links per tool page (internal-linking requirement) by
+// backfilling from the same category when the registry's explicit
+// `related` list is short, rather than hand-maintaining 3+ entries on
+// every one of ~30 registry rows.
 export function getRelatedTools(tool: Tool, limit = 6): Tool[] {
-  return tool.related
+  const explicit = tool.related
     .map(slug => getTool(slug))
-    .filter((t): t is Tool => Boolean(t))
-    .slice(0, limit);
+    .filter((t): t is Tool => Boolean(t));
+
+  const seen = new Set([tool.slug, ...explicit.map(t => t.slug)]);
+  const backfill = tools.filter(t => t.category === tool.category && !seen.has(t.slug));
+
+  return [...explicit, ...backfill].slice(0, Math.max(limit, 3));
 }
