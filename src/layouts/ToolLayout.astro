@@ -7,6 +7,7 @@
 // per-tool without fighting a rigid abstraction.
 import Layout from './Layout.astro';
 import Breadcrumb from '../components/Breadcrumb.astro';
+import AdSlot from '../components/AdSlot.astro';
 import { CATEGORY_META, type Tool } from '../data/tools';
 
 interface Props {
@@ -41,4 +42,8 @@ const softwareAppSchema = {
   </div>
 
   <slot />
+
+  <!-- Reserved placement: between FAQ/docs and the footer. Disabled by
+       default (PUBLIC_ADS_ENABLED) — see Phase 6 notes in AdSlot.astro. -->
+  <AdSlot placement="pre-footer" />
 </Layout>

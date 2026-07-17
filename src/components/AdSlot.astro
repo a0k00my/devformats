@@ -1,0 +1,28 @@
+---
+// Renders nothing until ads are switched on (Cloudflare Pages env var,
+// no code change needed to flip it). Once enabled, reserves a fixed
+// height matching common ad-unit sizes so the box doesn't resize when a
+// real ad fills it (CLS).
+//
+// Placement rule (do not violate): only below the tool output, or between
+// FAQ and the footer. Never above the fold, beside the editor, or inside
+// the tool panel — see devformats-build-prompt.md Phase 6.
+//
+// Prop is named `placement`, not `slot` — `slot` is a reserved Astro
+// attribute for named-slot content projection and would silently swallow
+// this element instead of passing it through as a prop.
+interface Props {
+  placement: 'below-tool' | 'pre-footer';
+}
+const { placement } = Astro.props;
+const enabled = import.meta.env.PUBLIC_ADS_ENABLED === 'true';
+
+const height = placement === 'below-tool' ? 90 : 250;
+---
+{enabled && (
+  <div class="mx-auto my-6 w-full max-w-[1200px] px-4" data-ad-placement={placement} style={`min-height:${height}px`}>
+    <div class="flex h-full w-full items-center justify-center rounded border text-xs" style={`min-height:${height}px;border-color:var(--border);color:var(--fg-subtle)`}>
+      Ad
+    </div>
+  </div>
+)}

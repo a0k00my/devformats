@@ -3,6 +3,7 @@ import ToolLayout from '../layouts/ToolLayout.astro';
 import JsonFormatter from '../components/JsonFormatter';
 import RelatedTools from '../components/RelatedTools.astro';
 import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
 import { getTool, getRelatedTools } from '../data/tools';
 
 const tool = getTool('json-formatter')!;
@@ -22,6 +23,8 @@ const faqItems = [
 ---
 <ToolLayout tool={tool}>
   <JsonFormatter client:load />
+
+  <AdSlot placement="below-tool" />
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
