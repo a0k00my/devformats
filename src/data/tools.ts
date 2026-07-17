@@ -202,7 +202,7 @@ export const tools: Tool[] = [
     keywords: ['base64 encode', 'base64 decode', 'base64 converter online'],
     icon: 'Binary',
     related: ['url-encode', 'jwt-decoder'],
-    status: 'planned',
+    status: 'live',
     addedAt: '2026-07-23',
   },
   {
@@ -215,7 +215,7 @@ export const tools: Tool[] = [
     keywords: ['csv to json', 'convert csv to json', 'csv to json converter'],
     icon: 'Table',
     related: ['json-to-csv', 'json-formatter'],
-    status: 'planned',
+    status: 'live',
     addedAt: '2026-07-23',
   },
   {
@@ -228,7 +228,7 @@ export const tools: Tool[] = [
     keywords: ['json to typescript', 'json to interface', 'typescript interface generator'],
     icon: 'FileCode',
     related: ['go-struct-generator', 'python-dataclass-generator', 'json-formatter'],
-    status: 'planned',
+    status: 'live',
     addedAt: '2026-07-24',
   },
   {
@@ -241,7 +241,7 @@ export const tools: Tool[] = [
     keywords: ['json viewer', 'json tree view', 'view json online'],
     icon: 'ListTree',
     related: ['json-formatter', 'jsonpath'],
-    status: 'planned',
+    status: 'live',
     addedAt: '2026-07-24',
   },
   {
@@ -254,7 +254,7 @@ export const tools: Tool[] = [
     keywords: ['json parser', 'parse json online', 'json syntax error explained'],
     icon: 'FileSearch',
     related: ['json-validator', 'json-formatter'],
-    status: 'planned',
+    status: 'live',
     addedAt: '2026-07-25',
   },
 

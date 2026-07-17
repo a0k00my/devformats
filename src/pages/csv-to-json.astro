@@ -1,0 +1,29 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import CsvToJson from '../components/CsvToJson';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('csv-to-json')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'What does "First row is header" control?', a: 'When checked, the first CSV row becomes the object keys and the output is an array of objects. Unchecked, every row becomes a plain array, producing an array of arrays instead.' },
+  { q: 'Does it handle quoted fields with commas inside them?', a: 'Yes — quoted and escaped fields (e.g. "Smith, John") are parsed correctly per the CSV spec, via the papaparse library.' },
+  { q: 'Are numbers converted automatically?', a: 'Yes — numeric-looking cells are converted to actual JSON numbers rather than staying as strings, so "30" becomes 30.' },
+  { q: 'What delimiter does it expect?', a: 'Papaparse auto-detects the delimiter (comma, tab, semicolon, or pipe) from the input.' },
+  { q: 'Is my CSV uploaded anywhere?', a: 'No — parsing happens entirely in your browser.' },
+];
+---
+<ToolLayout tool={tool}>
+  <CsvToJson client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

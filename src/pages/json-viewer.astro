@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import JsonViewer from '../components/JsonViewer';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('json-viewer')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'How do I copy a value\'s path?', a: 'Click any key in the tree — its dot-notation path (like $.tools[0].slug) is copied to your clipboard, useful for referencing that value in code or a JSONPath query.' },
+  { q: 'How does search work?', a: 'Typing in the search box highlights any key or value containing your search term across the whole tree, without collapsing the rest of the structure.' },
+  { q: 'Why are deeply nested nodes collapsed by default?', a: 'Nodes past two levels deep start collapsed so large payloads stay scannable — click any ▶ to expand a branch.' },
+  { q: 'Is my data uploaded anywhere?', a: 'No — the tree is rendered entirely in your browser from the parsed JSON.' },
+];
+---
+<ToolLayout tool={tool}>
+  <JsonViewer client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

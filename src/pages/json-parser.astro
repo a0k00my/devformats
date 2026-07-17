@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import JsonParser from '../components/JsonParser';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('json-parser')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'How is this different from the JSON Validator?', a: 'The validator gives you a pass/fail plus structural stats. This tool goes further on failure — it recognizes the most common error patterns (trailing commas, single quotes, unquoted keys, comments) and explains what likely went wrong in plain language.' },
+  { q: 'Can it fix my JSON automatically?', a: 'No — it explains the problem so you can fix it yourself, since silently "fixing" JSON risks changing your intended data.' },
+  { q: 'What if my error isn\'t one of the common patterns?', a: 'You still get the raw line and column from the parser, even when the tool can\'t offer a specific explanation.' },
+  { q: 'Is my JSON uploaded anywhere?', a: 'No — parsing happens entirely in your browser via the native JSON.parse.' },
+];
+---
+<ToolLayout tool={tool}>
+  <JsonParser client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

@@ -1,0 +1,29 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import JsonToTypescript from '../components/JsonToTypescript';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('json-to-typescript')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'Interface vs type — which should I pick?', a: 'Both describe the same shape. interface is more common for object shapes and supports declaration merging; type is more flexible for unions and computed types. Pick whichever matches your codebase\'s convention.' },
+  { q: 'When does a field become optional?', a: 'A field is marked optional (with ?) when its sample value is null, since the tool infers from a single example rather than scanning every array element for presence.' },
+  { q: 'What\'s the difference between unknown and any?', a: 'unknown is the type-safe choice — you must narrow it before using it. any opts out of type checking entirely. Prefer unknown unless you have a specific reason not to.' },
+  { q: 'How are nested objects named?', a: 'Each nested object gets its own named interface/type derived from its key (PascalCased), so deeply nested JSON produces multiple readable declarations instead of one giant inline type.' },
+  { q: 'Does array element type get inferred correctly?', a: 'The tool infers the array\'s element type from its first item. Arrays with mixed element shapes across items aren\'t merged into a union — keep sample arrays representative.' },
+];
+---
+<ToolLayout tool={tool}>
+  <JsonToTypescript client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

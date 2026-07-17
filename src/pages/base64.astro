@@ -1,0 +1,29 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import Base64Tool from '../components/Base64Tool';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('base64')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'Why not just use btoa/atob directly?', a: 'Native btoa() throws on any character outside Latin1, so it breaks on emoji or non-Latin text. This tool encodes via TextEncoder first, making it Unicode-safe.' },
+  { q: 'What is the URL-safe variant?', a: 'Standard Base64 uses + and / characters, which have special meaning in URLs. The URL-safe variant replaces them with - and _ and drops padding, so the result can be used directly in a URL path or query string.' },
+  { q: 'Can I encode a file, not just text?', a: 'Yes — click Load File to read any file as bytes and encode it, useful for embedding small images as data URIs.' },
+  { q: 'What happens if I paste invalid Base64 to decode?', a: 'The tool reports "Invalid Base64 input" rather than silently producing garbage.' },
+  { q: 'Is my data uploaded anywhere?', a: 'No — encoding and decoding both happen entirely in your browser.' },
+];
+---
+<ToolLayout tool={tool}>
+  <Base64Tool client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>
