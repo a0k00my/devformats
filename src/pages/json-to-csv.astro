@@ -1,54 +1,51 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import ToolLayout from '../layouts/ToolLayout.astro';
 import JsonToCsv from '../components/JsonToCsv';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
 
-const schema = {
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "WebApplication",
-      "@id": "https://devformats.com/json-to-csv#app",
-      "name": "JSON to CSV Converter — Free JSON Formatter Tool",
-      "url": "https://devformats.com/json-to-csv",
-      "description": "Free online JSON to CSV converter. Transform JSON arrays into CSV format instantly. Part of the best free JSON formatter toolkit.",
-      "applicationCategory": "DeveloperApplication",
-      "operatingSystem": "Any",
-      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-      "isPartOf": { "@type": "WebSite", "name": "DevFormats", "url": "https://devformats.com" }
-    },
-    {
-      "@type": "BreadcrumbList",
-      "itemListElement": [
-        { "@type": "ListItem", "position": 1, "name": "DevFormats", "item": "https://devformats.com" },
-        { "@type": "ListItem", "position": 2, "name": "JSON to CSV", "item": "https://devformats.com/json-to-csv" }
-      ]
-    }
-  ]
-};
+const tool = getTool('json-to-csv')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'What JSON shape does this expect?', a: 'An array of flat-ish objects, like [{"name":"Alice","age":30}]. Each object becomes a row; the union of all keys across every object becomes the column headers.' },
+  { q: 'What happens to missing fields?', a: 'If an object is missing a key that other objects have, that cell is left blank in the output row — the column still exists.' },
+  { q: 'What happens to nested objects or arrays?', a: 'A nested value is serialized as a compact JSON string inside its cell, so no data is lost, though it won\'t be split into further columns.' },
+  { q: 'Can I open the output in Excel or Google Sheets?', a: 'Yes — the output is standard RFC 4180 CSV. Download it as a .csv file and open it directly in any spreadsheet application.' },
+  { q: 'Does this tool upload my data?', a: 'No. The conversion runs entirely in your browser; nothing is sent to a server.' },
+];
 ---
-<Layout
-  title="JSON to CSV Converter Online — Free JSON Formatter Tool"
-  description="Convert JSON arrays to CSV online for free. Transform JSON objects into spreadsheet-ready CSV files instantly. Part of the best free online JSON formatter toolkit — no data sent to servers."
-  canonical="https://devformats.com/json-to-csv"
-  schema={schema}
->
+<ToolLayout tool={tool}>
   <JsonToCsv client:load />
-  <article class="border-t px-4 py-8" style="border-color:var(--jfo-border);background:var(--jfo-bg)">
-    <div class="mx-auto max-w-[860px] space-y-5">
 
-      <header>
-        <h1 class="text-lg font-bold" style="color:var(--jfo-text-1)">JSON to CSV Converter — Free Online JSON Formatter Tool</h1>
-        <p class="mt-1 text-sm leading-relaxed" style="color:var(--jfo-text-3)">
-          Convert JSON arrays of objects to CSV format instantly. Part of the free <a href="/" style="color:var(--jfo-accent);text-decoration:underline;text-underline-offset:2px">DevFormats</a> toolkit.
-        </p>
-      </header>
+  <AdSlot placement="below-tool" />
 
-      <p class="text-sm leading-relaxed" style="color:var(--jfo-text-2)">
-        This <strong style="color:var(--jfo-text-1)">JSON formatter tool</strong> converts any JSON array of objects into a valid RFC 4180 CSV file. Each object becomes a row; all unique keys across all objects become column headers. Missing values in any row are left blank. Nested objects and arrays within a cell are serialised as compact JSON strings so no data is lost.
-      </p>
-      <p class="text-sm leading-relaxed" style="color:var(--jfo-text-2)">
-        Paste a JSON array, click <strong style="color:var(--jfo-text-1)">Convert to CSV</strong>, and download or copy the output. Row and column counts are shown in the toolbar. Useful for exporting API responses into Excel, Google Sheets, or any database import tool. All processing is client-side — your JSON never leaves your browser. For formatting or validating JSON before converting, use the <a href="/" style="color:var(--jfo-accent);text-decoration:underline;text-underline-offset:2px">free JSON formatter</a>.
-      </p>
-    </div>
-  </article>
-</Layout>
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is JSON to CSV?</h2>
+          <p>It converts a JSON array of objects into a spreadsheet-ready CSV file — the most common shape for exporting API responses into Excel or a database import tool.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input: <code class="font-mono text-xs" style="color:var(--accent)">{'[{"name":"Alice","age":30},{"name":"Bob","age":25}]'}</code></p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`name,age
+Alice,30
+Bob,25`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>The input must be a JSON array at the top level — a single object or a deeply nested structure without a flat array of records won't convert cleanly.</p>
+        </section>
+      </div>
+    </details>
+
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

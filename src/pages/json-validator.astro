@@ -1,70 +1,53 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import ToolLayout from '../layouts/ToolLayout.astro';
 import JsonValidator from '../components/JsonValidator';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
 
-const schema = {
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "WebApplication",
-      "@id": "https://devformats.com/json-validator#app",
-      "name": "JSON Formatter and Validator Online",
-      "url": "https://devformats.com/json-validator",
-      "description": "Free online JSON formatter and validator. Validate JSON syntax against RFC 8259, get exact line and column error locations, and view key count and depth stats.",
-      "applicationCategory": "DeveloperApplication",
-      "operatingSystem": "Any",
-      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-      "isPartOf": { "@type": "WebSite", "name": "DevFormats", "url": "https://devformats.com" }
-    },
-    {
-      "@type": "BreadcrumbList",
-      "itemListElement": [
-        { "@type": "ListItem", "position": 1, "name": "DevFormats", "item": "https://devformats.com" },
-        { "@type": "ListItem", "position": 2, "name": "JSON Validator", "item": "https://devformats.com/json-validator" }
-      ]
-    }
-  ]
-};
+const tool = getTool('json-validator')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'What does a JSON validator check?', a: 'It runs your input through a strict RFC 8259 parser and reports whether the syntax is valid — double-quoted keys and strings, no trailing commas, no comments, correctly matched brackets.' },
+  { q: 'Why does it say invalid when my JSON looks fine?', a: 'The most common causes are a trailing comma after the last item, single quotes instead of double quotes, or an unquoted key. The error message includes the exact line and column.' },
+  { q: 'What are "Total Keys" and "Max Depth"?', a: 'On valid input, the tool reports the total number of object keys across the whole document and the deepest level of nesting — useful for quickly gauging how complex a payload is.' },
+  { q: 'Is this different from the JSON Formatter?', a: 'The formatter validates as a side effect of formatting. This tool is for when you only want a pass/fail answer plus structural stats, without also reformatting the text.' },
+  { q: 'Does it support JSON5 or JSONC (comments)?', a: 'No — it validates strict JSON per RFC 8259, since that\'s what browsers, servers, and virtually every JSON.parse implementation actually expects.' },
+  { q: 'Is my data uploaded anywhere?', a: 'No. Validation runs entirely in your browser via the native JSON.parse. Nothing is sent to a server.' },
+];
 ---
-<Layout
-  title="JSON Validator Online — Free JSON Formatter & Validator Tool"
-  description="Free online JSON formatter and validator. Checks JSON syntax against RFC 8259 and reports exact line/column errors. The best free JSON formatter & validator — no data sent to servers."
-  canonical="https://devformats.com/json-validator"
-  schema={schema}
->
+<ToolLayout tool={tool}>
   <JsonValidator client:load />
-  <article class="border-t px-4 py-8" style="border-color:var(--jfo-border);background:var(--jfo-bg)">
-    <div class="mx-auto max-w-[860px] space-y-5">
 
-      <header>
-        <h1 class="text-lg font-bold" style="color:var(--jfo-text-1)">JSON Formatter and Validator — Free Online Syntax Checker</h1>
-        <p class="mt-1 text-sm leading-relaxed" style="color:var(--jfo-text-3)">
-          Validate JSON syntax against RFC 8259 with exact line and column error reporting. Part of the free <a href="/" style="color:var(--jfo-accent);text-decoration:underline;text-underline-offset:2px">DevFormats</a> toolkit.
-        </p>
-      </header>
+  <AdSlot placement="below-tool" />
 
-      <p class="text-sm leading-relaxed" style="color:var(--jfo-text-2)">
-        This <strong style="color:var(--jfo-text-1)">JSON formatter and validator</strong> checks your JSON text against the RFC 8259 international standard — the same spec used by all modern browsers, servers, and APIs. Paste your JSON, click <strong style="color:var(--jfo-text-1)">Validate</strong>, and get an instant result: a green panel with key-count and nesting-depth stats for valid input, or a red error card showing the exact line and column of every syntax mistake.
-      </p>
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
 
-      <div class="grid gap-4 sm:grid-cols-3">
-        <div class="rounded-lg border p-3" style="border-color:var(--jfo-border);background:var(--jfo-bg-soft)">
-          <div class="mb-1 text-xs font-semibold" style="color:var(--jfo-text-1)">Exact Error Location</div>
-          <p class="text-xs leading-relaxed" style="color:var(--jfo-text-3)">Reports line and column for every error — missing commas, trailing commas, unquoted keys, single-quoted strings, mismatched brackets.</p>
-        </div>
-        <div class="rounded-lg border p-3" style="border-color:var(--jfo-border);background:var(--jfo-bg-soft)">
-          <div class="mb-1 text-xs font-semibold" style="color:var(--jfo-text-1)">Structural Stats</div>
-          <p class="text-xs leading-relaxed" style="color:var(--jfo-text-3)">On success, shows total object key count and maximum nesting depth — useful for understanding complex nested payloads at a glance.</p>
-        </div>
-        <div class="rounded-lg border p-3" style="border-color:var(--jfo-border);background:var(--jfo-bg-soft)">
-          <div class="mb-1 text-xs font-semibold" style="color:var(--jfo-text-1)">RFC 8259 Compliant</div>
-          <p class="text-xs leading-relaxed" style="color:var(--jfo-text-3)">Strict validation — no lenient parsing, no false positives. If it passes here, it will parse correctly in any standards-compliant JSON library.</p>
-        </div>
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is JSON Validator?</h2>
+          <p>It checks whether a JSON document is syntactically valid against RFC 8259, and if it fails, tells you exactly where.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>Your input is passed to <code class="font-mono text-xs" style="color:var(--accent)">JSON.parse()</code>. On success, the tool walks the resulting object to count keys and measure nesting depth. On failure, the raw error offset is converted into a line and column.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>Trailing commas, single-quoted strings, unquoted keys, and comments are the four most frequent reasons hand-written JSON fails to parse.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Spec</h2>
+          <p><a href="https://www.rfc-editor.org/rfc/rfc8259" target="_blank" rel="noopener" class="underline" style="color:var(--accent)">RFC 8259</a> — The JSON Data Interchange Format</p>
+        </section>
       </div>
+    </details>
 
-      <p class="text-sm leading-relaxed" style="color:var(--jfo-text-2)">
-        Need to format the JSON after validating? Switch to the <a href="/" style="color:var(--jfo-accent);text-decoration:underline;text-underline-offset:2px">free JSON formatter</a> to beautify with syntax highlighting. Or use the <a href="/json-minifier" style="color:var(--jfo-accent);text-decoration:underline;text-underline-offset:2px">JSON Minifier</a> to compress it for production.
-      </p>
-    </div>
-  </article>
-</Layout>
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

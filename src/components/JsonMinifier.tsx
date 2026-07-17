@@ -73,7 +73,7 @@ export default function JsonMinifier() {
   };
 
   return (
-    <div className="tool-height flex flex-col" style={{ height: 'calc(100vh - 48px)' }}>
+    <div className="tool-height flex flex-col" style={{ height: 'min(70vh, 640px)' }}>
       <div className="toolbar-scroll flex flex-wrap items-center gap-1.5 border-b px-3 py-2"
         style={{ background: 'var(--jfo-toolbar)', borderColor: 'var(--jfo-border)' }}>
 

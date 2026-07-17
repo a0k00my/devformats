@@ -1,54 +1,49 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import ToolLayout from '../layouts/ToolLayout.astro';
 import JsonMinifier from '../components/JsonMinifier';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
 
-const schema = {
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "WebApplication",
-      "@id": "https://devformats.com/json-minifier#app",
-      "name": "JSON Minifier — Free Online JSON Formatter Tool",
-      "url": "https://devformats.com/json-minifier",
-      "description": "Free online JSON minifier. Remove all whitespace and compress JSON to its smallest valid form. Part of the best free JSON formatter toolkit.",
-      "applicationCategory": "DeveloperApplication",
-      "operatingSystem": "Any",
-      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-      "isPartOf": { "@type": "WebSite", "name": "DevFormats", "url": "https://devformats.com" }
-    },
-    {
-      "@type": "BreadcrumbList",
-      "itemListElement": [
-        { "@type": "ListItem", "position": 1, "name": "DevFormats", "item": "https://devformats.com" },
-        { "@type": "ListItem", "position": 2, "name": "JSON Minifier", "item": "https://devformats.com/json-minifier" }
-      ]
-    }
-  ]
-};
+const tool = getTool('json-minifier')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'What does JSON minification do?', a: 'It strips every non-essential whitespace character — spaces, tabs, newlines — leaving the smallest valid JSON string that parses to the exact same data.' },
+  { q: 'Does minifying change the data?', a: 'No. JSON.parse(minified) and JSON.parse(original) produce identical objects. Only the textual representation shrinks.' },
+  { q: 'Why minify before sending JSON over a network?', a: 'Smaller payloads mean less bandwidth and slightly faster transfer, which adds up at scale for high-traffic APIs.' },
+  { q: 'How much smaller does minified JSON get?', a: 'It depends on indentation depth — deeply nested, heavily indented JSON can shrink 30-50%. The tool shows exact byte counts and percentage saved.' },
+  { q: 'Can I reformat minified JSON later?', a: 'Yes — paste the minified output into the JSON Formatter to pretty-print it again at any time.' },
+  { q: 'Is this safe for large files?', a: 'Yes, minification uses native JSON.parse/stringify, so it scales to tens of megabytes in milliseconds on any modern device.' },
+];
 ---
-<Layout
-  title="JSON Minifier Online — Free JSON Formatter & Compressor Tool"
-  description="Free online JSON minifier and compressor. Strip whitespace and reduce JSON file size instantly. Shows byte savings and compression ratio. Part of the best free JSON formatter toolkit."
-  canonical="https://devformats.com/json-minifier"
-  schema={schema}
->
+<ToolLayout tool={tool}>
   <JsonMinifier client:load />
-  <article class="border-t px-4 py-8" style="border-color:var(--jfo-border);background:var(--jfo-bg)">
-    <div class="mx-auto max-w-[860px] space-y-5">
 
-      <header>
-        <h1 class="text-lg font-bold" style="color:var(--jfo-text-1)">JSON Minifier — Free Online JSON Compressor</h1>
-        <p class="mt-1 text-sm leading-relaxed" style="color:var(--jfo-text-3)">
-          Compress JSON by removing all whitespace. Part of the free <a href="/" style="color:var(--jfo-accent);text-decoration:underline;text-underline-offset:2px">DevFormats</a> toolkit.
-        </p>
-      </header>
+  <AdSlot placement="below-tool" />
 
-      <p class="text-sm leading-relaxed" style="color:var(--jfo-text-2)">
-        JSON minification removes all unnecessary whitespace — spaces, tabs, and newlines — producing the smallest possible valid JSON string. The data is identical when parsed; only the representation shrinks. This is critical for reducing API response payload sizes, shrinking config files before storage, and lowering network transfer costs.
-      </p>
-      <p class="text-sm leading-relaxed" style="color:var(--jfo-text-2)">
-        Paste your formatted JSON into the left panel and click <strong style="color:var(--jfo-text-1)">Minify</strong>. The right panel shows the compressed output; the toolbar displays original size, minified size, and percentage saved. Download as a <code style="font-family:ui-monospace,monospace;font-size:0.85em;color:var(--jfo-accent)">.json</code> file or copy to clipboard. Need to re-read the output? Go back to the <a href="/" style="color:var(--jfo-accent);text-decoration:underline;text-underline-offset:2px">pretty JSON formatter</a> to beautify it again.
-      </p>
-    </div>
-  </article>
-</Layout>
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is JSON Minifier?</h2>
+          <p>A tool that removes all non-essential whitespace from JSON, producing the smallest valid representation of the same data — useful right before sending a payload over the network or into storage.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>The input is parsed with <code class="font-mono text-xs" style="color:var(--accent)">JSON.parse()</code> then re-serialized with <code class="font-mono text-xs" style="color:var(--accent)">JSON.stringify()</code> and no indentation argument, which naturally omits all extra whitespace.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Keep production payloads minified; only format when a human needs to read the file. Version-controlled fixtures are the exception — keep those formatted for readable diffs.</p>
+        </section>
+      </div>
+    </details>
+
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>
