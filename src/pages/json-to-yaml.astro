@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import JsonToYaml from '../components/JsonToYaml';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('json-to-yaml')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'Does key order survive the conversion?', a: 'Yes — JSON.parse preserves the original key order for string keys, and the YAML dumper writes keys in that same order.' },
+  { q: 'What YAML style is used?', a: 'Standard block style (one key per line, indentation-based nesting) rather than flow style, since that\'s the more readable, more common form for hand-edited config files.' },
+  { q: 'Can I convert the result back to JSON?', a: 'Yes — use the YAML to JSON tool for the reverse direction.' },
+  { q: 'Is my data uploaded anywhere?', a: 'No — the conversion runs entirely in your browser.' },
+];
+---
+<ToolLayout tool={tool}>
+  <JsonToYaml client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

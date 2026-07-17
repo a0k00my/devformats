@@ -135,7 +135,7 @@ export const tools: Tool[] = [
     keywords: ['yaml formatter', 'format yaml online', 'yaml beautifier', 'yaml validator'],
     icon: 'FileText',
     related: ['yaml-to-json', 'json-to-yaml', 'yaml-validator'],
-    status: 'planned',
+    status: 'live',
     addedAt: '2026-07-20',
   },
   {
@@ -148,7 +148,7 @@ export const tools: Tool[] = [
     keywords: ['xml formatter', 'format xml online', 'xml beautifier', 'pretty print xml'],
     icon: 'Code2',
     related: ['xml-validator', 'xml-to-json', 'json-to-xml'],
-    status: 'planned',
+    status: 'live',
     addedAt: '2026-07-20',
   },
   {
@@ -161,7 +161,7 @@ export const tools: Tool[] = [
     keywords: ['json to yaml', 'convert json to yaml', 'json to yaml converter'],
     icon: 'ArrowRightLeft',
     related: ['yaml-to-json', 'yaml-formatter', 'json-formatter'],
-    status: 'planned',
+    status: 'live',
     addedAt: '2026-07-21',
   },
   {
@@ -174,7 +174,7 @@ export const tools: Tool[] = [
     keywords: ['yaml to json', 'convert yaml to json', 'yaml to json converter'],
     icon: 'ArrowRightLeft',
     related: ['json-to-yaml', 'yaml-formatter', 'json-formatter'],
-    status: 'planned',
+    status: 'live',
     addedAt: '2026-07-21',
   },
   {
@@ -187,7 +187,7 @@ export const tools: Tool[] = [
     keywords: ['jwt decoder', 'decode jwt', 'jwt debugger', 'json web token decoder'],
     icon: 'KeyRound',
     related: ['base64', 'json-formatter', 'json-viewer'],
-    status: 'planned',
+    status: 'live',
     addedAt: '2026-07-22',
   },
 

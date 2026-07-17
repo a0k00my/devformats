@@ -1,0 +1,49 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import XmlFormatter from '../components/XmlFormatter';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('xml-formatter')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'What does the XML Formatter do?', a: 'It parses XML with the browser\'s native DOMParser, then pretty-prints it with consistent indentation, preserving comments, CDATA sections, and namespaced attributes.' },
+  { q: 'Does it support XML namespaces?', a: 'Yes — namespace prefixes (like dev:features) and their declarations are preserved exactly as written.' },
+  { q: 'What happens to comments and CDATA?', a: 'Both are kept in place rather than stripped, since removing them can change intent (CDATA often protects literal markup characters from being escaped).' },
+  { q: 'Why does it say "Malformed XML"?', a: 'The DOMParser reports a parser error for issues like unclosed tags, mismatched tags, or invalid characters. Unlike JSON, there\'s no line/column from the native parser — check for the most recently opened tag first.' },
+  { q: 'What does Minify do?', a: 'It removes whitespace between tags, producing the smallest valid representation without changing the document structure.' },
+  { q: 'Is my XML uploaded anywhere?', a: 'No — parsing and formatting run entirely in your browser.' },
+];
+---
+<ToolLayout tool={tool}>
+  <XmlFormatter client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is XML Formatter?</h2>
+          <p>A tool that re-indents raw or minified XML for readability, using the browser's built-in XML parser rather than a third-party library.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>Input is parsed with <code class="font-mono text-xs" style="color:var(--accent)">DOMParser</code>, then walked recursively to rebuild indented output — self-closing empty elements, single-line text-only elements, comments, and CDATA are each handled explicitly.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>Unclosed tags, mismatched closing tags, and unescaped ampersands (use &amp;amp; for a literal &amp;) are the most frequent causes of a parse failure.</p>
+        </section>
+      </div>
+    </details>
+
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

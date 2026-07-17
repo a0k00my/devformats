@@ -1,5 +1,21 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 
+/** Cmd/Ctrl+Enter = run, Esc = clear focus — shared across every tool page. */
+export function useToolShortcuts(run: () => void) {
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        e.preventDefault();
+        run();
+      } else if (e.key === 'Escape' && document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [run]);
+}
+
 export function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {

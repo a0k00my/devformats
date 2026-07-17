@@ -1,0 +1,54 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import JwtDecoder from '../components/JwtDecoder';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('jwt-decoder')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'What is a JWT?', a: 'A JSON Web Token is a compact, URL-safe way to represent claims between two parties. It has three base64url-encoded parts separated by dots: header, payload, and signature.' },
+  { q: 'Can this tool read the contents of my JWT?', a: 'Decoding the header and payload requires no secret — they\'re just base64url-encoded JSON, readable by anyone who has the token. This is why JWTs should never contain sensitive data in the payload.' },
+  { q: 'What does "alg:none" mean and why is it a warning?', a: 'It means the token claims to have no signature at all. Some libraries historically accepted alg:none as valid, which let an attacker forge tokens by simply removing the signature. Never trust an alg:none token.' },
+  { q: 'How does signature verification work here?', a: 'For HMAC algorithms (HS256/384/512), paste the shared secret. For RSA/ECDSA algorithms (RS256/384/512, ES256/384), paste the PEM-encoded public key. The tool verifies locally using the jose library — the secret/key never leaves your browser.' },
+  { q: 'Why does verification fail even though the token looks valid?', a: 'Either the secret/key doesn\'t match the one that signed the token, or the token has expired/been tampered with. The header and payload will still decode correctly even if verification fails — decoding and verifying are separate steps.' },
+  { q: 'What does the expiry warning mean?', a: 'If the payload has an exp claim, the tool shows it as a relative time ("expires in 2h" or "expired 3d ago") so you don\'t have to convert the Unix timestamp yourself.' },
+  { q: 'Is my token uploaded anywhere?', a: 'No. Decoding and verification both happen entirely in your browser.' },
+];
+---
+<ToolLayout tool={tool}>
+  <JwtDecoder client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is JWT Decoder?</h2>
+          <p>It splits a JSON Web Token into its header, payload, and signature, decodes the first two from base64url, and optionally verifies the signature against a secret or public key you provide.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Supported algorithms</h2>
+          <p>HS256, HS384, HS512 (HMAC, shared secret) and RS256, RS384, RS512, ES256, ES384 (asymmetric, public key) via the <code class="font-mono text-xs" style="color:var(--accent)">jose</code> library.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Never put secrets or personal data in a JWT payload — it's readable by anyone with the token. Always check exp before trusting a token, and reject alg:none unconditionally.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Spec</h2>
+          <p><a href="https://www.rfc-editor.org/rfc/rfc7519" target="_blank" rel="noopener" class="underline" style="color:var(--accent)">RFC 7519</a> — JSON Web Token (JWT)</p>
+        </section>
+      </div>
+    </details>
+
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

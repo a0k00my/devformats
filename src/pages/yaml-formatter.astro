@@ -1,0 +1,49 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import YamlFormatter from '../components/YamlFormatter';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('yaml-formatter')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'What does the YAML Formatter do?', a: 'It parses your YAML, then re-serializes it with consistent indentation (2 or 4 spaces), catching syntax errors along the way.' },
+  { q: 'Why is YAML sensitive to indentation?', a: 'Unlike JSON, YAML uses indentation itself to represent nesting — there are no braces or brackets, so inconsistent spacing changes the meaning of the document.' },
+  { q: 'What does Minify do for YAML?', a: 'It re-emits the document in flow style — the JSON-like {}/[] syntax YAML also supports — producing a compact, single-block representation of the same data.' },
+  { q: 'What causes a YAMLException?', a: 'The most common causes are mixing tabs and spaces for indentation, an unquoted string that looks like a special value (e.g. `no` parsing as boolean false), or a missing colon after a key.' },
+  { q: 'Does this handle multi-document YAML files?', a: 'This tool formats a single YAML document. Files with multiple documents separated by --- should be split first.' },
+  { q: 'Is my YAML uploaded anywhere?', a: 'No — parsing and formatting run entirely in your browser via js-yaml.' },
+];
+---
+<ToolLayout tool={tool}>
+  <YamlFormatter client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is YAML Formatter?</h2>
+          <p>YAML ("YAML Ain't Markup Language") is the format behind most CI configs, Kubernetes manifests, and application config files. This tool re-indents and validates YAML documents.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>The input is parsed with <code class="font-mono text-xs" style="color:var(--accent)">js-yaml</code>'s loader, then dumped back out with a fixed indent width. Parse errors include the exact line and column from the underlying mark.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Spec</h2>
+          <p><a href="https://yaml.org/spec/1.2.2/" target="_blank" rel="noopener" class="underline" style="color:var(--accent)">YAML 1.2 Specification</a></p>
+        </section>
+      </div>
+    </details>
+
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>
