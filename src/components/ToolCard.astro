@@ -1,0 +1,29 @@
+---
+import * as icons from 'lucide-react';
+import type { Tool } from '../data/tools';
+
+interface Props {
+  tool: Tool;
+}
+const { tool } = Astro.props;
+const Icon = (icons as any)[tool.icon] ?? icons.FileQuestion;
+---
+<a
+  href={tool.status === 'live' ? `/${tool.slug}` : '#'}
+  aria-disabled={tool.status !== 'live'}
+  class="group flex flex-col gap-2 rounded-lg border p-4 transition-all"
+  style={`border-color:var(--border);background:var(--bg-subtle);${tool.status !== 'live' ? 'opacity:0.55;pointer-events:none;cursor:default' : ''}`}
+  onmouseover="this.style.borderColor='var(--border-strong)'"
+  onmouseout="this.style.borderColor='var(--border)'"
+>
+  <div class="flex items-center gap-2.5">
+    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md" style="background:var(--accent-bg);color:var(--accent)">
+      <Icon size={16} />
+    </span>
+    <span class="text-sm font-semibold" style="color:var(--fg)">{tool.name}</span>
+  </div>
+  <p class="text-xs leading-relaxed" style="color:var(--fg-muted)">{tool.description}</p>
+  {tool.status === 'planned' && (
+    <span class="mt-1 w-fit rounded-full px-2 py-0.5 font-mono text-[10px]" style="background:var(--bg-muted);color:var(--fg-subtle)">Coming soon</span>
+  )}
+</a>

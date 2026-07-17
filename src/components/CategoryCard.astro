@@ -1,0 +1,31 @@
+---
+import * as icons from 'lucide-react';
+import type { Category } from '../data/tools';
+import { CATEGORY_META, getToolsByCategory } from '../data/tools';
+
+interface Props {
+  category: Category;
+}
+const { category } = Astro.props;
+const meta = CATEGORY_META[category];
+const count = getToolsByCategory(category).length;
+const Icon = (icons as any)[meta.icon] ?? icons.Folder;
+---
+<a
+  href={`/${category}`}
+  class="flex flex-col gap-3 rounded-lg border p-5 transition-all"
+  style="border-color:var(--border);background:var(--bg-subtle)"
+  onmouseover="this.style.borderColor='var(--accent-border)'"
+  onmouseout="this.style.borderColor='var(--border)'"
+>
+  <div class="flex items-center justify-between">
+    <span class="flex h-10 w-10 items-center justify-center rounded-lg" style="background:var(--accent-bg);color:var(--accent)">
+      <Icon size={20} />
+    </span>
+    <span class="font-mono text-[11px]" style="color:var(--fg-subtle)">{count} {count === 1 ? 'tool' : 'tools'}</span>
+  </div>
+  <div>
+    <div class="text-sm font-semibold" style="color:var(--fg)">{meta.name}</div>
+    <p class="mt-1 text-xs leading-relaxed" style="color:var(--fg-muted)">{meta.description}</p>
+  </div>
+</a>

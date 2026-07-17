@@ -1,0 +1,28 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Breadcrumb from '../components/Breadcrumb.astro';
+import ToolCard from '../components/ToolCard.astro';
+import { CATEGORY_META, getToolsByCategory, type Category } from '../data/tools';
+
+export function getStaticPaths() {
+  return (Object.keys(CATEGORY_META) as Category[]).map(category => ({ params: { category } }));
+}
+
+const { category } = Astro.params as { category: Category };
+const meta = CATEGORY_META[category];
+const categoryTools = getToolsByCategory(category);
+---
+<Layout
+  title={`${meta.name} Tools | DevFormats`}
+  description={meta.description}
+  canonical={`https://devformats.com/${category}`}
+>
+  <div class="mx-auto max-w-[1200px] px-4 py-10">
+    <Breadcrumb items={[{ name: 'Categories', href: '/categories' }, { name: meta.name }]} />
+    <h1 class="mb-2 mt-4 text-2xl font-bold tracking-tight" style="color:var(--fg)">{meta.name} Tools</h1>
+    <p class="mb-8 text-sm" style="color:var(--fg-muted)">{meta.description}</p>
+    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {categoryTools.map(tool => <ToolCard tool={tool} />)}
+    </div>
+  </div>
+</Layout>

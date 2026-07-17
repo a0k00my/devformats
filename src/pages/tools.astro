@@ -1,0 +1,20 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Breadcrumb from '../components/Breadcrumb.astro';
+import ToolCard from '../components/ToolCard.astro';
+import { tools } from '../data/tools';
+---
+<Layout
+  title="All Developer Tools | DevFormats"
+  description="Browse all JSON, YAML, XML, converter, generator, encoding, and JWT tools on DevFormats. Fast, free, and 100% client-side."
+  canonical="https://devformats.com/tools"
+>
+  <div class="mx-auto max-w-[1200px] px-4 py-10">
+    <Breadcrumb items={[{ name: 'Tools' }]} />
+    <h1 class="mb-2 mt-4 text-2xl font-bold tracking-tight" style="color:var(--fg)">All Tools</h1>
+    <p class="mb-8 text-sm" style="color:var(--fg-muted)">{tools.length} developer tools across 7 categories. Everything runs locally in your browser.</p>
+    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {tools.map(tool => <ToolCard tool={tool} />)}
+    </div>
+  </div>
+</Layout>

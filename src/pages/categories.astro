@@ -1,0 +1,22 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Breadcrumb from '../components/Breadcrumb.astro';
+import CategoryCard from '../components/CategoryCard.astro';
+import { CATEGORY_META, type Category } from '../data/tools';
+
+const categories = Object.keys(CATEGORY_META) as Category[];
+---
+<Layout
+  title="Categories | DevFormats"
+  description="Browse developer tools by category: JSON, YAML, XML, Converters, Generators, Encoding, and JWT."
+  canonical="https://devformats.com/categories"
+>
+  <div class="mx-auto max-w-[1200px] px-4 py-10">
+    <Breadcrumb items={[{ name: 'Categories' }]} />
+    <h1 class="mb-2 mt-4 text-2xl font-bold tracking-tight" style="color:var(--fg)">Categories</h1>
+    <p class="mb-8 text-sm" style="color:var(--fg-muted)">Every tool, grouped by data format.</p>
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {categories.map(c => <CategoryCard category={c} />)}
+    </div>
+  </div>
+</Layout>

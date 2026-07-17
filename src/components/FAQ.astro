@@ -1,0 +1,36 @@
+---
+interface QA {
+  q: string;
+  a: string; // plain text or simple inline HTML
+}
+interface Props {
+  items: QA[];
+  title?: string;
+}
+const { items, title = 'Frequently Asked Questions' } = Astro.props;
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: items.map(({ q, a }) => ({
+    '@type': 'Question',
+    name: q,
+    acceptedAnswer: { '@type': 'Answer', text: a.replace(/<[^>]+>/g, '') },
+  })),
+};
+---
+<script type="application/ld+json" set:html={JSON.stringify(schema)} />
+<section>
+  <h2 class="mb-3 font-mono text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">{title}</h2>
+  <div class="divide-y rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+    {items.map(({ q, a }) => (
+      <details class="group px-4 py-3" style="border-color:var(--border)">
+        <summary class="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-medium" style="color:var(--fg)">
+          {q}
+          <span class="shrink-0 text-xs transition-transform group-open:rotate-180" style="color:var(--fg-subtle)">▾</span>
+        </summary>
+        <p class="mt-2 text-sm leading-relaxed" style="color:var(--fg-muted)" set:html={a} />
+      </details>
+    ))}
+  </div>
+</section>

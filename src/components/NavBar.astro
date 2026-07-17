@@ -1,44 +1,39 @@
 ---
 import ThemeToggle from './ThemeToggle';
+import CommandPalette from './CommandPalette';
 
 const links = [
-  { href: '/', label: 'Formatter' },
-  { href: '/json-validator', label: 'Validator' },
-  { href: '/json-minifier', label: 'Minifier' },
-  { href: '/json-to-csv', label: 'JSON→CSV' },
-  { href: '/json-diff', label: 'Diff' },
-];
-
-const pageLinks = [
-  { href: '/about', label: 'About' },
-  { href: '/contact', label: 'Contact' },
-  { href: '/privacy-policy', label: 'Privacy' },
-  { href: '/terms', label: 'Terms' },
+  { href: '/tools', label: 'Tools' },
+  { href: '/categories', label: 'Categories' },
+  { href: '/blog', label: 'Blog' },
 ];
 const pathname = Astro.url.pathname;
 ---
-<nav id="navbar" class="sticky top-0 z-50 border-b" style="background:var(--jfo-bg)/95;backdrop-filter:blur(12px);border-color:var(--jfo-border)">
-  <div class="mx-auto flex h-12 max-w-[1600px] items-center gap-3 px-4">
+<nav id="navbar" class="sticky top-0 z-50 border-b" style="background:var(--bg);border-color:var(--border)">
+  <div class="mx-auto flex h-14 max-w-[1200px] items-center gap-3 px-4">
 
     <!-- Logo -->
     <a href="/" class="flex shrink-0 items-center gap-2 transition-opacity hover:opacity-80">
       <img src="/favicon-96x96.png" alt="DevFormats" class="h-7 w-7 rounded-md" />
-      <span class="text-sm font-semibold tracking-tight" style="color:var(--jfo-text-1)">
-        Dev<span style="color:var(--jfo-accent)">Formats</span>
+      <span class="text-sm font-semibold tracking-tight" style="color:var(--fg)">
+        Dev<span style="color:var(--accent)">Formats</span>
       </span>
     </a>
 
+    <!-- Search / command palette trigger -->
+    <div class="ml-2">
+      <CommandPalette client:load />
+    </div>
+
     <!-- Desktop nav links -->
-    <div class="nav-links-hide hidden items-center gap-0.5 overflow-x-auto md:flex" style="scrollbar-width:none">
+    <div class="nav-links-hide ml-2 hidden items-center gap-0.5 md:flex">
       {links.map(link => (
         <a
           href={link.href}
-          class="shrink-0 rounded px-3 py-1 text-xs font-medium transition-all border"
-          style={pathname === link.href
-            ? 'background:var(--jfo-accent-bg);color:var(--jfo-accent);border-color:var(--jfo-accent-border)'
-            : 'color:var(--jfo-text-3);border-color:transparent;background:transparent;cursor:pointer'}
-          onmouseover={pathname !== link.href ? "this.style.background='var(--jfo-bg-soft)';this.style.color='var(--jfo-text-1)';this.style.borderColor='var(--jfo-border)'" : ""}
-          onmouseout={pathname !== link.href ? "this.style.background='transparent';this.style.color='var(--jfo-text-3)';this.style.borderColor='transparent'" : ""}
+          class="shrink-0 rounded px-3 py-1.5 text-sm font-medium transition-colors"
+          style={pathname.startsWith(link.href)
+            ? 'color:var(--accent)'
+            : 'color:var(--fg-muted);cursor:pointer'}
         >
           {link.label}
         </a>
@@ -47,27 +42,19 @@ const pathname = Astro.url.pathname;
 
     <!-- Right controls -->
     <div class="ml-auto flex shrink-0 items-center gap-2">
-
-      <!-- Page links (desktop only) -->
-      <div class="hidden items-center md:flex" style="border-left:1px solid var(--jfo-border);margin-left:4px;padding-left:8px;gap:0">
-        {pageLinks.map(link => (
-          <a
-            href={link.href}
-            class="rounded px-2.5 py-1 text-[11px] font-medium transition-colors"
-            style={pathname === link.href
-              ? 'color:var(--jfo-accent)'
-              : 'color:var(--jfo-text-3);cursor:pointer'}
-            onmouseover={pathname !== link.href ? "this.style.color='var(--jfo-text-1)'" : ""}
-            onmouseout={pathname !== link.href ? "this.style.color='var(--jfo-text-3)'" : ""}
-          >
-            {link.label}
-          </a>
-        ))}
-      </div>
-
-      <div class="hidden items-center gap-1 sm:flex" style="border-left:1px solid var(--jfo-border);padding-left:8px">
-        <span class="h-1.5 w-1.5 animate-pulse rounded-full" style="background:var(--jfo-accent)"></span>
-        <span class="font-mono text-[10px]" style="color:var(--jfo-text-3)">CLIENT-SIDE</span>
+      <a
+        href="https://github.com/a0k00my/devformats"
+        target="_blank"
+        rel="noopener"
+        class="hidden h-7 w-7 items-center justify-center rounded transition-colors sm:flex"
+        style="color:var(--fg-muted)"
+        aria-label="View source on GitHub"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.73.5.5 5.73.5 12c0 5.09 3.29 9.4 7.86 10.93.57.1.78-.25.78-.55v-1.94c-3.2.7-3.87-1.54-3.87-1.54-.53-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.29 1.19-3.09-.12-.29-.51-1.47.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 5.79 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.58.24 2.76.12 3.05.74.8 1.19 1.83 1.19 3.09 0 4.41-2.7 5.38-5.27 5.67.42.36.78 1.07.78 2.16v3.2c0 .3.21.66.79.55A10.99 10.99 0 0 0 23.5 12c0-6.27-5.23-11.5-11.5-11.5Z"/></svg>
+      </a>
+      <div class="hidden items-center gap-1.5 md:flex" style="border-left:1px solid var(--border);padding-left:8px;margin-left:2px">
+        <span class="h-1.5 w-1.5 animate-pulse rounded-full" style="background:var(--accent)"></span>
+        <span class="font-mono text-[10px]" style="color:var(--fg-subtle)">CLIENT-SIDE</span>
       </div>
       <ThemeToggle client:load />
 
@@ -78,38 +65,27 @@ const pathname = Astro.url.pathname;
         style="cursor:pointer"
         aria-label="Open menu"
       >
-        <span class="block h-px w-4 rounded-full transition-all" style="background:var(--jfo-text-2)"></span>
-        <span class="block h-px w-4 rounded-full transition-all" style="background:var(--jfo-text-2)"></span>
-        <span class="block h-px w-3 rounded-full transition-all" style="background:var(--jfo-text-2)"></span>
+        <span class="block h-px w-4 rounded-full transition-all" style="background:var(--fg-muted)"></span>
+        <span class="block h-px w-4 rounded-full transition-all" style="background:var(--fg-muted)"></span>
+        <span class="block h-px w-3 rounded-full transition-all" style="background:var(--fg-muted)"></span>
       </button>
     </div>
   </div>
 
   <!-- Mobile menu drawer -->
-  <div id="mobile-menu" class="hidden border-t px-4 pb-3 pt-2" style="border-color:var(--jfo-border);background:var(--jfo-bg-soft)">
+  <div id="mobile-menu" class="hidden border-t px-4 pb-3 pt-2" style="border-color:var(--border);background:var(--bg-subtle)">
     {links.map(link => (
       <a
         href={link.href}
         class="block rounded px-3 py-2 text-sm font-medium transition-colors"
-        style={pathname === link.href
-          ? 'color:var(--jfo-accent);background:var(--jfo-accent-bg);cursor:pointer'
-          : 'color:var(--jfo-text-2);cursor:pointer'}
+        style={pathname.startsWith(link.href)
+          ? 'color:var(--accent);background:var(--accent-bg);cursor:pointer'
+          : 'color:var(--fg-muted);cursor:pointer'}
       >
         {link.label}
       </a>
     ))}
-    <div class="my-2 h-px" style="background:var(--jfo-border)"></div>
-    {pageLinks.map(link => (
-      <a
-        href={link.href}
-        class="block rounded px-3 py-2 text-sm font-medium transition-colors"
-        style={pathname === link.href
-          ? 'color:var(--jfo-accent);background:var(--jfo-accent-bg);cursor:pointer'
-          : 'color:var(--jfo-text-2);cursor:pointer'}
-      >
-        {link.label}
-      </a>
-    ))}
+    <a href="https://github.com/a0k00my/devformats" target="_blank" rel="noopener" class="block rounded px-3 py-2 text-sm font-medium" style="color:var(--fg-muted)">GitHub</a>
   </div>
 </nav>
 
@@ -120,7 +96,6 @@ const pathname = Astro.url.pathname;
     const menu = document.getElementById('mobile-menu');
     if (btn && menu) {
       btn.addEventListener('click', () => menu.classList.toggle('hidden'));
-      // Close menu when a link inside it is clicked (navigating away)
       menu.querySelectorAll('a').forEach(a => {
         a.addEventListener('click', () => menu.classList.add('hidden'));
       });
