@@ -1,0 +1,27 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import XmlParserTool from '../components/XmlParserTool';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('xml-parser')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'What does this show that the XML Formatter doesn\'t?', a: 'It shows the parsed structure as a JSON-like collapsible tree, rather than reformatted XML text — useful for understanding a document\'s shape at a glance.' },
+  { q: 'How are attributes shown in the tree?', a: 'Prefixed with @, alongside the element\'s other keys, so you can tell attributes and child elements apart.' },
+  { q: 'Is my XML uploaded anywhere?', a: 'No — parsing runs entirely in your browser via the native DOMParser.' },
+];
+---
+<ToolLayout tool={tool}>
+  <XmlParserTool client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

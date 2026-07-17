@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import XmlToJson from '../components/XmlToJson';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('xml-to-json')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'How are XML attributes represented?', a: 'Each attribute becomes a key prefixed with @, e.g. <tool id="1"> becomes {"@id": "1"}, so attributes and child elements never collide by name.' },
+  { q: 'What happens with repeated sibling tags?', a: 'They become a JSON array — two or more <tool> siblings under the same parent produce a "tool": [...] array instead of overwriting each other.' },
+  { q: 'What about mixed text and child elements?', a: 'Direct text content alongside child elements is captured under a "#text" key so no data is silently dropped.' },
+  { q: 'Is my data uploaded anywhere?', a: 'No — the conversion runs entirely in your browser via the native DOMParser.' },
+];
+---
+<ToolLayout tool={tool}>
+  <XmlToJson client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

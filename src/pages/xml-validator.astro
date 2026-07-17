@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import XmlValidator from '../components/XmlValidator';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('xml-validator')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'What does "well-formed" mean for XML?', a: 'It means every tag is properly opened, closed, and nested, attributes are quoted, and there\'s exactly one root element — the baseline structural rules every XML document must follow.' },
+  { q: 'Does this check against a schema (XSD/DTD)?', a: 'No — this checks well-formedness only. Validating against a specific schema is a separate, much narrower concern than general syntax correctness.' },
+  { q: 'Why don\'t I get a line number for the error?', a: 'Browsers\' native XML parsers don\'t expose a consistent line/column API — the raw parser error message is shown instead, which often mentions the nearby content.' },
+  { q: 'Is my XML uploaded anywhere?', a: 'No — validation runs entirely in your browser via the native DOMParser.' },
+];
+---
+<ToolLayout tool={tool}>
+  <XmlValidator client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

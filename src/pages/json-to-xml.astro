@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import JsonToXml from '../components/JsonToXml';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('json-to-xml')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'How are JSON arrays represented in XML?', a: 'Each array item becomes a repeated sibling element, named after the array\'s key with a trailing "s" stripped (e.g. tools -> <tool>).' },
+  { q: 'What happens to keys that aren\'t valid XML tag names?', a: 'Keys with characters XML tags don\'t allow (like spaces) fall back to a generic <item> tag.' },
+  { q: 'Can I set the root element name?', a: 'Yes — the Root field in the toolbar controls the wrapping element name.' },
+  { q: 'Is my data uploaded anywhere?', a: 'No — the conversion runs entirely in your browser.' },
+];
+---
+<ToolLayout tool={tool}>
+  <JsonToXml client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

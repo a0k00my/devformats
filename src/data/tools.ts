@@ -269,7 +269,7 @@ export const tools: Tool[] = [
     keywords: ['json schema validator', 'validate json schema', 'ajv online'],
     icon: 'ShieldCheck',
     related: ['json-validator', 'jsonpath'],
-    status: 'planned',
+    status: 'live',
     addedAt: '2026-07-26',
   },
   {
@@ -282,7 +282,7 @@ export const tools: Tool[] = [
     keywords: ['jsonpath tester', 'jsonpath online', 'jsonpath query tool'],
     icon: 'Search',
     related: ['json-viewer', 'json-schema-validator'],
-    status: 'planned',
+    status: 'live',
     addedAt: '2026-07-26',
   },
   {
@@ -295,7 +295,7 @@ export const tools: Tool[] = [
     keywords: ['json to xml', 'convert json to xml', 'json to xml converter'],
     icon: 'ArrowRightLeft',
     related: ['xml-to-json', 'xml-formatter'],
-    status: 'planned',
+    status: 'live',
     addedAt: '2026-07-27',
   },
   {
@@ -308,7 +308,7 @@ export const tools: Tool[] = [
     keywords: ['xml to json', 'convert xml to json', 'xml to json converter'],
     icon: 'ArrowRightLeft',
     related: ['json-to-xml', 'xml-formatter'],
-    status: 'planned',
+    status: 'live',
     addedAt: '2026-07-27',
   },
   {
@@ -321,7 +321,7 @@ export const tools: Tool[] = [
     keywords: ['xml validator', 'validate xml online', 'xml syntax checker'],
     icon: 'CheckCircle2',
     related: ['xml-formatter', 'xml-parser'],
-    status: 'planned',
+    status: 'live',
     addedAt: '2026-07-28',
   },
   {
@@ -334,7 +334,7 @@ export const tools: Tool[] = [
     keywords: ['xml parser', 'parse xml online'],
     icon: 'FileSearch',
     related: ['xml-validator', 'xml-formatter'],
-    status: 'planned',
+    status: 'live',
     addedAt: '2026-07-28',
   },
   {
@@ -347,7 +347,7 @@ export const tools: Tool[] = [
     keywords: ['yaml validator', 'validate yaml online', 'yaml syntax checker'],
     icon: 'CheckCircle2',
     related: ['yaml-formatter', 'yaml-parser'],
-    status: 'planned',
+    status: 'live',
     addedAt: '2026-07-29',
   },
   {
@@ -360,7 +360,7 @@ export const tools: Tool[] = [
     keywords: ['yaml parser', 'parse yaml online'],
     icon: 'FileSearch',
     related: ['yaml-validator', 'yaml-formatter'],
-    status: 'planned',
+    status: 'live',
     addedAt: '2026-07-29',
   },
 

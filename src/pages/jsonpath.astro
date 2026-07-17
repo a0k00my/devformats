@@ -1,0 +1,29 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import JsonPathTester from '../components/JsonPathTester';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('jsonpath')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'What is JSONPath?', a: 'A query language for JSON, similar in spirit to XPath for XML — expressions like $.tools[*].slug select values out of a document without writing a full parser.' },
+  { q: 'What does $ mean?', a: 'It refers to the root of the document. Every JSONPath expression starts from $.' },
+  { q: 'Can I filter with conditions?', a: 'Yes — expressions like $.tools[?(@.category=="json")] select array items matching a condition on the current item (@).' },
+  { q: 'What library powers this?', a: 'jsonpath-plus, which supports the common JSONPath syntax plus some extensions beyond the original spec.' },
+  { q: 'Is my data uploaded anywhere?', a: 'No — queries run entirely in your browser.' },
+];
+---
+<ToolLayout tool={tool}>
+  <JsonPathTester client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

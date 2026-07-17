@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import YamlValidatorTool from '../components/YamlValidatorTool';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('yaml-validator')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'What does this check?', a: 'It parses your YAML against the YAML 1.2 specification and reports whether it\'s syntactically valid, with the exact line and column of any error.' },
+  { q: 'What are "Total Keys" and "Max Depth"?', a: 'On valid input, the total number of map keys across the whole document and the deepest level of nesting — the same stats the JSON Validator reports, adapted for YAML.' },
+  { q: 'What\'s the most common YAML mistake?', a: 'Mixing tabs and spaces for indentation — YAML requires consistent spaces, since indentation itself carries structural meaning.' },
+  { q: 'Is my YAML uploaded anywhere?', a: 'No — validation runs entirely in your browser via js-yaml.' },
+];
+---
+<ToolLayout tool={tool}>
+  <YamlValidatorTool client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

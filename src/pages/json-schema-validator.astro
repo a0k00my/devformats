@@ -1,0 +1,40 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import JsonSchemaValidator from '../components/JsonSchemaValidator';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('json-schema-validator')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'What is JSON Schema?', a: 'A JSON-based format for describing the shape, types, and constraints a JSON document must satisfy — required fields, value ranges, string patterns, and more.' },
+  { q: 'What does "instancePath" mean in an error?', a: 'It\'s a JSON pointer to the exact location in your data that failed validation, e.g. /age points to the top-level age field.' },
+  { q: 'What JSON Schema draft is supported?', a: 'The tool uses Ajv, which supports draft-07 and 2019-09/2020-12 schemas depending on the $schema keyword — omit it to default to the latest supported draft.' },
+  { q: 'Why does it say the schema itself is invalid?', a: 'Ajv compiles the schema before validating data against it — a malformed schema (e.g. an unknown keyword in strict mode) fails at compile time with its own error.' },
+  { q: 'Is my data uploaded anywhere?', a: 'No — both the schema and the data are validated entirely in your browser using Ajv.' },
+];
+---
+<ToolLayout tool={tool}>
+  <JsonSchemaValidator client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Spec</h2>
+          <p><a href="https://json-schema.org/" target="_blank" rel="noopener" class="underline" style="color:var(--accent)">json-schema.org</a> — the JSON Schema specification</p>
+        </section>
+      </div>
+    </details>
+
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

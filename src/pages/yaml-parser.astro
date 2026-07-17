@@ -1,0 +1,27 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import YamlParserTool from '../components/YamlParserTool';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('yaml-parser')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'What does this show that the YAML Formatter doesn\'t?', a: 'It shows the parsed structure as a collapsible tree, rather than reformatted YAML text — useful for understanding a document\'s shape at a glance.' },
+  { q: 'What YAML features are supported?', a: 'Anything js-yaml\'s default schema supports: nested maps and sequences, anchors/aliases, multi-line strings, and standard scalar types.' },
+  { q: 'Is my YAML uploaded anywhere?', a: 'No — parsing runs entirely in your browser via js-yaml.' },
+];
+---
+<ToolLayout tool={tool}>
+  <YamlParserTool client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>
