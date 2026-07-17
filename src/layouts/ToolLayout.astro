@@ -1,0 +1,43 @@
+---
+// The tool page template — built once (Phase 4), used ~30 times (Phase 7).
+// Owns everything "above the fold": SEO head, breadcrumb, H1, one-line
+// description. The tool itself and everything below it (Related Tools,
+// Documentation, FAQ) is composed by each page using the shared components
+// (RelatedTools, FAQ) — kept out of this template so content can vary
+// per-tool without fighting a rigid abstraction.
+import Layout from './Layout.astro';
+import Breadcrumb from '../components/Breadcrumb.astro';
+import { CATEGORY_META, type Tool } from '../data/tools';
+
+interface Props {
+  tool: Tool;
+  schema?: object;
+}
+const { tool, schema } = Astro.props;
+const categoryName = CATEGORY_META[tool.category].name;
+
+const softwareAppSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: tool.name,
+  url: `https://devformats.com/${tool.slug}`,
+  applicationCategory: 'DeveloperApplication',
+  operatingSystem: 'Any',
+  description: tool.metaDescription,
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+};
+---
+<Layout
+  title={tool.metaTitle}
+  description={tool.metaDescription}
+  canonical={`https://devformats.com/${tool.slug}`}
+  schema={schema ?? softwareAppSchema}
+>
+  <div class="mx-auto w-full max-w-[1200px] px-4 pt-4">
+    <Breadcrumb items={[{ name: categoryName, href: `/${tool.category}` }, { name: tool.name }]} />
+    <h1 class="mb-1 mt-3 text-xl font-bold tracking-tight sm:text-2xl" style="color:var(--fg)">{tool.name}</h1>
+    <p class="mb-4 text-sm" style="color:var(--fg-muted)">{tool.description}</p>
+  </div>
+
+  <slot />
+</Layout>

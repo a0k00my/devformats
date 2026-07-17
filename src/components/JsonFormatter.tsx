@@ -31,6 +31,31 @@ function formatBytes(b: number) {
   return (b / 1048576).toFixed(2) + ' MB';
 }
 
+// V8's JSON.parse errors include a raw string offset ("...at position 42")
+// but no line/col — recover both by walking the original text up to that offset.
+function describeJsonError(text: string, err: Error): string {
+  const match = err.message.match(/position (\d+)/);
+  if (!match) return err.message;
+  const pos = parseInt(match[1], 10);
+  const upToError = text.slice(0, pos);
+  const line = upToError.split('\n').length;
+  const col = pos - upToError.lastIndexOf('\n');
+  return `${err.message} (line ${line}, col ${col})`;
+}
+
+function sortKeysDeep(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(sortKeysDeep);
+  if (value !== null && typeof value === 'object') {
+    return Object.keys(value as Record<string, unknown>)
+      .sort()
+      .reduce((acc, key) => {
+        acc[key] = sortKeysDeep((value as Record<string, unknown>)[key]);
+        return acc;
+      }, {} as Record<string, unknown>);
+  }
+  return value;
+}
+
 function highlightJson(json: string, isLight: boolean): string {
   const escaped = json.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   return escaped.replace(
@@ -76,6 +101,7 @@ export default function JsonFormatter() {
   const [copied, setCopied] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [isLight, setIsLight] = useState(false);
+  const [sortKeys, setSortKeys] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Resizable splitter & mobile detection
@@ -94,12 +120,13 @@ export default function JsonFormatter() {
     return () => window.removeEventListener('jfo-theme-change', check);
   }, []);
 
-  const doFormat = useCallback((text: string, mode: IndentMode, light: boolean) => {
+  const doFormat = useCallback((text: string, mode: IndentMode, light: boolean, sort: boolean) => {
     if (!text.trim()) { setOutput(''); setHighlighted(''); setError(''); setStats(null); setParsedData(null); return; }
     if (text.length > 5_000_000) { setError('Input exceeds 5 MB — paste a smaller JSON document.'); setOutput(''); setHighlighted(''); setStats(null); setParsedData(null); return; }
     try {
       const indent = mode === 'tab' ? '\t' : parseInt(mode);
-      const parsed = JSON.parse(text);
+      let parsed = JSON.parse(text);
+      if (sort) parsed = sortKeysDeep(parsed);
       const formatted = JSON.stringify(parsed, null, indent as any);
       setOutput(formatted);
       setHighlighted(highlightJson(formatted, light));
@@ -108,7 +135,7 @@ export default function JsonFormatter() {
       setStats({ lines: formatted.split('\n').length, size: formatBytes(new TextEncoder().encode(formatted).length) });
       setDirty(false);
     } catch (e: unknown) {
-      setError((e as Error).message);
+      setError(describeJsonError(text, e as Error));
       setOutput(''); setHighlighted(''); setStats(null); setParsedData(null);
     }
   }, []);
@@ -118,24 +145,36 @@ export default function JsonFormatter() {
     else setHighlighted('');
   }, [isLight, output]);
 
-  const handleFormat = () => doFormat(input, indentMode, isLight);
+  const handleFormat = () => doFormat(input, indentMode, isLight, sortKeys);
 
   const handleIndentChange = (mode: IndentMode) => {
     setIndentMode(mode);
-    if (output && !dirty) doFormat(input, mode, isLight);
+    if (output && !dirty) doFormat(input, mode, isLight, sortKeys);
+  };
+
+  const handleSortKeysToggle = () => {
+    const next = !sortKeys;
+    setSortKeys(next);
+    if (output && !dirty) doFormat(input, indentMode, isLight, next);
   };
 
   const doMinify = () => {
     if (!input.trim()) return;
     try {
-      const m = JSON.stringify(JSON.parse(input));
+      const parsed = sortKeys ? sortKeysDeep(JSON.parse(input)) : JSON.parse(input);
+      const m = JSON.stringify(parsed);
       setOutput(m);
       setHighlighted(highlightJson(m, isLight));
-      setParsedData(JSON.parse(m));
+      setParsedData(parsed);
       setError('');
       setStats({ lines: 1, size: formatBytes(new TextEncoder().encode(m).length) });
       setDirty(false);
-    } catch (e: unknown) { setError((e as Error).message); }
+    } catch (e: unknown) { setError(describeJsonError(input, e as Error)); }
+  };
+
+  const doSampleData = () => {
+    setInput(SAMPLE);
+    setDirty(true);
   };
 
   const doCopy = async () => {
@@ -165,8 +204,22 @@ export default function JsonFormatter() {
     localStorage.removeItem(LS_INPUT); localStorage.removeItem(LS_OUTPUT);
   };
 
+  // Cmd/Ctrl+Enter = run, Esc = clear focus (shared shortcuts across every tool page)
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        e.preventDefault();
+        doFormat(input, indentMode, isLight, sortKeys);
+      } else if (e.key === 'Escape' && document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [input, indentMode, isLight, sortKeys, doFormat]);
+
   return (
-    <div className="tool-height flex flex-col" style={{ height: 'calc(100vh - 48px)' }}>
+    <div className="tool-height flex flex-col border-y" style={{ height: 'min(70vh, 640px)', borderColor: 'var(--jfo-border)' }}>
       {/* ── Toolbar ── */}
       <div className="toolbar-scroll flex flex-wrap items-center gap-1.5 border-b px-3 py-2"
         style={{ background: 'var(--jfo-toolbar)', borderColor: 'var(--jfo-border)' }}>
@@ -190,12 +243,21 @@ export default function JsonFormatter() {
 
         <div className="h-3.5 w-px" style={{ background: 'var(--jfo-border)' }} />
 
-        <button onClick={handleFormat} className="tb-btn-primary relative">
+        <button onClick={handleFormat} className="tb-btn-primary relative" title="Cmd/Ctrl+Enter">
           {tr('format')}
           {dirty && <span className="absolute -right-1 -top-1 h-2 w-2 animate-pulse rounded-full bg-[#f59e0b]" title="Input changed" />}
         </button>
 
         <button onClick={doMinify} className="tb-btn">{tr('minify')}</button>
+
+        <button
+          onClick={handleSortKeysToggle}
+          className="tb-btn"
+          title="Sort object keys alphabetically"
+          style={sortKeys ? { background: 'var(--jfo-accent-bg)', borderColor: 'var(--jfo-accent-border)', color: 'var(--jfo-accent)' } : {}}
+        >
+          Sort Keys
+        </button>
 
         <div className="h-3.5 w-px" style={{ background: 'var(--jfo-border)' }} />
 
@@ -207,6 +269,7 @@ export default function JsonFormatter() {
         <button onClick={doDownload} className="tb-btn-ghost">{tr('download')}</button>
         <button onClick={() => fileRef.current?.click()} className="tb-btn-ghost">{tr('loadFile')}</button>
         <input ref={fileRef} type="file" accept=".json,text/plain,application/json" className="hidden" onChange={doLoadFile} />
+        <button onClick={doSampleData} className="tb-btn-ghost">Sample Data</button>
         <button onClick={doClear} className="tb-btn-ghost">{tr('clear')}</button>
 
         {stats && (

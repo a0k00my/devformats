@@ -1,0 +1,79 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import JsonFormatter from '../components/JsonFormatter';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('json-formatter')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'What is a JSON formatter?', a: 'A JSON formatter takes compact or minified JSON text and re-indents it with consistent spacing and line breaks — also called pretty-printing. It doesn\'t change the data, only its presentation.' },
+  { q: 'How do I format JSON?', a: 'Paste JSON into the input panel, pick an indent style (2 spaces, 4 spaces, or tab), then click Format (or press Cmd/Ctrl+Enter). The formatted result appears in the output panel with syntax highlighting.' },
+  { q: 'Why does Format say my JSON is invalid?', a: 'The formatter runs your input through the browser\'s native JSON.parse, which is strict — no trailing commas, no comments, and keys must be double-quoted. The error message includes the line and column where parsing failed.' },
+  { q: 'What does "Sort Keys" do?', a: 'It recursively sorts every object\'s keys alphabetically before formatting. Useful for diffing two JSON documents that have the same data but different key ordering.' },
+  { q: 'Does this tool send my JSON anywhere?', a: 'No. Formatting happens entirely with JSON.parse/JSON.stringify in your browser. Nothing is uploaded — you can disconnect from the internet and the tool keeps working.' },
+  { q: 'Is my input saved anywhere?', a: 'Only in your own browser\'s localStorage, so it\'s still there if you navigate away and come back. It never leaves your device.' },
+  { q: 'What\'s the difference between Format and Minify?', a: 'Format adds indentation and line breaks for readability. Minify strips all non-essential whitespace to produce the smallest valid JSON — useful before sending a payload over the network.' },
+  { q: 'Is there a file size limit?', a: 'The tool refuses input over 5 MB to keep the browser responsive, since JSON.parse holds the entire parsed structure in memory. Everything under that runs in milliseconds on any modern device.' },
+  { q: 'Can I upload a .json file directly?', a: 'Yes — click Load File to read a file from disk via the browser\'s FileReader API. Like everything else here, the file never leaves your machine.' },
+];
+---
+<ToolLayout tool={tool}>
+  <JsonFormatter client:load />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is JSON Formatter?</h2>
+          <p>JSON Formatter re-indents raw or minified JSON so its structure is readable at a glance — every key on its own line, nesting shown through indentation. It's the fastest way to make sense of a dense API response or config file.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>The tool parses your input with <code class="font-mono text-xs" style="color:var(--accent)">JSON.parse()</code>, which validates the syntax as a side effect, then serializes the result back with <code class="font-mono text-xs" style="color:var(--accent)">JSON.stringify(data, null, indent)</code>. If parsing fails, the raw error position is converted into a line and column so you know exactly where to look.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>2-space, 4-space, or tab indentation</li>
+            <li>Alphabetical key sorting for diff-friendly output</li>
+            <li>Tree and raw syntax-highlighted views</li>
+            <li>Line/column error reporting</li>
+            <li>Copy, download as .json, or load a file directly</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input: <code class="font-mono text-xs" style="color:var(--accent)">{'{"name":"ok","tags":["a","b"]}'}</code></p>
+          <p>Output (2-space indent):</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`{
+  "name": "ok",
+  "tags": [
+    "a",
+    "b"
+  ]
+}`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>The most frequent JSON.parse failures: a trailing comma after the last item in an object or array, single-quoted strings instead of double quotes, unquoted object keys, and comments (JSON has no comment syntax). Each produces a specific line/column in the error bar.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Keep production payloads minified (smaller over the wire) and only format when a human needs to read them. Sort keys before committing generated fixtures to version control, so diffs show real changes instead of reordering noise.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Spec</h2>
+          <p><a href="https://www.rfc-editor.org/rfc/rfc8259" target="_blank" rel="noopener" class="underline" style="color:var(--accent)">RFC 8259</a> — The JSON Data Interchange Format</p>
+        </section>
+      </div>
+    </details>
+
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>
