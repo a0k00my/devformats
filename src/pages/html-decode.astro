@@ -1,0 +1,27 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import HtmlCodec from '../components/HtmlCodec';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('html-decode')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'What entities does this decode?', a: 'Standard named entities (&amp;, &lt;, &gt;, &quot;, &#39;, and more) plus numeric entities like &#65; or &#x41;.' },
+  { q: 'Does decoding execute any scripts?', a: 'No — the decoder uses a plain textarea element, which never interprets its content as executable markup, so decoding is safe even on untrusted input.' },
+  { q: 'Is my data uploaded anywhere?', a: 'No — decoding runs entirely in your browser.' },
+];
+---
+<ToolLayout tool={tool}>
+  <HtmlCodec client:load mode="decode" />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

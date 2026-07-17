@@ -1,0 +1,127 @@
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { useToolShortcuts } from './SplitPanel';
+
+const SAMPLE = `{
+  "name": "DevFormats",
+  "version": "2.0",
+  "free": true,
+  "price": null,
+  "tags": ["json", "yaml"],
+  "author": { "type": "web-tool", "clientSide": true }
+}`;
+
+const LS_INPUT = 'df-input-go-struct';
+const MONO = { fontFamily: "ui-monospace, 'Geist Mono', SFMono-Regular, Menlo, monospace" };
+
+function toPascalCase(name: string): string {
+  return name.replace(/(^|[-_ ])(\w)/g, (_, __, c) => c.toUpperCase());
+}
+
+function goType(value: unknown, fieldName: string, out: string[]): string {
+  if (value === null) return 'interface{}';
+  if (Array.isArray(value)) {
+    if (value.length === 0) return '[]interface{}';
+    return `[]${goType(value[0], fieldName.replace(/s$/, ''), out)}`;
+  }
+  if (typeof value === 'object') {
+    const typeName = toPascalCase(fieldName);
+    const fields = Object.entries(value as Record<string, unknown>).map(([key, val]) => {
+      const fieldType = goType(val, key, out);
+      return `\t${toPascalCase(key)} ${fieldType} \`json:"${key}"\``;
+    });
+    out.push(`type ${typeName} struct {\n${fields.join('\n')}\n}`);
+    return typeName;
+  }
+  if (typeof value === 'string') return 'string';
+  if (typeof value === 'boolean') return 'bool';
+  if (typeof value === 'number') return Number.isInteger(value) ? 'int' : 'float64';
+  return 'interface{}';
+}
+
+function jsonToGoStruct(json: string, rootName: string): string {
+  const data = JSON.parse(json);
+  const out: string[] = [];
+  goType(data, rootName, out);
+  return out.reverse().join('\n\n');
+}
+
+export default function GoStructGenerator() {
+  const [input, setInput] = useState(() => (typeof window === 'undefined' ? SAMPLE : localStorage.getItem(LS_INPUT) ?? SAMPLE));
+  const [rootName, setRootName] = useState('Root');
+  const [output, setOutput] = useState('');
+  const [error, setError] = useState('');
+  const [copied, setCopied] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => { localStorage.setItem(LS_INPUT, input); }, [input]);
+
+  const doGenerate = useCallback(() => {
+    if (!input.trim()) { setOutput(''); setError(''); return; }
+    try { setOutput(jsonToGoStruct(input, rootName || 'Root')); setError(''); }
+    catch (e: unknown) { setError((e as Error).message); setOutput(''); }
+  }, [input, rootName]);
+
+  useToolShortcuts(doGenerate);
+  useEffect(() => { if (input) doGenerate(); }, [rootName]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const doCopy = async () => { if (!output) return; await navigator.clipboard.writeText(output); setCopied(true); setTimeout(() => setCopied(false), 2000); };
+  const doDownload = () => {
+    if (!output) return;
+    const url = URL.createObjectURL(new Blob([output], { type: 'text/x-go' }));
+    Object.assign(document.createElement('a'), { href: url, download: 'struct.go' }).click();
+    URL.revokeObjectURL(url);
+  };
+  const doLoadFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]; if (!file) return;
+    const r = new FileReader();
+    r.onload = ev => { setInput(ev.target?.result as string); setOutput(''); setError(''); };
+    r.readAsText(file); e.target.value = '';
+  };
+  const doSampleData = () => setInput(SAMPLE);
+  const doClear = () => { setInput(''); setOutput(''); setError(''); localStorage.removeItem(LS_INPUT); };
+
+  return (
+    <div className="tool-height flex flex-col border-y" style={{ height: 'min(70vh, 640px)', borderColor: 'var(--jfo-border)' }}>
+      <div className="toolbar-scroll flex flex-wrap items-center gap-1.5 border-b px-3 py-2" style={{ background: 'var(--jfo-toolbar)', borderColor: 'var(--jfo-border)' }}>
+        <input value={rootName} onChange={e => setRootName(e.target.value)} placeholder="Root" className="w-20 rounded border px-2 py-1 text-xs outline-none" style={{ ...MONO, background: 'var(--jfo-editor)', borderColor: 'var(--jfo-border)', color: 'var(--jfo-code)' }} />
+        <div className="h-3.5 w-px" style={{ background: 'var(--jfo-border)' }} />
+        <button onClick={doGenerate} className="tb-btn-primary" title="Cmd/Ctrl+Enter">⚡ Generate</button>
+        <button onClick={doCopy} className="tb-btn" style={copied ? { background: 'var(--jfo-accent-bg)', borderColor: 'var(--jfo-accent-border)', color: 'var(--jfo-accent)' } : {}}>{copied ? '✓ Copied' : 'Copy'}</button>
+        <button onClick={doDownload} className="tb-btn-ghost">↓ Download</button>
+        <button onClick={() => fileRef.current?.click()} className="tb-btn-ghost">↑ Load File</button>
+        <input ref={fileRef} type="file" accept=".json,text/plain" className="hidden" onChange={doLoadFile} />
+        <button onClick={doSampleData} className="tb-btn-ghost">Sample Data</button>
+        <button onClick={doClear} className="tb-btn-ghost">Clear</button>
+      </div>
+
+      {error && (
+        <div className="flex items-center gap-2 border-b px-3 py-1.5 text-xs" style={{ ...MONO, background: 'var(--jfo-err-bg)', borderColor: 'var(--jfo-err-border)', color: 'var(--jfo-err-text)' }}>
+          <span style={{ color: '#ee0000' }}>✗</span><span>{error}</span>
+        </div>
+      )}
+
+      <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
+        <div className="flex flex-col overflow-hidden md:w-1/2" style={{ minWidth: 0 }}>
+          <div className="flex items-center justify-between border-b px-3 py-1" style={{ background: 'var(--jfo-panel-hdr)', borderColor: 'var(--jfo-border-2)' }}>
+            <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>JSON Input</span>
+          </div>
+          <textarea value={input} onChange={e => setInput(e.target.value)} placeholder="Paste your JSON here…"
+            className="flex-1 resize-none p-4 text-[13px] outline-none" style={{ ...MONO, lineHeight: '1.65', background: 'var(--jfo-editor)', color: 'var(--jfo-code)' }}
+            spellCheck={false} autoComplete="off" autoCapitalize="off" />
+        </div>
+        <div className="flex flex-col overflow-hidden border-t md:w-1/2 md:border-l md:border-t-0" style={{ borderColor: 'var(--jfo-border-2)', minWidth: 0 }}>
+          <div className="flex items-center justify-between border-b px-3 py-1" style={{ background: 'var(--jfo-panel-hdr)', borderColor: 'var(--jfo-border-2)' }}>
+            <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>Go Output</span>
+          </div>
+          <div className="flex-1 overflow-auto p-4" style={{ background: 'var(--jfo-editor)' }}>
+            {output ? (
+              <pre style={{ ...MONO, lineHeight: '1.65', fontSize: '13px', whiteSpace: 'pre-wrap', wordBreak: 'break-all', color: 'var(--jfo-code)' }}>{output}</pre>
+            ) : (
+              <div className="flex h-full items-center justify-center text-xs" style={{ ...MONO, color: 'var(--jfo-placeholder)' }}>Go struct output appears here</div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

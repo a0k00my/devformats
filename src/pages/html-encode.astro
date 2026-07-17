@@ -1,0 +1,27 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import HtmlCodec from '../components/HtmlCodec';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('html-encode')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'Which characters get escaped?', a: '& < > " and \' — the five characters that have special meaning in HTML markup or attribute values.' },
+  { q: 'When do I need this?', a: 'Whenever you\'re displaying user-supplied or arbitrary text inside HTML and want it to render as literal text rather than be interpreted as markup — a basic defense against unintentionally broken (or malicious) markup.' },
+  { q: 'Is my data uploaded anywhere?', a: 'No — encoding runs entirely in your browser.' },
+];
+---
+<ToolLayout tool={tool}>
+  <HtmlCodec client:load mode="encode" />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

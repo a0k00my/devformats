@@ -1,0 +1,27 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import UrlCodec from '../components/UrlCodec';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('url-encode')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'What characters get encoded?', a: 'Everything except letters, digits, and a small set of unreserved characters (- _ . ! ~ * \' ( )) is percent-encoded, matching JavaScript\'s encodeURIComponent.' },
+  { q: 'When do I need this?', a: 'Whenever a value (like a search query or a redirect URL) is going into a query string or path segment and might contain spaces, &, ?, or other characters with special meaning in a URL.' },
+  { q: 'Is my data uploaded anywhere?', a: 'No — encoding runs entirely in your browser.' },
+];
+---
+<ToolLayout tool={tool}>
+  <UrlCodec client:load mode="encode" />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import PythonDataclassGenerator from '../components/PythonDataclassGenerator';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('python-dataclass-generator')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'Why are field names snake_cased?', a: 'It matches PEP 8, Python\'s standard naming convention, even when the source JSON uses camelCase keys.' },
+  { q: 'How are null values handled?', a: 'A null value produces Optional[Any], since the sample didn\'t reveal the field\'s real type.' },
+  { q: 'How are nested objects handled?', a: 'Each nested object gets its own @dataclass, derived from its key, rather than a nested dict type.' },
+  { q: 'Is my data uploaded anywhere?', a: 'No — generation runs entirely in your browser.' },
+];
+---
+<ToolLayout tool={tool}>
+  <PythonDataclassGenerator client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

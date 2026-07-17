@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import GoStructGenerator from '../components/GoStructGenerator';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('go-struct-generator')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'What json tags does it generate?', a: 'Each field gets a `json:"originalKey"` tag matching the exact JSON key, so encoding/json round-trips correctly even though Go field names are PascalCased.' },
+  { q: 'How are null values handled?', a: 'A null value produces interface{}, since Go has no built-in optional/nullable primitive types — you\'d typically swap in a pointer type or a null-aware type based on your use case.' },
+  { q: 'How are nested objects handled?', a: 'Each nested object gets its own named struct, derived from its key, rather than an anonymous inline struct.' },
+  { q: 'Is my data uploaded anywhere?', a: 'No — generation runs entirely in your browser.' },
+];
+---
+<ToolLayout tool={tool}>
+  <GoStructGenerator client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

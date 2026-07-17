@@ -375,7 +375,7 @@ export const tools: Tool[] = [
     keywords: ['json to go struct', 'go struct generator', 'generate go struct from json'],
     icon: 'FileCode',
     related: ['json-to-typescript', 'python-dataclass-generator'],
-    status: 'planned',
+    status: 'live',
     addedAt: '2026-07-30',
   },
   {
@@ -388,7 +388,7 @@ export const tools: Tool[] = [
     keywords: ['json to python dataclass', 'python dataclass generator', 'generate dataclass from json'],
     icon: 'FileCode',
     related: ['json-to-typescript', 'go-struct-generator'],
-    status: 'planned',
+    status: 'live',
     addedAt: '2026-07-30',
   },
   {
@@ -401,7 +401,7 @@ export const tools: Tool[] = [
     keywords: ['url encode', 'url encoder online', 'percent encode'],
     icon: 'Link2',
     related: ['url-decode', 'base64'],
-    status: 'planned',
+    status: 'live',
     addedAt: '2026-07-31',
   },
   {
@@ -414,7 +414,7 @@ export const tools: Tool[] = [
     keywords: ['url decode', 'url decoder online', 'percent decode'],
     icon: 'Link2',
     related: ['url-encode', 'base64'],
-    status: 'planned',
+    status: 'live',
     addedAt: '2026-07-31',
   },
   {
@@ -427,7 +427,7 @@ export const tools: Tool[] = [
     keywords: ['html encode', 'html entity encode', 'escape html online'],
     icon: 'Code2',
     related: ['html-decode', 'url-encode'],
-    status: 'planned',
+    status: 'live',
     addedAt: '2026-08-01',
   },
   {
@@ -440,7 +440,7 @@ export const tools: Tool[] = [
     keywords: ['html decode', 'html entity decode', 'unescape html online'],
     icon: 'Code2',
     related: ['html-encode', 'url-decode'],
-    status: 'planned',
+    status: 'live',
     addedAt: '2026-08-01',
   },
 ];

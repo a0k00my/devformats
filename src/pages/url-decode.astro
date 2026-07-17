@@ -1,0 +1,27 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import UrlCodec from '../components/UrlCodec';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('url-decode')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'What if the input isn\'t valid percent-encoding?', a: 'The tool reports "Invalid percent-encoding sequence" rather than silently producing garbled output.' },
+  { q: 'Does this decode a full URL, or just a component?', a: 'It decodes any percent-encoded text — a full URL, a single query parameter value, or a path segment all work the same way.' },
+  { q: 'Is my data uploaded anywhere?', a: 'No — decoding runs entirely in your browser.' },
+];
+---
+<ToolLayout tool={tool}>
+  <UrlCodec client:load mode="decode" />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>
