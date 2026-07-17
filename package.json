@@ -1,5 +1,5 @@
 {
-  "name": "json-formattor",
+  "name": "devformats",
   "type": "module",
   "version": "0.0.1",
   "engines": {
@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@astrojs/react": "^6.0.1",
+    "@astrojs/sitemap": "^3.7.3",
     "@fontsource-variable/geist": "^5.2.9",
     "@fontsource/geist-mono": "^5.2.8",
     "@tailwindcss/vite": "^4.3.2",

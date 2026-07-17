@@ -7,7 +7,7 @@ type IndentMode = '2' | '4' | 'tab';
 type ViewMode = 'tree' | 'raw';
 
 const SAMPLE = `{
-  "name": "JSON Formatter Online",
+  "name": "DevFormats",
   "version": "2.0",
   "features": ["format", "validate", "minify", "diff"],
   "free": true,

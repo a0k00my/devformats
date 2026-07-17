@@ -7,20 +7,20 @@ const schema = {
   "@graph": [
     {
       "@type": "WebApplication",
-      "@id": "https://jsonformatteronline.in/json-minifier#app",
+      "@id": "https://devformats.com/json-minifier#app",
       "name": "JSON Minifier — Free Online JSON Formatter Tool",
-      "url": "https://jsonformatteronline.in/json-minifier",
+      "url": "https://devformats.com/json-minifier",
       "description": "Free online JSON minifier. Remove all whitespace and compress JSON to its smallest valid form. Part of the best free JSON formatter toolkit.",
       "applicationCategory": "DeveloperApplication",
       "operatingSystem": "Any",
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-      "isPartOf": { "@type": "WebSite", "name": "JSON Formatter Online", "url": "https://jsonformatteronline.in" }
+      "isPartOf": { "@type": "WebSite", "name": "DevFormats", "url": "https://devformats.com" }
     },
     {
       "@type": "BreadcrumbList",
       "itemListElement": [
-        { "@type": "ListItem", "position": 1, "name": "JSON Formatter Online", "item": "https://jsonformatteronline.in" },
-        { "@type": "ListItem", "position": 2, "name": "JSON Minifier", "item": "https://jsonformatteronline.in/json-minifier" }
+        { "@type": "ListItem", "position": 1, "name": "DevFormats", "item": "https://devformats.com" },
+        { "@type": "ListItem", "position": 2, "name": "JSON Minifier", "item": "https://devformats.com/json-minifier" }
       ]
     }
   ]
@@ -29,18 +29,17 @@ const schema = {
 <Layout
   title="JSON Minifier Online — Free JSON Formatter & Compressor Tool"
   description="Free online JSON minifier and compressor. Strip whitespace and reduce JSON file size instantly. Shows byte savings and compression ratio. Part of the best free JSON formatter toolkit."
-  canonical="https://jsonformatteronline.in/json-minifier"
-  keywords="json minifier, json minifier online, compress json, minify json online, json compressor, free json formatter tool, reduce json size"
+  canonical="https://devformats.com/json-minifier"
   schema={schema}
 >
   <JsonMinifier client:load />
-  <article data-en-only class="border-t px-4 py-8" style="border-color:var(--jfo-border);background:var(--jfo-bg)">
+  <article class="border-t px-4 py-8" style="border-color:var(--jfo-border);background:var(--jfo-bg)">
     <div class="mx-auto max-w-[860px] space-y-5">
 
       <header>
-        <h1 data-i18n="minifierH1" class="text-lg font-bold" style="color:var(--jfo-text-1)">JSON Minifier — Free Online JSON Compressor</h1>
-        <p data-i18n="minifierP" class="mt-1 text-sm leading-relaxed" style="color:var(--jfo-text-3)">
-          Compress JSON by removing all whitespace. Part of the free <a href="/" style="color:var(--jfo-accent);text-decoration:underline;text-underline-offset:2px">JSON Formatter Online</a> toolkit.
+        <h1 class="text-lg font-bold" style="color:var(--jfo-text-1)">JSON Minifier — Free Online JSON Compressor</h1>
+        <p class="mt-1 text-sm leading-relaxed" style="color:var(--jfo-text-3)">
+          Compress JSON by removing all whitespace. Part of the free <a href="/" style="color:var(--jfo-accent);text-decoration:underline;text-underline-offset:2px">DevFormats</a> toolkit.
         </p>
       </header>
 

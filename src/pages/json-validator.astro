@@ -7,20 +7,20 @@ const schema = {
   "@graph": [
     {
       "@type": "WebApplication",
-      "@id": "https://jsonformatteronline.in/json-validator#app",
+      "@id": "https://devformats.com/json-validator#app",
       "name": "JSON Formatter and Validator Online",
-      "url": "https://jsonformatteronline.in/json-validator",
+      "url": "https://devformats.com/json-validator",
       "description": "Free online JSON formatter and validator. Validate JSON syntax against RFC 8259, get exact line and column error locations, and view key count and depth stats.",
       "applicationCategory": "DeveloperApplication",
       "operatingSystem": "Any",
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-      "isPartOf": { "@type": "WebSite", "name": "JSON Formatter Online", "url": "https://jsonformatteronline.in" }
+      "isPartOf": { "@type": "WebSite", "name": "DevFormats", "url": "https://devformats.com" }
     },
     {
       "@type": "BreadcrumbList",
       "itemListElement": [
-        { "@type": "ListItem", "position": 1, "name": "JSON Formatter Online", "item": "https://jsonformatteronline.in" },
-        { "@type": "ListItem", "position": 2, "name": "JSON Validator", "item": "https://jsonformatteronline.in/json-validator" }
+        { "@type": "ListItem", "position": 1, "name": "DevFormats", "item": "https://devformats.com" },
+        { "@type": "ListItem", "position": 2, "name": "JSON Validator", "item": "https://devformats.com/json-validator" }
       ]
     }
   ]
@@ -29,18 +29,17 @@ const schema = {
 <Layout
   title="JSON Validator Online — Free JSON Formatter & Validator Tool"
   description="Free online JSON formatter and validator. Checks JSON syntax against RFC 8259 and reports exact line/column errors. The best free JSON formatter & validator — no data sent to servers."
-  canonical="https://jsonformatteronline.in/json-validator"
-  keywords="json formatter and validator, json validator online, json formatter & validator, free json formatter, json format checker, validate json online, json lint"
+  canonical="https://devformats.com/json-validator"
   schema={schema}
 >
   <JsonValidator client:load />
-  <article data-en-only class="border-t px-4 py-8" style="border-color:var(--jfo-border);background:var(--jfo-bg)">
+  <article class="border-t px-4 py-8" style="border-color:var(--jfo-border);background:var(--jfo-bg)">
     <div class="mx-auto max-w-[860px] space-y-5">
 
       <header>
-        <h1 data-i18n="validatorH1" class="text-lg font-bold" style="color:var(--jfo-text-1)">JSON Formatter and Validator — Free Online Syntax Checker</h1>
-        <p data-i18n="validatorP" class="mt-1 text-sm leading-relaxed" style="color:var(--jfo-text-3)">
-          Validate JSON syntax against RFC 8259 with exact line and column error reporting. Part of the free <a href="/" style="color:var(--jfo-accent);text-decoration:underline;text-underline-offset:2px">JSON Formatter Online</a> toolkit.
+        <h1 class="text-lg font-bold" style="color:var(--jfo-text-1)">JSON Formatter and Validator — Free Online Syntax Checker</h1>
+        <p class="mt-1 text-sm leading-relaxed" style="color:var(--jfo-text-3)">
+          Validate JSON syntax against RFC 8259 with exact line and column error reporting. Part of the free <a href="/" style="color:var(--jfo-accent);text-decoration:underline;text-underline-offset:2px">DevFormats</a> toolkit.
         </p>
       </header>
 

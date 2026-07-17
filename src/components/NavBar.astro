@@ -1,20 +1,19 @@
 ---
 import ThemeToggle from './ThemeToggle';
-import LangPicker from './LangPicker';
 
 const links = [
-  { href: '/', i18nKey: 'navFormatter' },
-  { href: '/json-validator', i18nKey: 'navValidator' },
-  { href: '/json-minifier', i18nKey: 'navMinifier' },
-  { href: '/json-to-csv', i18nKey: 'navToCsv' },
-  { href: '/json-diff', i18nKey: 'navDiff' },
+  { href: '/', label: 'Formatter' },
+  { href: '/json-validator', label: 'Validator' },
+  { href: '/json-minifier', label: 'Minifier' },
+  { href: '/json-to-csv', label: 'JSON→CSV' },
+  { href: '/json-diff', label: 'Diff' },
 ];
 
 const pageLinks = [
-  { href: '/about', label: 'About', i18nKey: 'navAbout' },
-  { href: '/contact', label: 'Contact', i18nKey: 'navContact' },
-  { href: '/privacy-policy', label: 'Privacy', i18nKey: 'navPrivacy' },
-  { href: '/terms', label: 'Terms', i18nKey: 'navTerms' },
+  { href: '/about', label: 'About' },
+  { href: '/contact', label: 'Contact' },
+  { href: '/privacy-policy', label: 'Privacy' },
+  { href: '/terms', label: 'Terms' },
 ];
 const pathname = Astro.url.pathname;
 ---
@@ -23,9 +22,9 @@ const pathname = Astro.url.pathname;
 
     <!-- Logo -->
     <a href="/" class="flex shrink-0 items-center gap-2 transition-opacity hover:opacity-80">
-      <img src="/favicon-96x96.png" alt="JSON Formatter Online" class="h-7 w-7 rounded-md" />
+      <img src="/favicon-96x96.png" alt="DevFormats" class="h-7 w-7 rounded-md" />
       <span class="text-sm font-semibold tracking-tight" style="color:var(--jfo-text-1)">
-        JSON<span style="color:var(--jfo-accent)">Formatter</span>
+        Dev<span style="color:var(--jfo-accent)">Formats</span>
       </span>
     </a>
 
@@ -34,7 +33,6 @@ const pathname = Astro.url.pathname;
       {links.map(link => (
         <a
           href={link.href}
-          data-i18n={link.i18nKey}
           class="shrink-0 rounded px-3 py-1 text-xs font-medium transition-all border"
           style={pathname === link.href
             ? 'background:var(--jfo-accent-bg);color:var(--jfo-accent);border-color:var(--jfo-accent-border)'
@@ -42,11 +40,7 @@ const pathname = Astro.url.pathname;
           onmouseover={pathname !== link.href ? "this.style.background='var(--jfo-bg-soft)';this.style.color='var(--jfo-text-1)';this.style.borderColor='var(--jfo-border)'" : ""}
           onmouseout={pathname !== link.href ? "this.style.background='transparent';this.style.color='var(--jfo-text-3)';this.style.borderColor='transparent'" : ""}
         >
-          {link.i18nKey === 'navFormatter' ? 'Formatter'
-            : link.i18nKey === 'navValidator' ? 'Validator'
-            : link.i18nKey === 'navMinifier' ? 'Minifier'
-            : link.i18nKey === 'navToCsv' ? 'JSON→CSV'
-            : 'Diff'}
+          {link.label}
         </a>
       ))}
     </div>
@@ -59,7 +53,6 @@ const pathname = Astro.url.pathname;
         {pageLinks.map(link => (
           <a
             href={link.href}
-            data-i18n={link.i18nKey}
             class="rounded px-2.5 py-1 text-[11px] font-medium transition-colors"
             style={pathname === link.href
               ? 'color:var(--jfo-accent)'
@@ -74,9 +67,8 @@ const pathname = Astro.url.pathname;
 
       <div class="hidden items-center gap-1 sm:flex" style="border-left:1px solid var(--jfo-border);padding-left:8px">
         <span class="h-1.5 w-1.5 animate-pulse rounded-full" style="background:var(--jfo-accent)"></span>
-        <span data-i18n="clientSide" class="font-mono text-[10px]" style="color:var(--jfo-text-3)">CLIENT-SIDE</span>
+        <span class="font-mono text-[10px]" style="color:var(--jfo-text-3)">CLIENT-SIDE</span>
       </div>
-      <LangPicker client:load />
       <ThemeToggle client:load />
 
       <!-- Hamburger (mobile only) -->
@@ -98,24 +90,18 @@ const pathname = Astro.url.pathname;
     {links.map(link => (
       <a
         href={link.href}
-        data-i18n={link.i18nKey}
         class="block rounded px-3 py-2 text-sm font-medium transition-colors"
         style={pathname === link.href
           ? 'color:var(--jfo-accent);background:var(--jfo-accent-bg);cursor:pointer'
           : 'color:var(--jfo-text-2);cursor:pointer'}
       >
-        {link.i18nKey === 'navFormatter' ? 'Formatter'
-          : link.i18nKey === 'navValidator' ? 'Validator'
-          : link.i18nKey === 'navMinifier' ? 'Minifier'
-          : link.i18nKey === 'navToCsv' ? 'JSON→CSV'
-          : 'Diff'}
+        {link.label}
       </a>
     ))}
     <div class="my-2 h-px" style="background:var(--jfo-border)"></div>
     {pageLinks.map(link => (
       <a
         href={link.href}
-        data-i18n={link.i18nKey}
         class="block rounded px-3 py-2 text-sm font-medium transition-colors"
         style={pathname === link.href
           ? 'color:var(--jfo-accent);background:var(--jfo-accent-bg);cursor:pointer'
@@ -128,154 +114,6 @@ const pathname = Astro.url.pathname;
 </nav>
 
 <script>
-  const NAV_TRANSLATIONS: Record<string, Record<string, string>> = {
-    en: {
-      navFormatter: 'Formatter', navValidator: 'Validator', navMinifier: 'Minifier', navToCsv: 'JSON→CSV', navDiff: 'Diff',
-      navAbout: 'About', navContact: 'Contact', navPrivacy: 'Privacy', navTerms: 'Terms',
-      footerTools: 'Tools', footerLinks: 'Links', footerSpec: 'Spec',
-      footerDesc: 'Fast, free, and private JSON tools. All processing happens in your browser — no data sent to any server.',
-      footerCopy: 'All processing is done locally in your browser.',
-      formatterH1: 'JSON Formatter Online — Free Pretty JSON Formatter & Validator Tool',
-      formatterP: 'The best free online JSON formatter. Beautify, validate, and minify JSON instantly — no installation, no account, no data ever leaving your device.',
-      validatorH1: 'JSON Formatter and Validator — Free Online Syntax Checker',
-      validatorP: 'Validate JSON syntax against RFC 8259 with exact line and column error reporting. Part of the free JSON Formatter Online toolkit.',
-      minifierH1: 'JSON Minifier — Free Online JSON Compressor',
-      minifierP: 'Compress JSON by removing all whitespace. Part of the free JSON Formatter Online toolkit.',
-      toCsvH1: 'JSON to CSV Converter — Free Online Table Export',
-      toCsvP: 'Convert JSON arrays of objects to CSV format instantly in your browser. Part of the free JSON Formatter Online toolkit.',
-      diffH1: 'JSON Diff Checker — Compare Two JSON Documents Online',
-      diffP: 'Find differences between two JSON objects side by side. Part of the free JSON Formatter Online toolkit.'
-    },
-    es: {
-      navFormatter: 'Formateador', navValidator: 'Validador', navMinifier: 'Minificador', navToCsv: 'JSON→CSV', navDiff: 'Diferencias',
-      navAbout: 'Acerca de', navContact: 'Contacto', navPrivacy: 'Privacidad', navTerms: 'Términos',
-      footerTools: 'Herramientas', footerLinks: 'Enlaces', footerSpec: 'Espec.',
-      footerDesc: 'Herramientas JSON rápidas, gratuitas y privadas. Todo el procesamiento se realiza en su navegador; no se envían datos a ningún servidor.',
-      footerCopy: 'Todo el procesamiento se realiza localmente en su navegador.',
-      formatterH1: 'Formateador de JSON en línea: herramienta gratuita de formateador y validador de JSON',
-      formatterP: 'El mejor formateador de JSON en línea gratuito. Embellezca, valide y minifique JSON al instante: sin instalación, sin cuenta, sin que los datos salgan de su dispositivo.',
-      validatorH1: 'Formateador y validador de JSON: comprobador de sintaxis gratuito en línea',
-      validatorP: 'Valide la sintaxis JSON con informes precisos de errores de línea y columna. Parte del conjunto de herramientas gratuitas de JSON Formatter Online.',
-      minifierH1: 'Minificador JSON: compresor JSON gratuito en línea',
-      minifierP: 'Comprima JSON eliminando todos los espacios en blanco. Parte del conjunto de herramientas gratuitas de JSON Formatter Online.',
-      toCsvH1: 'Conversor de JSON a CSV: exportación de tablas en línea gratuita',
-      toCsvP: 'Convierta matrices JSON de objetos a formato CSV al instante en su navegador. Parte del conjunto de herramientas gratuitas de JSON Formatter Online.',
-      diffH1: 'Comprobador de diferencias JSON: compare dos documentos JSON en línea',
-      diffP: 'Encuentre diferencias entre dos objetos JSON uno al lado del otro. Parte del conjunto de herramientas gratuitas de JSON Formatter Online.'
-    },
-    fr: {
-      navFormatter: 'Formateur', navValidator: 'Validateur', navMinifier: 'Minificateur', navToCsv: 'JSON→CSV', navDiff: 'Diff',
-      navAbout: 'À propos', navContact: 'Contact', navPrivacy: 'Confidentialité', navTerms: 'Conditions',
-      footerTools: 'Outils', footerLinks: 'Liens', footerSpec: 'Spéc.',
-      footerDesc: 'Outils JSON rapides, gratuits et privés. Tout le traitement se fait dans votre navigateur — aucune donnée n\'est envoyée à un serveur.',
-      footerCopy: 'Tout le traitement est effectué localement dans votre navigateur.',
-      formatterH1: 'Formateur JSON en ligne — Outil gratuit de formatage et de validation JSON',
-      formatterP: 'Le meilleur formateur JSON en ligne gratuit. Embellissez, validez et minifiez le JSON instantanément — sans installation, sans compte, sans que les données ne quittent votre appareil.',
-      validatorH1: 'Formateur et validateur JSON — Vérificateur de syntaxe en ligne gratuit',
-      validatorP: 'Validez la syntaxe JSON avec des rapports d\'erreur précis sur les lignes et les colonnes. Fait partie de la boîte à outils gratuite JSON Formatter Online.',
-      minifierH1: 'Minificateur JSON — Compresseur JSON en ligne gratuit',
-      minifierP: 'Compressez le JSON en supprimant tous les espaces blancs. Fait partie de la boîte à outils gratuite JSON Formatter Online.',
-      toCsvH1: 'Convertisseur JSON en CSV — Exportation de tableau en ligne gratuite',
-      toCsvP: 'Convertissez instantanément des tableaux d\'objets JSON au format CSV dans votre navigateur. Fait partie de la boîte à outils gratuite JSON Formatter Online.',
-      diffH1: 'Vérificateur de différence JSON — Comparez deux documents JSON en ligne',
-      diffP: 'Trouvez les différences entre deux objets JSON côte à côte. Fait partie de la boîte à outils gratuite JSON Formatter Online.'
-    },
-    de: {
-      navFormatter: 'Formatierer', navValidator: 'Prüfer', navMinifier: 'Minimierer', navToCsv: 'JSON→CSV', navDiff: 'Vergleich',
-      navAbout: 'Über uns', navContact: 'Kontakt', navPrivacy: 'Datenschutz', navTerms: 'Bedingungen',
-      footerTools: 'Werkzeuge', footerLinks: 'Links', footerSpec: 'Spez.',
-      footerDesc: 'Schnelle, kostenlose und private JSON-Tools. Die gesamte Verarbeitung erfolgt in Ihrem Browser – es werden keine Daten an einen Server gesendet.',
-      footerCopy: 'Die Verarbeitung erfolgt lokal in Ihrem Browser.',
-      formatterH1: 'JSON-Formatierer Online – Kostenloses JSON-Formatierer- und Validierungs-Tool',
-      formatterP: 'Der beste kostenlose Online-JSON-Formatierer. JSON sofort verschönern, validieren und minimieren – keine Installation, kein Konto, keine Daten verlassen jemals Ihr Gerät.',
-      validatorH1: 'JSON-Formatierer und -Prüfer – Kostenlose Online-Syntaxprüfung',
-      validatorP: 'Validieren Sie die JSON-Syntax mit genauer Berichterstattung von Zeilen- und Spaltenfehlern. Teil des kostenlosen JSON-Formatter-Online-Toolkits.',
-      minifierH1: 'JSON-Minimierer – Kostenloser Online-JSON-Komprimierer',
-      minifierP: 'Komprimieren Sie JSON, indem Sie alle Leerzeichen entfernen. Teil des kostenlosen JSON-Formatter-Online-Toolkits.',
-      toCsvH1: 'JSON-zu-CSV-Konverter – Kostenloser Online-Tabellenexport',
-      toCsvP: 'Konvertieren Sie JSON-Arrays von Objekten sofort in Ihrem Browser in das CSV-Format. Teil des kostenlosen JSON-Formatter-Online-Toolkits.',
-      diffH1: 'JSON-Diff-Checker – Vergleichen Sie zwei JSON-Dokumente online',
-      diffP: 'Finden Sie Unterschiede zwischen zwei JSON-Objekten nebeneinander. Teil des kostenlosen JSON-Formatter-Online-Toolkits.'
-    },
-    zh: {
-      navFormatter: '格式化', navValidator: '验证', navMinifier: '压缩', navToCsv: 'JSON→CSV', navDiff: '对比',
-      navAbout: '关于', navContact: '联系我们', navPrivacy: '隐私', navTerms: '条款',
-      footerTools: '工具', footerLinks: '链接', footerSpec: '规范',
-      footerDesc: '快速、免费且保护隐私的 JSON 工具。所有处理均在您的浏览器中完成 — 无数据发送至服务器。',
-      footerCopy: '所有处理均在您的浏览器中本地完成。',
-      formatterH1: 'JSON在线格式化 — 免费Pretty JSON格式化与验证工具',
-      formatterP: '最好的免费在线JSON格式化工具。立即美化、验证和压缩JSON — 无需安装，无需账户，数据绝不离开您的设备。',
-      validatorH1: 'JSON格式化与验证 — 免费在线语法检查器',
-      validatorP: '验证JSON语法，提供精确的行和列错误报告。免费的JSON在线格式化工具包的一部分。',
-      minifierH1: 'JSON压缩器 — 免费在线JSON压缩',
-      minifierP: '通过删除所有空格来压缩JSON。免费的JSON在线格式化工具包的一部分。',
-      toCsvH1: 'JSON转CSV转换器 — 免费在线表格导出',
-      toCsvP: '在浏览器中立即将JSON对象数组转换为CSV格式。免费的JSON在线格式化工具包的一部分。',
-      diffH1: 'JSON对比工具 — 在线比较两个JSON文档',
-      diffP: '并排比较两个JSON对象以查找差异。免费的JSON在线格式化工具包的一部分。'
-    },
-    hi: {
-      navFormatter: 'फ़ॉर्मेटर', navValidator: 'वैलिडेटर', navMinifier: 'मिनिफायर', navToCsv: 'JSON→CSV', navDiff: 'अंतर',
-      navAbout: 'हमारे बारे में', navContact: 'संपर्क करें', navPrivacy: 'गोपनीयता', navTerms: 'शर्तें',
-      footerTools: 'उपकरण', footerLinks: 'लिंक', footerSpec: 'विशिष्टता',
-      footerDesc: 'तेज़, मुफ़्त और निजी JSON उपकरण। सभी प्रोसेसिंग आपके ब्राउज़र में होती है — किसी भी सर्वर पर कोई डेटा नहीं भेजा जाता है।',
-      footerCopy: 'सभी प्रोसेसिंग आपके ब्राउज़र में स्थानीय रूप से की जाती है।',
-      formatterH1: 'JSON फ़ॉर्मेटर ऑनलाइन — मुफ़्त Pretty JSON फ़ॉर्मेटर और वैलिडेटर टूल',
-      formatterP: 'सबसे अच्छा मुफ़्त ऑनलाइन JSON फ़ॉर्मेटर। तुरंत JSON को सुंदर बनाएं, सत्यापित करें और छोटा करें — कोई इंस्टॉलेशन नहीं, कोई खाता नहीं, कोई डेटा आपके डिवाइस से बाहर नहीं जाता है।',
-      validatorH1: 'JSON फ़ॉर्मेटर और वैलिडेटर — मुफ़्त ऑनलाइन सिंटैक्स चेकर',
-      validatorP: 'सटीक लाइन और कॉलम त्रुटि रिपोर्टिंग के साथ JSON सिंटैक्स को सत्यापित करें। मुफ़्त JSON फ़ॉर्मेटर ऑनलाइन टूलकिट का हिस्सा।',
-      minifierH1: 'JSON मिनिफायर — मुफ़्त ऑनलाइन JSON कंप्रेसर',
-      minifierP: 'सभी रिक्त स्थान हटाकर JSON को संपीड़ित करें। मुफ़्त JSON फ़ॉर्मेटर ऑनलाइन टूलकिट का हिस्सा।',
-      toCsvH1: 'JSON से CSV कनवर्टर — मुफ़्त ऑनलाइन टेबल निर्यात',
-      toCsvP: 'अपने ब्राउज़र में तुरंत JSON ऑब्जेक्ट्स के ऐरे को CSV प्रारूप में बदलें। मुफ़्त JSON फ़ॉर्मेटर ऑनलाइन टूलकिट का हिस्सा।',
-      diffH1: 'JSON अंतर चेकर — ऑनलाइन दो JSON दस्तावेज़ों की तुलना करें',
-      diffP: 'दो JSON ऑब्जेक्ट्स के बीच अंतर को अगल-बगल देखें। मुफ़्त JSON फ़ॉर्मेटर ऑनलाइन टूलकिट का हिस्सा।'
-    },
-    pt: {
-      navFormatter: 'Formatador', navValidator: 'Validador', navMinifier: 'Minificador', navToCsv: 'JSON→CSV', navDiff: 'Diferença',
-      navAbout: 'Sobre', navContact: 'Contato', navPrivacy: 'Privacidade', navTerms: 'Termos',
-      footerTools: 'Ferramentas', footerLinks: 'Links', footerSpec: 'Espec.',
-      footerDesc: 'Ferramentas JSON rápidas, gratuitas e privadas. Todo o processamento acontece no seu navegador — nenhum dado é enviado para qualquer servidor.',
-      footerCopy: 'Todo o processamento é feito localmente no seu navegador.',
-      formatterH1: 'Formatador JSON Online — Ferramenta gratuita de formatação e validação de JSON',
-      formatterP: 'O melhor formatador de JSON online gratuito. Embeleze, valide e minifique JSON instantaneamente — sem instalação, sem conta, sem dados saindo do seu dispositivo.',
-      validatorH1: 'Formatador e Validador JSON — Verificador de sintaxe online gratuito',
-      validatorP: 'Valide a sintaxe JSON com relatórios precisos de erros de linha e coluna. Parte do kit de ferramentas gratuito do JSON Formatter Online.',
-      minifierH1: 'Minificador JSON — Compressor JSON online gratuito',
-      minifierP: 'Comprima o JSON removendo todos os espaços em branco. Parte do kit de ferramentas gratuito do JSON Formatter Online.',
-      toCsvH1: 'Conversor JSON para CSV — Exportação de tabela online gratuita',
-      toCsvP: 'Converta matrizes JSON de objetos em formato CSV instantaneamente no seu navegador. Parte do kit de ferramentas gratuito do JSON Formatter Online.',
-      diffH1: 'Verificador de Diferenças JSON — Compare dois documentos JSON online',
-      diffP: 'Encontre diferenças entre dois objetos JSON lado a lado. Parte do kit de ferramentas gratuito do JSON Formatter Online.'
-    },
-    ja: {
-      navFormatter: 'フォーマッタ', navValidator: '検証', navMinifier: '圧縮', navToCsv: 'JSON→CSV', navDiff: '差分',
-      navAbout: '概要', navContact: 'お問い合わせ', navPrivacy: 'プライバシー', navTerms: '利用規約',
-      footerTools: 'ツール', footerLinks: 'リンク', footerSpec: '仕様',
-      footerDesc: '高速、無料、プライベートなJSONツール。すべての処理はブラウザ内で行われ、サーバーにデータが送信されることはありません。',
-      footerCopy: 'すべての処理はブラウザでローカルに実行されます。',
-      formatterH1: 'JSONフォーマッタオンライン — 無料のPretty JSON整形・検証ツール',
-      formatterP: '最高の無料オンラインJSONフォーマッタ。インストール不要、アカウント不要、データがデバイスから送信されることなく、JSONを即座に整形、検証、圧縮します。',
-      validatorH1: 'JSONフォーマッタと検証 — 無料のオンライン構文チェッカー',
-      validatorP: '行と列の正確なエラーレポートを使用して、JSON構文を検証します。無料のJSONフォーマッタオンラインツールキットの一部。',
-      minifierH1: 'JSON圧縮 — 無料のオンラインJSON圧縮',
-      minifierP: 'すべての空白を削除してJSONを圧縮します。無料のJSONフォーマッタオンラインツールキットの一部。',
-      toCsvH1: 'JSONからCSVへの変換 — 無料のオンラインテーブル出力',
-      toCsvP: 'ブラウザでJSONオブジェクトの配列を即座にCSV形式に変換します。無料のJSONフォーマッタオンラインツールキットの一部。',
-      diffH1: 'JSON差分チェッカー — 2つのJSONドキュメントをオンラインで比較',
-      diffP: '2つのJSONオブジェクトの違いを左右に並べて確認します。無料のJSONフォーマッタオンラインツールキットの一部。'
-    }
-  };
-
-  function applyNavLang() {
-    const lang = localStorage.getItem('jfo-lang') || 'en';
-    const t = NAV_TRANSLATIONS[lang] || NAV_TRANSLATIONS['en'];
-    document.querySelectorAll<HTMLElement>('[data-i18n]').forEach(el => {
-      const key = el.dataset.i18n!;
-      if (t[key]) el.textContent = t[key];
-    });
-  }
-
   function initNav() {
     // Re-attach hamburger listener every time the DOM is (re)loaded by View Transitions
     const btn = document.getElementById('hamburger');
@@ -287,10 +125,8 @@ const pathname = Astro.url.pathname;
         a.addEventListener('click', () => menu.classList.add('hidden'));
       });
     }
-    applyNavLang();
   }
 
   // astro:page-load fires on first load AND after every View Transition swap
   document.addEventListener('astro:page-load', initNav);
-  window.addEventListener('jfo-lang-change', applyNavLang);
 </script>

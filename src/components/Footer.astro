@@ -1,17 +1,17 @@
 ---
 const tools = [
-  { href: '/', label: 'JSON Formatter', i18nKey: 'navFormatter' },
-  { href: '/json-validator', label: 'JSON Validator', i18nKey: 'navValidator' },
-  { href: '/json-minifier', label: 'JSON Minifier', i18nKey: 'navMinifier' },
-  { href: '/json-to-csv', label: 'JSON to CSV', i18nKey: 'navToCsv' },
-  { href: '/json-diff', label: 'JSON Diff', i18nKey: 'navDiff' },
+  { href: '/', label: 'JSON Formatter' },
+  { href: '/json-validator', label: 'JSON Validator' },
+  { href: '/json-minifier', label: 'JSON Minifier' },
+  { href: '/json-to-csv', label: 'JSON to CSV' },
+  { href: '/json-diff', label: 'JSON Diff' },
 ];
 
 const pages = [
-  { href: '/about', label: 'About', i18nKey: 'navAbout' },
-  { href: '/contact', label: 'Contact', i18nKey: 'navContact' },
-  { href: '/privacy-policy', label: 'Privacy Policy', i18nKey: 'navPrivacy' },
-  { href: '/terms', label: 'Terms', i18nKey: 'navTerms' },
+  { href: '/about', label: 'About' },
+  { href: '/contact', label: 'Contact' },
+  { href: '/privacy-policy', label: 'Privacy Policy' },
+  { href: '/terms', label: 'Terms' },
 ];
 ---
 <footer class="border-t border-[#2a2a2a] bg-[#0d0d0d]">
@@ -19,34 +19,34 @@ const pages = [
     <div class="flex flex-wrap items-start justify-between gap-6">
       <div>
         <div class="flex items-center gap-2 mb-2">
-          <img src="/favicon-96x96.png" alt="JSON Formatter Online" class="h-6 w-6 rounded" />
-          <span class="text-sm font-semibold text-[#e5e5e5]">JSON Formatter Online</span>
+          <img src="/favicon-96x96.png" alt="DevFormats" class="h-6 w-6 rounded" />
+          <span class="text-sm font-semibold text-[#e5e5e5]">DevFormats</span>
         </div>
-        <p data-i18n="footerDesc" class="text-xs text-[#555] max-w-xs">Fast, free, and private JSON tools. All processing happens in your browser — no data sent to any server.</p>
+        <p class="text-xs text-[#555] max-w-xs">Fast, free, and private developer tools. All processing happens in your browser — no data sent to any server.</p>
       </div>
       <div class="flex gap-8">
         <div>
-          <div data-i18n="footerTools" class="mb-2 font-mono text-[10px] uppercase tracking-wider text-[#555]">Tools</div>
+          <div class="mb-2 font-mono text-[10px] uppercase tracking-wider text-[#555]">Tools</div>
           <ul class="space-y-1.5">
             {tools.map(t => (
               <li>
-                <a href={t.href} data-i18n={t.i18nKey} class="text-xs text-[#666] transition-colors hover:text-[#50e3c2]">{t.label}</a>
+                <a href={t.href} class="text-xs text-[#666] transition-colors hover:text-[#50e3c2]">{t.label}</a>
               </li>
             ))}
           </ul>
         </div>
         <div>
-          <div data-i18n="footerLinks" class="mb-2 font-mono text-[10px] uppercase tracking-wider text-[#555]">Links</div>
+          <div class="mb-2 font-mono text-[10px] uppercase tracking-wider text-[#555]">Links</div>
           <ul class="space-y-1.5">
             {pages.map(p => (
               <li>
-                <a href={p.href} data-i18n={p.i18nKey} class="text-xs text-[#666] transition-colors hover:text-[#50e3c2]">{p.label}</a>
+                <a href={p.href} class="text-xs text-[#666] transition-colors hover:text-[#50e3c2]">{p.label}</a>
               </li>
             ))}
           </ul>
         </div>
         <div>
-          <div data-i18n="footerSpec" class="mb-2 font-mono text-[10px] uppercase tracking-wider text-[#555]">Spec</div>
+          <div class="mb-2 font-mono text-[10px] uppercase tracking-wider text-[#555]">Spec</div>
           <ul class="space-y-1.5">
             <li><a href="https://www.json.org/json-en.html" target="_blank" rel="noopener" class="text-xs text-[#666] transition-colors hover:text-[#50e3c2]">json.org</a></li>
             <li><a href="https://www.rfc-editor.org/rfc/rfc8259" target="_blank" rel="noopener" class="text-xs text-[#666] transition-colors hover:text-[#50e3c2]">RFC 8259</a></li>
@@ -55,7 +55,7 @@ const pages = [
       </div>
     </div>
     <div class="mt-6 border-t border-[#1a1a1a] pt-4 text-[10px] text-[#444]">
-      © {new Date().getFullYear()} jsonformatteronline.in · <span data-i18n="footerCopy">All processing is done locally in your browser.</span>
+      © {new Date().getFullYear()} devformats.com · All processing is done locally in your browser.
     </div>
   </div>
 </footer>

@@ -7,20 +7,20 @@ const schema = {
   "@graph": [
     {
       "@type": "WebApplication",
-      "@id": "https://jsonformatteronline.in/json-diff#app",
+      "@id": "https://devformats.com/json-diff#app",
       "name": "JSON Diff Checker — Free JSON Formatter Tool",
-      "url": "https://jsonformatteronline.in/json-diff",
+      "url": "https://devformats.com/json-diff",
       "description": "Free online JSON diff checker. Compare two JSON objects and highlight additions, deletions, and changes. Part of the best free JSON formatter toolkit.",
       "applicationCategory": "DeveloperApplication",
       "operatingSystem": "Any",
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-      "isPartOf": { "@type": "WebSite", "name": "JSON Formatter Online", "url": "https://jsonformatteronline.in" }
+      "isPartOf": { "@type": "WebSite", "name": "DevFormats", "url": "https://devformats.com" }
     },
     {
       "@type": "BreadcrumbList",
       "itemListElement": [
-        { "@type": "ListItem", "position": 1, "name": "JSON Formatter Online", "item": "https://jsonformatteronline.in" },
-        { "@type": "ListItem", "position": 2, "name": "JSON Diff", "item": "https://jsonformatteronline.in/json-diff" }
+        { "@type": "ListItem", "position": 1, "name": "DevFormats", "item": "https://devformats.com" },
+        { "@type": "ListItem", "position": 2, "name": "JSON Diff", "item": "https://devformats.com/json-diff" }
       ]
     }
   ]
@@ -29,18 +29,17 @@ const schema = {
 <Layout
   title="JSON Diff Checker Online — Free JSON Formatter & Compare Tool"
   description="Compare two JSON files online for free. Color-coded diff shows additions, deletions, and changed values with full key paths. Free JSON formatter toolkit — all processing in your browser."
-  canonical="https://jsonformatteronline.in/json-diff"
-  keywords="json diff, json diff checker, compare json online, json compare tool, json difference, free json formatter, json formatter tool"
+  canonical="https://devformats.com/json-diff"
   schema={schema}
 >
   <JsonDiff client:load />
-  <article data-en-only class="border-t px-4 py-8" style="border-color:var(--jfo-border);background:var(--jfo-bg)">
+  <article class="border-t px-4 py-8" style="border-color:var(--jfo-border);background:var(--jfo-bg)">
     <div class="mx-auto max-w-[860px] space-y-5">
 
       <header>
-        <h1 data-i18n="diffH1" class="text-lg font-bold" style="color:var(--jfo-text-1)">JSON Diff Checker — Compare Two JSON Documents Online</h1>
-        <p data-i18n="diffP" class="mt-1 text-sm leading-relaxed" style="color:var(--jfo-text-3)">
-          Colour-coded diff with full key paths. Part of the free <a href="/" style="color:var(--jfo-accent);text-decoration:underline;text-underline-offset:2px">JSON Formatter Online</a> toolkit.
+        <h1 class="text-lg font-bold" style="color:var(--jfo-text-1)">JSON Diff Checker — Compare Two JSON Documents Online</h1>
+        <p class="mt-1 text-sm leading-relaxed" style="color:var(--jfo-text-3)">
+          Colour-coded diff with full key paths. Part of the free <a href="/" style="color:var(--jfo-accent);text-decoration:underline;text-underline-offset:2px">DevFormats</a> toolkit.
         </p>
       </header>
 

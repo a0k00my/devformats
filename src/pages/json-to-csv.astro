@@ -7,20 +7,20 @@ const schema = {
   "@graph": [
     {
       "@type": "WebApplication",
-      "@id": "https://jsonformatteronline.in/json-to-csv#app",
+      "@id": "https://devformats.com/json-to-csv#app",
       "name": "JSON to CSV Converter — Free JSON Formatter Tool",
-      "url": "https://jsonformatteronline.in/json-to-csv",
+      "url": "https://devformats.com/json-to-csv",
       "description": "Free online JSON to CSV converter. Transform JSON arrays into CSV format instantly. Part of the best free JSON formatter toolkit.",
       "applicationCategory": "DeveloperApplication",
       "operatingSystem": "Any",
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-      "isPartOf": { "@type": "WebSite", "name": "JSON Formatter Online", "url": "https://jsonformatteronline.in" }
+      "isPartOf": { "@type": "WebSite", "name": "DevFormats", "url": "https://devformats.com" }
     },
     {
       "@type": "BreadcrumbList",
       "itemListElement": [
-        { "@type": "ListItem", "position": 1, "name": "JSON Formatter Online", "item": "https://jsonformatteronline.in" },
-        { "@type": "ListItem", "position": 2, "name": "JSON to CSV", "item": "https://jsonformatteronline.in/json-to-csv" }
+        { "@type": "ListItem", "position": 1, "name": "DevFormats", "item": "https://devformats.com" },
+        { "@type": "ListItem", "position": 2, "name": "JSON to CSV", "item": "https://devformats.com/json-to-csv" }
       ]
     }
   ]
@@ -29,18 +29,17 @@ const schema = {
 <Layout
   title="JSON to CSV Converter Online — Free JSON Formatter Tool"
   description="Convert JSON arrays to CSV online for free. Transform JSON objects into spreadsheet-ready CSV files instantly. Part of the best free online JSON formatter toolkit — no data sent to servers."
-  canonical="https://jsonformatteronline.in/json-to-csv"
-  keywords="json to csv, json to csv converter online, convert json to csv, json formatter tool, free json formatter, json to spreadsheet"
+  canonical="https://devformats.com/json-to-csv"
   schema={schema}
 >
   <JsonToCsv client:load />
-  <article data-en-only class="border-t px-4 py-8" style="border-color:var(--jfo-border);background:var(--jfo-bg)">
+  <article class="border-t px-4 py-8" style="border-color:var(--jfo-border);background:var(--jfo-bg)">
     <div class="mx-auto max-w-[860px] space-y-5">
 
       <header>
-        <h1 data-i18n="toCsvH1" class="text-lg font-bold" style="color:var(--jfo-text-1)">JSON to CSV Converter — Free Online JSON Formatter Tool</h1>
-        <p data-i18n="toCsvP" class="mt-1 text-sm leading-relaxed" style="color:var(--jfo-text-3)">
-          Convert JSON arrays of objects to CSV format instantly. Part of the free <a href="/" style="color:var(--jfo-accent);text-decoration:underline;text-underline-offset:2px">JSON Formatter Online</a> toolkit.
+        <h1 class="text-lg font-bold" style="color:var(--jfo-text-1)">JSON to CSV Converter — Free Online JSON Formatter Tool</h1>
+        <p class="mt-1 text-sm leading-relaxed" style="color:var(--jfo-text-3)">
+          Convert JSON arrays of objects to CSV format instantly. Part of the free <a href="/" style="color:var(--jfo-accent);text-decoration:underline;text-underline-offset:2px">DevFormats</a> toolkit.
         </p>
       </header>
 

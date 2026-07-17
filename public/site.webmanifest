@@ -1,6 +1,6 @@
 {
-  "name": "JSON Formatter Online",
-  "short_name": "JSON Fmt",
+  "name": "DevFormats",
+  "short_name": "DevFormats",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
