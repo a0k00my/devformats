@@ -1,0 +1,31 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+<Layout
+  title="404 – Page Not Found · JSON Formatter Online"
+  description="The page you're looking for doesn't exist."
+>
+  <div class="flex flex-1 flex-col items-center justify-center px-4 py-24 text-center">
+    <div class="mb-4 font-mono text-7xl font-bold" style="color:var(--jfo-border)">404</div>
+    <h1 class="mb-3 text-xl font-semibold" style="color:var(--jfo-text-1)">Page not found</h1>
+    <p class="mb-8 max-w-sm text-sm" style="color:var(--jfo-text-3)">
+      The URL you visited doesn't exist or may have been moved.
+    </p>
+    <div class="flex flex-wrap justify-center gap-3">
+      <a
+        href="/"
+        class="rounded px-5 py-2 text-sm font-medium transition-opacity hover:opacity-90"
+        style="background:var(--jfo-accent);color:#000"
+      >
+        Go to Formatter
+      </a>
+      <a
+        href="/about"
+        class="rounded border px-5 py-2 text-sm font-medium transition-colors hover:opacity-80"
+        style="border-color:var(--jfo-border);color:var(--jfo-text-2)"
+      >
+        About
+      </a>
+    </div>
+  </div>
+</Layout>

@@ -1,0 +1,55 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+<Layout
+  title="Privacy Policy – JSON Formatter Online"
+  description="Privacy policy for JSON Formatter Online. We collect no personal data. All JSON processing happens locally in your browser."
+  canonical="https://jsonformatteronline.in/privacy-policy"
+  keywords="privacy policy, json formatter privacy, data policy"
+>
+  <div class="mx-auto max-w-3xl px-4 py-12">
+    <h1 data-i18n="privacyTitle" class="mb-2 text-2xl font-bold tracking-tight" style="color:var(--jfo-text-1)">Privacy Policy</h1>
+    <p data-i18n="lastUpdated" class="mb-8 text-xs" style="color:var(--jfo-text-3)">Last updated: July 2026</p>
+
+    <p data-i18n="privacyIntro" class="mb-6 text-sm leading-relaxed" style="color:var(--jfo-text-2)">
+      At JSON Formatter Online, your privacy is foundational to how we operate — not an afterthought. This policy explains what data we collect (very little), what we do with it, and what we never do.
+    </p>
+
+    <h2 data-i18n="privacyJsonTitle" class="mb-3 mt-8 text-lg font-semibold" style="color:var(--jfo-text-1)">1. JSON Data You Enter</h2>
+    <p data-i18n-html="privacyJsonBody" class="mb-4 text-sm leading-relaxed" style="color:var(--jfo-text-2)">
+      All JSON formatting, validation, minification, CSV conversion, and diffing happens entirely in your browser using JavaScript. <strong style="color:var(--jfo-text-1)">No JSON content you type or paste is ever sent to our servers.</strong> We have no server-side processing of your data.
+    </p>
+
+    <h2 data-i18n="privacyCookiesTitle" class="mb-3 mt-8 text-lg font-semibold" style="color:var(--jfo-text-1)">2. Cookies &amp; Local Storage</h2>
+    <p data-i18n-html="privacyCookiesBody" class="mb-4 text-sm leading-relaxed" style="color:var(--jfo-text-2)">
+      We use <code class="rounded px-1 py-0.5 text-xs font-mono" style="background:var(--jfo-bg-soft);color:var(--jfo-accent)">localStorage</code> to remember your theme preference (dark/light) and language setting. These values stay on your device and are never transmitted.
+    </p>
+
+    <h2 data-i18n="privacyAnalyticsTitle" class="mb-3 mt-8 text-lg font-semibold" style="color:var(--jfo-text-1)">3. Analytics</h2>
+    <p data-i18n-html="privacyAnalyticsBody" class="mb-4 text-sm leading-relaxed" style="color:var(--jfo-text-2)">
+      This site uses Google Analytics (GA4) to understand overall traffic patterns — which pages are visited and how users navigate the site. Google Analytics collects anonymised usage data including page paths, session duration, and general location (country/region). No JSON content you enter into the tools is ever included in analytics data. You can opt out via <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener" class="transition-colors hover:opacity-80" style="color:var(--jfo-accent)">Google's opt-out browser add-on</a>.
+    </p>
+
+    <h2 data-i18n="privacyThirdTitle" class="mb-3 mt-8 text-lg font-semibold" style="color:var(--jfo-text-1)">4. Third-Party Services</h2>
+    <p data-i18n="privacyThirdBody" class="mb-4 text-sm leading-relaxed" style="color:var(--jfo-text-2)">
+      The site may be served through a CDN (e.g. Cloudflare) for performance and reliability. CDN providers may log standard HTTP metadata such as IP addresses and user-agent strings as part of normal infrastructure operation.
+    </p>
+
+    <h2 data-i18n="privacyAdsTitle" class="mb-3 mt-8 text-lg font-semibold" style="color:var(--jfo-text-1)">5. Advertising</h2>
+    <p data-i18n-html="privacyAdsBody" class="mb-4 text-sm leading-relaxed" style="color:var(--jfo-text-2)">
+      We may display ads via Google AdSense to support free operation. AdSense may use cookies to serve personalised ads based on your browsing history. You can opt out of personalised ads via <a href="https://adssettings.google.com" target="_blank" rel="noopener" class="transition-colors hover:opacity-80" style="color:var(--jfo-accent)">Google's Ads Settings</a>.
+    </p>
+
+    <h2 data-i18n="privacyNeverTitle" class="mb-3 mt-8 text-lg font-semibold" style="color:var(--jfo-text-1)">6. Data We Never Collect</h2>
+    <ul class="space-y-2 text-sm" style="color:var(--jfo-text-2)">
+      <li class="flex items-start gap-2"><span style="color:var(--jfo-accent)">✓</span> <span data-i18n="privacyNever1">We do not collect names, emails, or account data.</span></li>
+      <li class="flex items-start gap-2"><span style="color:var(--jfo-accent)">✓</span> <span data-i18n="privacyNever2">We do not sell or share personal data with third parties for marketing.</span></li>
+      <li class="flex items-start gap-2"><span style="color:var(--jfo-accent)">✓</span> <span data-i18n="privacyNever3">We do not store the JSON content you process.</span></li>
+    </ul>
+
+    <h2 data-i18n="privacyContactTitle" class="mb-3 mt-8 text-lg font-semibold" style="color:var(--jfo-text-1)">7. Contact</h2>
+    <p data-i18n-html="privacyContactBody" class="mb-4 text-sm leading-relaxed" style="color:var(--jfo-text-2)">
+      For privacy-related questions, visit our <a href="/contact" class="transition-colors hover:opacity-80" style="color:var(--jfo-accent)">Contact page</a>.
+    </p>
+  </div>
+</Layout>

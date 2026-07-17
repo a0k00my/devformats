@@ -1,0 +1,55 @@
+---
+import Layout from '../layouts/Layout.astro';
+import JsonMinifier from '../components/JsonMinifier';
+
+const schema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "@id": "https://jsonformatteronline.in/json-minifier#app",
+      "name": "JSON Minifier — Free Online JSON Formatter Tool",
+      "url": "https://jsonformatteronline.in/json-minifier",
+      "description": "Free online JSON minifier. Remove all whitespace and compress JSON to its smallest valid form. Part of the best free JSON formatter toolkit.",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Any",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "isPartOf": { "@type": "WebSite", "name": "JSON Formatter Online", "url": "https://jsonformatteronline.in" }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "JSON Formatter Online", "item": "https://jsonformatteronline.in" },
+        { "@type": "ListItem", "position": 2, "name": "JSON Minifier", "item": "https://jsonformatteronline.in/json-minifier" }
+      ]
+    }
+  ]
+};
+---
+<Layout
+  title="JSON Minifier Online — Free JSON Formatter & Compressor Tool"
+  description="Free online JSON minifier and compressor. Strip whitespace and reduce JSON file size instantly. Shows byte savings and compression ratio. Part of the best free JSON formatter toolkit."
+  canonical="https://jsonformatteronline.in/json-minifier"
+  keywords="json minifier, json minifier online, compress json, minify json online, json compressor, free json formatter tool, reduce json size"
+  schema={schema}
+>
+  <JsonMinifier client:load />
+  <article data-en-only class="border-t px-4 py-8" style="border-color:var(--jfo-border);background:var(--jfo-bg)">
+    <div class="mx-auto max-w-[860px] space-y-5">
+
+      <header>
+        <h1 data-i18n="minifierH1" class="text-lg font-bold" style="color:var(--jfo-text-1)">JSON Minifier — Free Online JSON Compressor</h1>
+        <p data-i18n="minifierP" class="mt-1 text-sm leading-relaxed" style="color:var(--jfo-text-3)">
+          Compress JSON by removing all whitespace. Part of the free <a href="/" style="color:var(--jfo-accent);text-decoration:underline;text-underline-offset:2px">JSON Formatter Online</a> toolkit.
+        </p>
+      </header>
+
+      <p class="text-sm leading-relaxed" style="color:var(--jfo-text-2)">
+        JSON minification removes all unnecessary whitespace — spaces, tabs, and newlines — producing the smallest possible valid JSON string. The data is identical when parsed; only the representation shrinks. This is critical for reducing API response payload sizes, shrinking config files before storage, and lowering network transfer costs.
+      </p>
+      <p class="text-sm leading-relaxed" style="color:var(--jfo-text-2)">
+        Paste your formatted JSON into the left panel and click <strong style="color:var(--jfo-text-1)">Minify</strong>. The right panel shows the compressed output; the toolbar displays original size, minified size, and percentage saved. Download as a <code style="font-family:ui-monospace,monospace;font-size:0.85em;color:var(--jfo-accent)">.json</code> file or copy to clipboard. Need to re-read the output? Go back to the <a href="/" style="color:var(--jfo-accent);text-decoration:underline;text-underline-offset:2px">pretty JSON formatter</a> to beautify it again.
+      </p>
+    </div>
+  </article>
+</Layout>

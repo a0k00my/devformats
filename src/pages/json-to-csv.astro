@@ -1,0 +1,55 @@
+---
+import Layout from '../layouts/Layout.astro';
+import JsonToCsv from '../components/JsonToCsv';
+
+const schema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "@id": "https://jsonformatteronline.in/json-to-csv#app",
+      "name": "JSON to CSV Converter — Free JSON Formatter Tool",
+      "url": "https://jsonformatteronline.in/json-to-csv",
+      "description": "Free online JSON to CSV converter. Transform JSON arrays into CSV format instantly. Part of the best free JSON formatter toolkit.",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Any",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "isPartOf": { "@type": "WebSite", "name": "JSON Formatter Online", "url": "https://jsonformatteronline.in" }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "JSON Formatter Online", "item": "https://jsonformatteronline.in" },
+        { "@type": "ListItem", "position": 2, "name": "JSON to CSV", "item": "https://jsonformatteronline.in/json-to-csv" }
+      ]
+    }
+  ]
+};
+---
+<Layout
+  title="JSON to CSV Converter Online — Free JSON Formatter Tool"
+  description="Convert JSON arrays to CSV online for free. Transform JSON objects into spreadsheet-ready CSV files instantly. Part of the best free online JSON formatter toolkit — no data sent to servers."
+  canonical="https://jsonformatteronline.in/json-to-csv"
+  keywords="json to csv, json to csv converter online, convert json to csv, json formatter tool, free json formatter, json to spreadsheet"
+  schema={schema}
+>
+  <JsonToCsv client:load />
+  <article data-en-only class="border-t px-4 py-8" style="border-color:var(--jfo-border);background:var(--jfo-bg)">
+    <div class="mx-auto max-w-[860px] space-y-5">
+
+      <header>
+        <h1 data-i18n="toCsvH1" class="text-lg font-bold" style="color:var(--jfo-text-1)">JSON to CSV Converter — Free Online JSON Formatter Tool</h1>
+        <p data-i18n="toCsvP" class="mt-1 text-sm leading-relaxed" style="color:var(--jfo-text-3)">
+          Convert JSON arrays of objects to CSV format instantly. Part of the free <a href="/" style="color:var(--jfo-accent);text-decoration:underline;text-underline-offset:2px">JSON Formatter Online</a> toolkit.
+        </p>
+      </header>
+
+      <p class="text-sm leading-relaxed" style="color:var(--jfo-text-2)">
+        This <strong style="color:var(--jfo-text-1)">JSON formatter tool</strong> converts any JSON array of objects into a valid RFC 4180 CSV file. Each object becomes a row; all unique keys across all objects become column headers. Missing values in any row are left blank. Nested objects and arrays within a cell are serialised as compact JSON strings so no data is lost.
+      </p>
+      <p class="text-sm leading-relaxed" style="color:var(--jfo-text-2)">
+        Paste a JSON array, click <strong style="color:var(--jfo-text-1)">Convert to CSV</strong>, and download or copy the output. Row and column counts are shown in the toolbar. Useful for exporting API responses into Excel, Google Sheets, or any database import tool. All processing is client-side — your JSON never leaves your browser. For formatting or validating JSON before converting, use the <a href="/" style="color:var(--jfo-accent);text-decoration:underline;text-underline-offset:2px">free JSON formatter</a>.
+      </p>
+    </div>
+  </article>
+</Layout>

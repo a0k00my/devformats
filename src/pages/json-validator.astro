@@ -1,0 +1,71 @@
+---
+import Layout from '../layouts/Layout.astro';
+import JsonValidator from '../components/JsonValidator';
+
+const schema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "@id": "https://jsonformatteronline.in/json-validator#app",
+      "name": "JSON Formatter and Validator Online",
+      "url": "https://jsonformatteronline.in/json-validator",
+      "description": "Free online JSON formatter and validator. Validate JSON syntax against RFC 8259, get exact line and column error locations, and view key count and depth stats.",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Any",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "isPartOf": { "@type": "WebSite", "name": "JSON Formatter Online", "url": "https://jsonformatteronline.in" }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "JSON Formatter Online", "item": "https://jsonformatteronline.in" },
+        { "@type": "ListItem", "position": 2, "name": "JSON Validator", "item": "https://jsonformatteronline.in/json-validator" }
+      ]
+    }
+  ]
+};
+---
+<Layout
+  title="JSON Validator Online — Free JSON Formatter & Validator Tool"
+  description="Free online JSON formatter and validator. Checks JSON syntax against RFC 8259 and reports exact line/column errors. The best free JSON formatter & validator — no data sent to servers."
+  canonical="https://jsonformatteronline.in/json-validator"
+  keywords="json formatter and validator, json validator online, json formatter & validator, free json formatter, json format checker, validate json online, json lint"
+  schema={schema}
+>
+  <JsonValidator client:load />
+  <article data-en-only class="border-t px-4 py-8" style="border-color:var(--jfo-border);background:var(--jfo-bg)">
+    <div class="mx-auto max-w-[860px] space-y-5">
+
+      <header>
+        <h1 data-i18n="validatorH1" class="text-lg font-bold" style="color:var(--jfo-text-1)">JSON Formatter and Validator — Free Online Syntax Checker</h1>
+        <p data-i18n="validatorP" class="mt-1 text-sm leading-relaxed" style="color:var(--jfo-text-3)">
+          Validate JSON syntax against RFC 8259 with exact line and column error reporting. Part of the free <a href="/" style="color:var(--jfo-accent);text-decoration:underline;text-underline-offset:2px">JSON Formatter Online</a> toolkit.
+        </p>
+      </header>
+
+      <p class="text-sm leading-relaxed" style="color:var(--jfo-text-2)">
+        This <strong style="color:var(--jfo-text-1)">JSON formatter and validator</strong> checks your JSON text against the RFC 8259 international standard — the same spec used by all modern browsers, servers, and APIs. Paste your JSON, click <strong style="color:var(--jfo-text-1)">Validate</strong>, and get an instant result: a green panel with key-count and nesting-depth stats for valid input, or a red error card showing the exact line and column of every syntax mistake.
+      </p>
+
+      <div class="grid gap-4 sm:grid-cols-3">
+        <div class="rounded-lg border p-3" style="border-color:var(--jfo-border);background:var(--jfo-bg-soft)">
+          <div class="mb-1 text-xs font-semibold" style="color:var(--jfo-text-1)">Exact Error Location</div>
+          <p class="text-xs leading-relaxed" style="color:var(--jfo-text-3)">Reports line and column for every error — missing commas, trailing commas, unquoted keys, single-quoted strings, mismatched brackets.</p>
+        </div>
+        <div class="rounded-lg border p-3" style="border-color:var(--jfo-border);background:var(--jfo-bg-soft)">
+          <div class="mb-1 text-xs font-semibold" style="color:var(--jfo-text-1)">Structural Stats</div>
+          <p class="text-xs leading-relaxed" style="color:var(--jfo-text-3)">On success, shows total object key count and maximum nesting depth — useful for understanding complex nested payloads at a glance.</p>
+        </div>
+        <div class="rounded-lg border p-3" style="border-color:var(--jfo-border);background:var(--jfo-bg-soft)">
+          <div class="mb-1 text-xs font-semibold" style="color:var(--jfo-text-1)">RFC 8259 Compliant</div>
+          <p class="text-xs leading-relaxed" style="color:var(--jfo-text-3)">Strict validation — no lenient parsing, no false positives. If it passes here, it will parse correctly in any standards-compliant JSON library.</p>
+        </div>
+      </div>
+
+      <p class="text-sm leading-relaxed" style="color:var(--jfo-text-2)">
+        Need to format the JSON after validating? Switch to the <a href="/" style="color:var(--jfo-accent);text-decoration:underline;text-underline-offset:2px">free JSON formatter</a> to beautify with syntax highlighting. Or use the <a href="/json-minifier" style="color:var(--jfo-accent);text-decoration:underline;text-underline-offset:2px">JSON Minifier</a> to compress it for production.
+      </p>
+    </div>
+  </article>
+</Layout>

@@ -1,0 +1,157 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+<Layout
+  title="Contact Us – JSON Formatter Online"
+  description="Send feedback, report a bug, or suggest a feature for JSON Formatter Online."
+  canonical="https://jsonformatteronline.in/contact"
+  keywords="contact json formatter online, support, feedback"
+>
+  <div class="mx-auto max-w-3xl px-4 py-12">
+    <h1 data-i18n="contactTitle" class="mb-4 text-2xl font-bold tracking-tight" style="color:var(--jfo-text-1)">Contact Us</h1>
+    <p data-i18n="contactIntro" class="mb-8 text-sm leading-relaxed" style="color:var(--jfo-text-2)">
+      Have a question, found a bug, or want to suggest a feature? Fill in the form and I'll get back to you.
+    </p>
+
+    <form
+      id="contact-form"
+      class="space-y-4 rounded-lg border p-6"
+      style="border-color:var(--jfo-border);background:var(--jfo-bg-soft)"
+      novalidate
+    >
+      <div>
+        <label data-i18n="contactName" class="mb-1.5 block text-xs font-medium" style="color:var(--jfo-text-2)" for="contact-name">Name</label>
+        <input
+          id="contact-name"
+          name="name"
+          type="text"
+          placeholder="Your name"
+          data-i18n-placeholder="contactNamePlaceholder"
+          required
+          class="w-full rounded border px-3 py-2 text-sm outline-none transition-colors"
+          style="background:var(--jfo-bg);border-color:var(--jfo-border);color:var(--jfo-text-1)"
+        />
+      </div>
+      <div>
+        <label data-i18n="contactSubject" class="mb-1.5 block text-xs font-medium" style="color:var(--jfo-text-2)" for="contact-subject">Subject</label>
+        <input
+          id="contact-subject"
+          name="subject"
+          type="text"
+          placeholder="e.g. Bug report, Feature request"
+          data-i18n-placeholder="contactSubjectPlaceholder"
+          required
+          class="w-full rounded border px-3 py-2 text-sm outline-none transition-colors"
+          style="background:var(--jfo-bg);border-color:var(--jfo-border);color:var(--jfo-text-1)"
+        />
+      </div>
+      <div>
+        <label data-i18n="contactMessage" class="mb-1.5 block text-xs font-medium" style="color:var(--jfo-text-2)" for="contact-message">Message</label>
+        <textarea
+          id="contact-message"
+          name="message"
+          rows="5"
+          placeholder="Describe your issue or idea..."
+          data-i18n-placeholder="contactMessagePlaceholder"
+          required
+          class="w-full resize-y rounded border px-3 py-2 text-sm outline-none transition-colors"
+          style="background:var(--jfo-bg);border-color:var(--jfo-border);color:var(--jfo-text-1)"
+        ></textarea>
+      </div>
+
+      <div id="contact-error" data-i18n="contactErrorDefault" class="hidden rounded border px-3 py-2 text-xs" style="background:var(--jfo-err-bg);border-color:var(--jfo-err-border);color:var(--jfo-err-text)">
+        Something went wrong. Please try again.
+      </div>
+
+      <button
+        id="contact-submit"
+        type="submit"
+        class="rounded px-5 py-2 text-sm font-medium transition-opacity hover:opacity-90"
+        style="background:var(--jfo-accent);color:#000;cursor:pointer"
+      >
+        <span data-i18n="contactSubmit">Send Message</span>
+      </button>
+    </form>
+
+    <div
+      id="contact-success"
+      class="hidden mt-4 rounded-lg border px-6 py-8 text-center"
+      style="border-color:var(--jfo-accent-border);background:var(--jfo-accent-bg)"
+    >
+      <div class="mb-3 text-3xl" style="color:var(--jfo-accent)">✓</div>
+      <div data-i18n="contactSuccessTitle" class="text-sm font-semibold" style="color:var(--jfo-accent)">Message sent — thank you!</div>
+      <p data-i18n="contactSuccessBody" class="mt-2 text-xs" style="color:var(--jfo-text-3)">I'll get back to you as soon as possible.</p>
+      <button
+        id="contact-reset"
+        class="mt-5 rounded border px-4 py-1.5 text-xs transition-opacity hover:opacity-70"
+        style="border-color:var(--jfo-border);color:var(--jfo-text-2);cursor:pointer;background:transparent"
+      >
+        <span data-i18n="contactReset">Send another message</span>
+      </button>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  const ENDPOINT = 'https://formspree.io/f/xzdlnelg';
+  const tt = (key: string) => (window as any).JFO_I18N?.t(key) ?? key;
+
+  const form    = document.getElementById('contact-form') as HTMLFormElement | null;
+  const submit  = document.getElementById('contact-submit') as HTMLButtonElement | null;
+  const submitLabel = submit?.querySelector('[data-i18n="contactSubmit"]') as HTMLElement | null;
+  const success = document.getElementById('contact-success');
+  const error   = document.getElementById('contact-error');
+  const reset   = document.getElementById('contact-reset');
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!form) return;
+
+    // Basic client-side validation
+    const name    = (form.querySelector('#contact-name') as HTMLInputElement)?.value.trim();
+    const subject = (form.querySelector('#contact-subject') as HTMLInputElement)?.value.trim();
+    const message = (form.querySelector('#contact-message') as HTMLTextAreaElement)?.value.trim();
+    if (!name || !subject || !message) {
+      error!.textContent = tt('contactFill');
+      error!.classList.remove('hidden');
+      return;
+    }
+
+    // Loading state
+    if (submitLabel) submitLabel.textContent = tt('contactSending');
+    submit!.style.opacity = '0.6';
+    submit!.setAttribute('disabled', 'true');
+    error!.classList.add('hidden');
+
+    try {
+      const res = await fetch(ENDPOINT, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json' },
+        body: new FormData(form),
+      });
+
+      if (res.ok) {
+        form.classList.add('hidden');
+        success?.classList.remove('hidden');
+      } else {
+        const data = await res.json().catch(() => ({}));
+        error!.textContent = (data as any)?.error ?? tt('contactFailed');
+        error!.classList.remove('hidden');
+      }
+    } catch {
+      error!.textContent = tt('contactNetwork');
+      error!.classList.remove('hidden');
+    } finally {
+      if (submitLabel) submitLabel.textContent = tt('contactSubmit');
+      submit!.style.opacity = '1';
+      submit!.removeAttribute('disabled');
+    }
+  });
+
+  reset?.addEventListener('click', () => {
+    form?.reset();
+    success?.classList.add('hidden');
+    error?.classList.add('hidden');
+    form?.classList.remove('hidden');
+  });
+</script>

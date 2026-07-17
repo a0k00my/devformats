@@ -1,0 +1,208 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --font-heading: var(--font-sans);
+    --font-sans: 'Geist Variable', sans-serif;
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+}
+
+/* ── Design tokens ── */
+:root {
+  --radius: 0.5rem;
+
+  /* dark theme (default) */
+  --jfo-bg:         #0d0d0d;
+  --jfo-bg-soft:    #111111;
+  --jfo-toolbar:    #141414;
+  --jfo-panel-hdr:  #111111;
+  --jfo-editor:     #0d0d0d;
+  --jfo-border:     #2a2a2a;
+  --jfo-border-2:   #1f1f1f;
+  --jfo-text-1:     #e5e5e5;
+  --jfo-text-2:     #888888;
+  --jfo-text-3:     #555555;
+  --jfo-text-4:     #333333;
+  --jfo-code:       #cdd6f4;
+  --jfo-placeholder: #2a2a2a;
+  --jfo-accent:     #50e3c2;
+  --jfo-accent-bg:  rgba(80,227,194,0.1);
+  --jfo-accent-border: rgba(80,227,194,0.25);
+  --jfo-err-bg:     #1a0808;
+  --jfo-err-border: #3a1a1a;
+  --jfo-err-text:   #f87171;
+
+  /* shadcn compat */
+  --background: var(--jfo-bg);
+  --foreground: var(--jfo-text-1);
+  --border: var(--jfo-border);
+  --destructive: #ee0000;
+  --ring: #444;
+  --muted-foreground: var(--jfo-text-2);
+}
+
+html.light {
+  --jfo-bg:         #f8f8f8;
+  --jfo-bg-soft:    #ffffff;
+  --jfo-toolbar:    #ffffff;
+  --jfo-panel-hdr:  #f5f5f5;
+  --jfo-editor:     #fafafa;
+  --jfo-border:     #e0e0e0;
+  --jfo-border-2:   #ebebeb;
+  --jfo-text-1:     #171717;
+  --jfo-text-2:     #555555;
+  --jfo-text-3:     #888888;
+  --jfo-text-4:     #aaaaaa;
+  --jfo-code:       #24292f;
+  --jfo-placeholder: #cccccc;
+  --jfo-accent:     #0070f3;
+  --jfo-accent-bg:  rgba(0,112,243,0.08);
+  --jfo-accent-border: rgba(0,112,243,0.25);
+  --jfo-err-bg:     #fff5f5;
+  --jfo-err-border: #fca5a5;
+  --jfo-err-text:   #c50000;
+  --background: var(--jfo-bg);
+  --foreground: var(--jfo-text-1);
+  --border: var(--jfo-border);
+}
+
+/* ── Base reset ── */
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: var(--jfo-bg);
+    color: var(--jfo-text-1);
+    @apply font-sans;
+    -webkit-font-smoothing: antialiased;
+  }
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--jfo-border); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--jfo-text-4); }
+  * { scrollbar-width: thin; scrollbar-color: var(--jfo-border) transparent; }
+}
+
+/* ── View Transitions: instant fade, no white flash ── */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 120ms;
+  animation-timing-function: ease-out;
+}
+::view-transition-old(root) { animation-name: vt-fade-out; }
+::view-transition-new(root) { animation-name: vt-fade-in; }
+@keyframes vt-fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes vt-fade-in  { from { opacity: 0; } to { opacity: 1; } }
+
+/* ── Toolbar buttons ── */
+.tb-btn {
+  cursor: pointer;
+  user-select: none;
+  border: 1px solid var(--jfo-border);
+  border-radius: 5px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+  background: transparent;
+  color: var(--jfo-text-2);
+  transition: background 120ms, color 120ms, border-color 120ms, transform 80ms;
+}
+.tb-btn:hover {
+  background: var(--jfo-bg-soft);
+  color: var(--jfo-text-1);
+  border-color: var(--jfo-text-4);
+}
+.tb-btn:active {
+  transform: scale(0.95);
+  background: var(--jfo-border);
+}
+/* Primary action variant — Format, Minify, Validate, Compare, Convert */
+.tb-btn-primary {
+  cursor: pointer;
+  user-select: none;
+  border: 1px solid var(--jfo-border);
+  border-radius: 5px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  background: var(--jfo-bg-soft);
+  color: var(--jfo-text-1);
+  transition: background 120ms, color 120ms, border-color 120ms, transform 80ms, box-shadow 120ms;
+}
+.tb-btn-primary:hover {
+  background: var(--jfo-accent-bg);
+  color: var(--jfo-accent);
+  border-color: var(--jfo-accent-border);
+  box-shadow: 0 0 0 1px var(--jfo-accent-border);
+}
+.tb-btn-primary:active {
+  transform: scale(0.95);
+}
+/* Dimmed ghost — download, load file, clear */
+.tb-btn-ghost {
+  cursor: pointer;
+  user-select: none;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  padding: 3px 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  background: transparent;
+  color: var(--jfo-text-3);
+  transition: background 120ms, color 120ms, border-color 120ms, transform 80ms;
+}
+.tb-btn-ghost:hover {
+  background: var(--jfo-bg-soft);
+  color: var(--jfo-text-1);
+  border-color: var(--jfo-border);
+}
+.tb-btn-ghost:active {
+  transform: scale(0.95);
+}
+
+/* ── Syntax highlight — light mode overrides ── */
+html.light .hl-key   { color: #0550ae !important; font-weight: 500; }
+html.light .hl-str   { color: #0a3069 !important; }
+html.light .hl-bool  { color: #0070f3 !important; }
+html.light .hl-null  { color: #888 !important; }
+html.light .hl-num   { color: #953800 !important; }
+
+/* ── Mobile: stack editors ── */
+@media (max-width: 767px) {
+  .editor-split {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: unset !important;
+  }
+  .editor-panel {
+    min-height: 40vh;
+    border-right: none !important;
+    border-bottom: 1px solid var(--jfo-border) !important;
+  }
+  .tool-height {
+    height: auto !important;
+    min-height: calc(100vh - 48px);
+  }
+  .toolbar-scroll {
+    overflow-x: auto;
+    flex-wrap: nowrap !important;
+    scrollbar-width: none;
+  }
+  .toolbar-scroll::-webkit-scrollbar { display: none; }
+  .nav-links-hide { display: none; }
+  .nav-hamburger { display: flex !important; }
+}

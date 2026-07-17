@@ -1,0 +1,31 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+<Layout
+  title="500 – Server Error · JSON Formatter Online"
+  description="Something went wrong on our end."
+>
+  <div class="flex flex-1 flex-col items-center justify-center px-4 py-24 text-center">
+    <div class="mb-4 font-mono text-7xl font-bold" style="color:var(--jfo-border)">500</div>
+    <h1 class="mb-3 text-xl font-semibold" style="color:var(--jfo-text-1)">Something went wrong</h1>
+    <p class="mb-8 max-w-sm text-sm" style="color:var(--jfo-text-3)">
+      An unexpected error occurred. Since all processing happens in your browser, refreshing usually fixes it.
+    </p>
+    <div class="flex flex-wrap justify-center gap-3">
+      <button
+        onclick="window.location.reload()"
+        class="rounded px-5 py-2 text-sm font-medium transition-opacity hover:opacity-90"
+        style="background:var(--jfo-accent);color:#000;cursor:pointer"
+      >
+        Reload page
+      </button>
+      <a
+        href="/"
+        class="rounded border px-5 py-2 text-sm font-medium transition-colors hover:opacity-80"
+        style="border-color:var(--jfo-border);color:var(--jfo-text-2)"
+      >
+        Go home
+      </a>
+    </div>
+  </div>
+</Layout>

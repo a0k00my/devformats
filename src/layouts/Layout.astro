@@ -1,0 +1,148 @@
+---
+import '../styles/global.css';
+import NavBar from '../components/NavBar.astro';
+import Footer from '../components/Footer.astro';
+import ClientRouter from 'astro/components/ClientRouter.astro';
+import { translations } from '../lib/i18n';
+import { pageTranslations } from '../lib/page-i18n';
+
+interface Props {
+  title: string;
+  description: string;
+  canonical?: string;
+  schema?: object;
+  ogImage?: string;
+  keywords?: string;
+}
+
+const {
+  title,
+  description,
+  canonical,
+  schema,
+  ogImage = 'https://jsonformatteronline.in/og-image.png',
+  keywords,
+} = Astro.props;
+
+const browserTranslations = Object.fromEntries(
+  Object.keys(translations).map((lang) => [
+    lang,
+    {
+      ...translations[lang as keyof typeof translations],
+      ...pageTranslations[lang as keyof typeof pageTranslations],
+    },
+  ])
+);
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {keywords && <meta name="keywords" content={keywords} />}
+    {canonical && <link rel="canonical" href={canonical} />}
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="JSON Fmt" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#f8f8f8" />
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="JSON Formatter Online" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    {canonical && <meta property="og:url" content={canonical} />}
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={title} />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter / X Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <!-- Robots -->
+    <meta name="robots" content="index, follow" />
+    <meta name="googlebot" content="index, follow" />
+
+    {schema && <script type="application/ld+json" set:html={JSON.stringify(schema)} />}
+
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9927239781661747" crossorigin="anonymous"></script>
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QH5X6RBFXP"></script>
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-QH5X6RBFXP');
+      // Re-fire pageview on every View Transition navigation
+      document.addEventListener('astro:page-load', () => {
+        gtag('event', 'page_view', { page_path: window.location.pathname });
+      });
+    </script>
+
+    <!-- Apply theme on initial load AND after every View Transition page swap -->
+    <script is:inline>
+      function applyTheme() {
+        var t = localStorage.getItem('jfo-theme') || 'light';
+        document.documentElement.classList.remove('dark', 'light');
+        document.documentElement.classList.add(t);
+      }
+      applyTheme();
+      document.addEventListener('astro:after-swap', applyTheme);
+    </script>
+    <script
+      is:inline
+      set:html={`window.JFO_TRANSLATIONS=${JSON.stringify(browserTranslations)};
+window.JFO_I18N={
+  t:function(key){
+    var lang=localStorage.getItem('jfo-lang')||'en';
+    var table=(window.JFO_TRANSLATIONS&&window.JFO_TRANSLATIONS[lang])||window.JFO_TRANSLATIONS.en||{};
+    return table[key] || (window.JFO_TRANSLATIONS.en&&window.JFO_TRANSLATIONS.en[key]) || key;
+  },
+  apply:function(){
+    document.querySelectorAll('[data-i18n]').forEach(function(el){
+      var text=window.JFO_I18N.t(el.getAttribute('data-i18n'));
+      if(text) el.textContent=text;
+    });
+    document.querySelectorAll('[data-i18n-html]').forEach(function(el){
+      var html=window.JFO_I18N.t(el.getAttribute('data-i18n-html'));
+      if(html) el.innerHTML=html;
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el){
+      var text=window.JFO_I18N.t(el.getAttribute('data-i18n-placeholder'));
+      if(text) el.setAttribute('placeholder',text);
+    });
+    document.querySelectorAll('[data-i18n-aria]').forEach(function(el){
+      var text=window.JFO_I18N.t(el.getAttribute('data-i18n-aria'));
+      if(text) el.setAttribute('aria-label',text);
+    });
+    var lang=localStorage.getItem('jfo-lang')||'en';
+    document.querySelectorAll('[data-en-only]').forEach(function(el){
+      el.hidden=lang!=='en';
+    });
+  }
+};
+document.addEventListener('astro:page-load',function(){window.JFO_I18N.apply();});
+window.addEventListener('jfo-lang-change',function(){window.JFO_I18N.apply();});`}
+    />
+    <ClientRouter />
+  </head>
+  <body class="flex min-h-screen flex-col" style="background:var(--jfo-bg);color:var(--jfo-text-1)">
+    <NavBar />
+    <main class="flex flex-1 flex-col">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

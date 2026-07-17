@@ -1,0 +1,55 @@
+---
+import Layout from '../layouts/Layout.astro';
+import JsonDiff from '../components/JsonDiff';
+
+const schema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "@id": "https://jsonformatteronline.in/json-diff#app",
+      "name": "JSON Diff Checker — Free JSON Formatter Tool",
+      "url": "https://jsonformatteronline.in/json-diff",
+      "description": "Free online JSON diff checker. Compare two JSON objects and highlight additions, deletions, and changes. Part of the best free JSON formatter toolkit.",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Any",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "isPartOf": { "@type": "WebSite", "name": "JSON Formatter Online", "url": "https://jsonformatteronline.in" }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "JSON Formatter Online", "item": "https://jsonformatteronline.in" },
+        { "@type": "ListItem", "position": 2, "name": "JSON Diff", "item": "https://jsonformatteronline.in/json-diff" }
+      ]
+    }
+  ]
+};
+---
+<Layout
+  title="JSON Diff Checker Online — Free JSON Formatter & Compare Tool"
+  description="Compare two JSON files online for free. Color-coded diff shows additions, deletions, and changed values with full key paths. Free JSON formatter toolkit — all processing in your browser."
+  canonical="https://jsonformatteronline.in/json-diff"
+  keywords="json diff, json diff checker, compare json online, json compare tool, json difference, free json formatter, json formatter tool"
+  schema={schema}
+>
+  <JsonDiff client:load />
+  <article data-en-only class="border-t px-4 py-8" style="border-color:var(--jfo-border);background:var(--jfo-bg)">
+    <div class="mx-auto max-w-[860px] space-y-5">
+
+      <header>
+        <h1 data-i18n="diffH1" class="text-lg font-bold" style="color:var(--jfo-text-1)">JSON Diff Checker — Compare Two JSON Documents Online</h1>
+        <p data-i18n="diffP" class="mt-1 text-sm leading-relaxed" style="color:var(--jfo-text-3)">
+          Colour-coded diff with full key paths. Part of the free <a href="/" style="color:var(--jfo-accent);text-decoration:underline;text-underline-offset:2px">JSON Formatter Online</a> toolkit.
+        </p>
+      </header>
+
+      <p class="text-sm leading-relaxed" style="color:var(--jfo-text-2)">
+        Paste JSON into both panels — original (A) on the left, modified (B) on the right — and click <strong style="color:var(--jfo-text-1)">Compare</strong>. The diff panel lists every difference with its full dot-notation key path: <span style="color:#4ade80">additions in green</span>, <span style="color:#f87171">removals in red</span>, and <span style="color:#fbbf24">changed values in yellow</span> showing before and after side by side. The toolbar summarises total additions, removals, and changes at a glance.
+      </p>
+      <p class="text-sm leading-relaxed" style="color:var(--jfo-text-2)">
+        The comparison is recursive — it drills into nested objects and diffs arrays element-by-element by index. Useful for debugging API version changes, comparing configuration snapshots, and auditing data migration output. All processing is client-side via this <strong style="color:var(--jfo-text-1)">free JSON formatter</strong> toolkit — neither document is sent to any server. Before comparing, use the <a href="/" style="color:var(--jfo-accent);text-decoration:underline;text-underline-offset:2px">pretty JSON formatter</a> to clean up both documents first.
+      </p>
+    </div>
+  </article>
+</Layout>
