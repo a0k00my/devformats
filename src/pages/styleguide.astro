@@ -1,0 +1,145 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const colorTokens = [
+  { name: '--bg', label: 'Background' },
+  { name: '--bg-subtle', label: 'Background Subtle' },
+  { name: '--bg-muted', label: 'Background Muted' },
+  { name: '--border', label: 'Border' },
+  { name: '--border-strong', label: 'Border Strong' },
+  { name: '--fg', label: 'Foreground' },
+  { name: '--fg-muted', label: 'Foreground Muted' },
+  { name: '--fg-subtle', label: 'Foreground Subtle' },
+  { name: '--accent', label: 'Accent' },
+  { name: '--accent-fg', label: 'Accent Foreground' },
+  { name: '--success', label: 'Success' },
+  { name: '--warning', label: 'Warning' },
+  { name: '--danger', label: 'Danger' },
+];
+
+const typeScale = [
+  { cls: 'text-3xl font-bold', label: 'text-3xl / bold', sample: 'Fast Developer Tools' },
+  { cls: 'text-2xl font-bold', label: 'text-2xl / bold', sample: 'Fast Developer Tools' },
+  { cls: 'text-xl font-semibold', label: 'text-xl / semibold', sample: 'JSON Formatter' },
+  { cls: 'text-lg font-semibold', label: 'text-lg / semibold', sample: 'JSON Formatter' },
+  { cls: 'text-base font-medium', label: 'text-base / medium', sample: 'Format, validate, convert.' },
+  { cls: 'text-sm', label: 'text-sm', sample: 'Format, validate, convert.' },
+  { cls: 'text-xs', label: 'text-xs', sample: 'All processing happens in your browser.' },
+];
+
+const spacingScale = [1, 2, 3, 4, 6, 8, 12, 16];
+const radiusTokens = [
+  { name: '--radius-sm', label: 'sm' },
+  { name: '--radius-md', label: 'md' },
+  { name: '--radius-lg', label: 'lg' },
+];
+const shadowTokens = [
+  { name: '--shadow-sm', label: 'sm' },
+  { name: '--shadow-md', label: 'md' },
+  { name: '--shadow-lg', label: 'lg' },
+];
+---
+<Layout
+  title="Styleguide — DevFormats"
+  description="Internal reference page rendering every design token and component state."
+  canonical="https://devformats.com/styleguide"
+>
+  <div class="mx-auto max-w-5xl px-4 py-12 space-y-14">
+    <header>
+      <h1 class="text-2xl font-bold tracking-tight" style="color:var(--fg)">Styleguide</h1>
+      <p class="mt-1 text-sm" style="color:var(--fg-muted)">Every design token and base component state, for eyeballing light/dark parity. Not linked from nav — internal reference only.</p>
+    </header>
+
+    <!-- Colors -->
+    <section>
+      <h2 class="mb-4 font-mono text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Color Tokens</h2>
+      <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+        {colorTokens.map(t => (
+          <div class="rounded-lg border overflow-hidden" style="border-color:var(--border)">
+            <div class="h-16" style={`background:var(${t.name})`}></div>
+            <div class="p-2" style="background:var(--bg-subtle)">
+              <div class="text-xs font-medium" style="color:var(--fg)">{t.label}</div>
+              <div class="font-mono text-[10px]" style="color:var(--fg-subtle)">{t.name}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Typography -->
+    <section>
+      <h2 class="mb-4 font-mono text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Typography Scale</h2>
+      <p class="mb-3 text-xs" style="color:var(--fg-subtle)">Font stack: system sans (Geist Variable) for prose, Geist Mono for editors/code. Sizes follow Tailwind's default scale — no custom scale needed.</p>
+      <div class="space-y-3 rounded-lg border p-4" style="border-color:var(--border);background:var(--bg-subtle)">
+        {typeScale.map(t => (
+          <div class="flex items-baseline gap-4">
+            <span class="w-40 shrink-0 font-mono text-[10px]" style="color:var(--fg-subtle)">{t.label}</span>
+            <span class={t.cls} style="color:var(--fg)">{t.sample}</span>
+          </div>
+        ))}
+        <div class="flex items-baseline gap-4 pt-2 border-t" style="border-color:var(--border)">
+          <span class="w-40 shrink-0 font-mono text-[10px]" style="color:var(--fg-subtle)">font-mono</span>
+          <span class="font-mono text-sm" style="color:var(--fg)">{`{ "key": "value", "n": 42 }`}</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Spacing -->
+    <section>
+      <h2 class="mb-4 font-mono text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Spacing Scale</h2>
+      <p class="mb-3 text-xs" style="color:var(--fg-subtle)">Tailwind's default spacing scale (0.25rem increments). No exceptions defined yet.</p>
+      <div class="flex flex-wrap items-end gap-3">
+        {spacingScale.map(n => (
+          <div class="flex flex-col items-center gap-1">
+            <div style={`width:${n * 0.25}rem;height:${n * 0.25}rem;background:var(--accent)`} class="rounded"></div>
+            <span class="font-mono text-[10px]" style="color:var(--fg-subtle)">{n}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Radius & Shadow -->
+    <section>
+      <h2 class="mb-4 font-mono text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Radius &amp; Shadow</h2>
+      <div class="grid grid-cols-3 gap-4">
+        {radiusTokens.map(r => (
+          <div class="flex h-20 items-center justify-center border text-xs" style={`border-color:var(--border);border-radius:var(${r.name});color:var(--fg-muted)`}>{r.label}</div>
+        ))}
+        {shadowTokens.map(s => (
+          <div class="flex h-20 items-center justify-center border text-xs" style={`border-color:var(--border);box-shadow:var(${s.name});background:var(--bg-subtle);color:var(--fg-muted)`}>{s.label}</div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Buttons -->
+    <section>
+      <h2 class="mb-4 font-mono text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Buttons</h2>
+      <div class="flex flex-wrap items-center gap-3">
+        <button class="tb-btn-primary">Primary Action</button>
+        <button class="tb-btn">Secondary</button>
+        <button class="tb-btn-ghost">Ghost</button>
+        <button class="tb-btn-primary" disabled style="opacity:0.5;cursor:not-allowed">Disabled</button>
+      </div>
+    </section>
+
+    <!-- Status colors -->
+    <section>
+      <h2 class="mb-4 font-mono text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Status States</h2>
+      <div class="grid gap-3 sm:grid-cols-3">
+        <div class="rounded-lg border p-3 text-sm" style="border-color:var(--success);background:var(--success-bg);color:var(--success)">✓ Valid JSON — success state</div>
+        <div class="rounded-lg border p-3 text-sm" style="border-color:var(--warning);background:var(--warning-bg);color:var(--warning)">⚠ Expires in 2h — warning state</div>
+        <div class="rounded-lg border p-3 text-sm" style="border-color:var(--danger-border);background:var(--danger-bg);color:var(--danger)">✕ SyntaxError at line 4 — danger state</div>
+      </div>
+    </section>
+
+    <!-- Focus ring -->
+    <section>
+      <h2 class="mb-4 font-mono text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Focus Ring (tab to check)</h2>
+      <div class="flex flex-wrap gap-3">
+        <a href="#" class="rounded px-3 py-1.5 text-sm underline" style="color:var(--accent)">Focusable link</a>
+        <button class="tb-btn">Focusable button</button>
+        <input class="rounded border px-3 py-1.5 text-sm outline-none" style="border-color:var(--border);background:var(--bg);color:var(--fg)" placeholder="Focusable input" />
+      </div>
+    </section>
+  </div>
+</Layout>

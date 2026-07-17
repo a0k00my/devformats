@@ -73,10 +73,13 @@ const {
       });
     </script>
 
-    <!-- Apply theme on initial load AND after every View Transition page swap -->
+    <!-- Apply theme on initial load AND after every View Transition page swap.
+         Falls back to prefers-color-scheme when the user hasn't chosen yet —
+         inline + is:inline so it runs before paint (no flash of wrong theme). -->
     <script is:inline>
       function applyTheme() {
-        var t = localStorage.getItem('jfo-theme') || 'light';
+        var stored = localStorage.getItem('jfo-theme');
+        var t = stored || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
         document.documentElement.classList.remove('dark', 'light');
         document.documentElement.classList.add(t);
       }

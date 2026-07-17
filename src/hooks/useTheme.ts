@@ -5,7 +5,9 @@ export type Theme = 'dark' | 'light';
 export function useTheme() {
   const [theme, setThemeState] = useState<Theme>(() => {
     if (typeof window === 'undefined') return 'light';
-    return (localStorage.getItem('jfo-theme') as Theme) || 'light';
+    const stored = localStorage.getItem('jfo-theme') as Theme | null;
+    if (stored) return stored;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   });
 
   const toggle = () => {
