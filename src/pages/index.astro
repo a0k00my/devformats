@@ -1,311 +1,123 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import JsonFormatter from '../components/JsonFormatter';
+import SearchTrigger from '../components/SearchTrigger.astro';
+import ToolCard from '../components/ToolCard.astro';
+import CategoryCard from '../components/CategoryCard.astro';
+import { getTool, getRecentTools, CATEGORY_META, type Category } from '../data/tools';
+
+const popularSlugs = [
+  'json-formatter', 'json-validator', 'json-parser', 'json-viewer',
+  'yaml-formatter', 'xml-formatter', 'jwt-decoder', 'base64',
+  'csv-to-json', 'json-to-yaml',
+];
+const popularTools = popularSlugs.map(getTool).filter((t): t is NonNullable<typeof t> => Boolean(t));
+const categories = Object.keys(CATEGORY_META) as Category[];
+const recentTools = getRecentTools(8);
 
 const schema = {
-  "@context": "https://schema.org",
-  "@graph": [
+  '@context': 'https://schema.org',
+  '@graph': [
     {
-      "@type": "WebApplication",
-      "@id": "https://devformats.com/#app",
-      "name": "DevFormats",
-      "alternateName": ["Free JSON Formatter", "Online JSON Formatter", "Pretty JSON Formatter", "JSON Formatter Tool"],
-      "url": "https://devformats.com",
-      "description": "The best free online JSON formatter and validator. Format, beautify, validate, and minify JSON instantly in your browser. No data sent to servers — 100% private.",
-      "applicationCategory": "DeveloperApplication",
-      "applicationSubCategory": "Developer Tools",
-      "operatingSystem": "Any",
-      "browserRequirements": "Requires JavaScript",
-      "featureList": [
-        "Pretty JSON Formatter",
-        "JSON Formatter and Validator",
-        "JSON Minifier",
-        "JSON to CSV Converter",
-        "JSON Diff Checker",
-        "Syntax Highlighting",
-        "8 Language Support",
-        "Dark & Light Mode"
-      ],
-      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-      "creator": { "@type": "Person", "name": "DevFormats", "url": "https://devformats.com" }
+      '@type': 'WebSite',
+      '@id': 'https://devformats.com/#website',
+      name: 'DevFormats',
+      url: 'https://devformats.com',
+      description: 'Fast, private developer tools for formatting, validating, converting and generating structured data.',
     },
     {
-      "@type": "WebPage",
-      "@id": "https://devformats.com/#webpage",
-      "url": "https://devformats.com",
-      "name": "DevFormats — Free Pretty JSON Formatter & Validator Tool",
-      "description": "The best free online JSON formatter. Beautify, validate, and minify JSON instantly. Pretty JSON formatter with syntax highlighting — all in your browser.",
-      "isPartOf": { "@id": "https://devformats.com/#app" },
-      "primaryImageOfPage": { "@type": "ImageObject", "url": "https://devformats.com/og-image.png" },
-      "breadcrumb": {
-        "@type": "BreadcrumbList",
-        "itemListElement": [
-          { "@type": "ListItem", "position": 1, "name": "DevFormats", "item": "https://devformats.com" }
-        ]
-      }
+      '@type': 'WebPage',
+      '@id': 'https://devformats.com/#webpage',
+      url: 'https://devformats.com',
+      name: 'DevFormats — Fast Developer Tools for Structured Data',
+      isPartOf: { '@id': 'https://devformats.com/#website' },
     },
-    {
-      "@type": "FAQPage",
-      "mainEntity": [
-        {
-          "@type": "Question",
-          "name": "What is JSON format?",
-          "acceptedAnswer": { "@type": "Answer", "text": "JSON (JavaScript Object Notation) format is a lightweight, text-based data interchange format. It represents data as key-value pairs enclosed in curly braces {} for objects and square brackets [] for arrays. JSON format is language-independent, human-readable, and the most widely used format for transmitting data between a server and a web application." }
-        },
-        {
-          "@type": "Question",
-          "name": "What is a JSON file format?",
-          "acceptedAnswer": { "@type": "Answer", "text": "A JSON file is a plain text file saved with the .json extension that stores data in JavaScript Object Notation format. JSON files are used to transmit structured data in web APIs, store application configuration, and exchange data between systems. They can be opened with any text editor and parsed by virtually every modern programming language." }
-        },
-        {
-          "@type": "Question",
-          "name": "What is the full form of JSON?",
-          "acceptedAnswer": { "@type": "Answer", "text": "JSON stands for JavaScript Object Notation. Despite the name, JSON is completely language-independent — it is supported natively in Python, Java, PHP, Ruby, Go, Rust, and virtually every other programming language, making it the universal standard for data exchange on the web." }
-        },
-        {
-          "@type": "Question",
-          "name": "What does JSON format look like?",
-          "acceptedAnswer": { "@type": "Answer", "text": "JSON format uses curly braces for objects and square brackets for arrays. Keys must be double-quoted strings. Values can be strings (\"hello\"), numbers (42), booleans (true/false), null, objects ({}), or arrays ([]). Example: {\"name\": \"Alice\", \"age\": 30, \"active\": true, \"roles\": [\"admin\", \"editor\"]}. A JSON formatter online makes this structure easy to read by adding indentation and line breaks." }
-        },
-        {
-          "@type": "Question",
-          "name": "What is a JSON formatter?",
-          "acceptedAnswer": { "@type": "Answer", "text": "A JSON formatter is a tool that takes raw, compact, or minified JSON text and reformats it with consistent indentation and line breaks — a process also called pretty-printing or beautifying. It makes JSON data human-readable without changing the underlying data. A JSON formatter online does this instantly in your browser with no installation required." }
-        },
-        {
-          "@type": "Question",
-          "name": "How to format JSON?",
-          "acceptedAnswer": { "@type": "Answer", "text": "To format JSON online: 1) Paste your JSON text into the input panel of a JSON formatter online tool. 2) Choose your indentation style (2 spaces, 4 spaces, or tab). 3) Click the Format button. The tool will parse the JSON and output a neatly indented, syntax-highlighted version. You can then copy the formatted output or download it as a .json file." }
-        },
-        {
-          "@type": "Question",
-          "name": "How to properly format JSON data?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Properly formatted JSON data follows these rules: all keys must be double-quoted strings; string values must use double quotes; no trailing commas after the last item in an object or array; no comments are allowed; no undefined values — only string, number, boolean, null, object, or array. Use a free JSON formatter and validator to check and fix formatting automatically." }
-        },
-        {
-          "@type": "Question",
-          "name": "How to beautify JSON format?",
-          "acceptedAnswer": { "@type": "Answer", "text": "To beautify JSON, paste your minified or raw JSON into a pretty JSON formatter tool and click Format. The formatter runs JSON.parse() to validate the data, then JSON.stringify() with an indentation argument to produce clean, indented output with each key on its own line. This process is also called JSON pretty-printing. DevFormats does this instantly in your browser." }
-        },
-        {
-          "@type": "Question",
-          "name": "How to use a JSON formatter?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Using a JSON formatter online is simple: 1) Open devformats.com in your browser. 2) Paste your JSON into the left input panel, or click Load File to upload a .json file. 3) Select your preferred indentation (2sp, 4sp, or Tab). 4) Click ⚡ Format. The right panel shows syntax-highlighted, formatted output. 5) Click Copy or Download to save the result. Your input is automatically remembered if you switch to another tool tab." }
-        },
-        {
-          "@type": "Question",
-          "name": "How does a JSON formatter work?",
-          "acceptedAnswer": { "@type": "Answer", "text": "A JSON formatter works in two steps. First, it passes your input through a JSON parser (JSON.parse() in JavaScript) which validates the syntax and builds an in-memory data structure. If parsing fails, it reports the exact line and column of the error. Second, if parsing succeeds, it serializes the data back to a string using JSON.stringify() with an indentation parameter, producing neatly formatted output with consistent spacing and line breaks." }
-        },
-        {
-          "@type": "Question",
-          "name": "What are the benefits of using a JSON formatter?",
-          "acceptedAnswer": { "@type": "Answer", "text": "The main benefits of using a JSON formatter are: (1) Readability — transforms dense single-line JSON into structured, indented text you can scan instantly. (2) Error detection — validates syntax and pinpoints errors with line and column numbers. (3) Debugging — makes it easy to inspect API responses, config files, and data payloads. (4) Productivity — saves time compared to manually reading minified JSON. (5) Safety — a client-side JSON formatter processes data entirely in your browser with no data sent to servers." }
-        },
-        {
-          "@type": "Question",
-          "name": "What is the best JSON formatter online?",
-          "acceptedAnswer": { "@type": "Answer", "text": "The best JSON formatter online combines formatting, validation, minification, and comparison in a single free tool. DevFormats (devformats.com) is completely free with no sign-up, processes all data in your browser for privacy, supports 8 languages, works on mobile, and persists your work across tool tabs. It includes a pretty JSON formatter, JSON validator, minifier, JSON to CSV converter, and JSON diff checker." }
-        },
-        {
-          "@type": "Question",
-          "name": "How to install JSON Formatter in Sublime Text?",
-          "acceptedAnswer": { "@type": "Answer", "text": "To install a JSON formatter in Sublime Text: 1) Open Sublime Text and press Ctrl+Shift+P (Cmd+Shift+P on Mac) to open the Command Palette. 2) Type 'Install Package Control' and press Enter if not already installed. 3) Open the Command Palette again, type 'Package Control: Install Package', and press Enter. 4) Search for 'Pretty JSON' and install it. 5) To format JSON, open a .json file, press Ctrl+Shift+P, and run 'Pretty JSON: Format JSON'. Alternatively, use a free online JSON formatter like devformats.com to format JSON instantly without any installation." }
-        },
-        {
-          "@type": "Question",
-          "name": "Is this JSON formatter online completely free?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Yes — 100% free, no account required. This is a free JSON formatter with no rate limits, no premium upsell, and no ads blocking the editor area. All five tools (formatter, validator, minifier, CSV converter, diff checker) are free forever." }
-        },
-        {
-          "@type": "Question",
-          "name": "Is my data safe in this free online JSON formatter?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Your JSON never leaves your browser. There are no server requests, no logging, and no data storage of any kind. This free JSON formatter tool is safe for API tokens, passwords, and confidential payloads." }
-        },
-        {
-          "@type": "Question",
-          "name": "Can I format large JSON files with this tool?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Yes. This JSON formatter tool uses native browser JSON.parse and JSON.stringify, so performance scales with your device. Files up to tens of megabytes format in milliseconds on any modern computer or mobile device." }
-        }
-      ]
-    },
-    {
-      "@type": "SoftwareApplication",
-      "name": "DevFormats",
-      "operatingSystem": "Web Browser",
-      "applicationCategory": "UtilitiesApplication",
-      "offers": { "@type": "Offer", "price": "0.00", "priceCurrency": "USD" }
-    }
-  ]
+  ],
 };
 ---
 <Layout
-  title="DevFormats — Free Pretty JSON Formatter & Validator Tool"
-  description="The best free online JSON formatter. Instantly beautify, validate & minify JSON with syntax highlighting. Free JSON formatter & validator tool — all in your browser, zero data sent."
+  title="DevFormats — Fast Developer Tools for Structured Data"
+  description="Format, validate, convert and generate JSON, YAML, XML, JWT, CSV and more — all processed locally in your browser. Free, private, no signup."
   canonical="https://devformats.com"
   schema={schema}
 >
-  <JsonFormatter client:load />
-
-  <!-- SEO Article: 600+ words targeting all keywords -->
-  <article
-    itemscope
-    itemtype="https://schema.org/Article"
-    class="border-t px-4 py-10"
-    style="border-color:var(--jfo-border);background:var(--jfo-bg)"
-  >
-    <div class="mx-auto max-w-[860px] space-y-7">
-
-      <header>
-        <h1 itemprop="headline" class="text-xl font-bold leading-snug" style="color:var(--jfo-text-1)">
-          DevFormats — Free Pretty JSON Formatter &amp; Validator Tool
-        </h1>
-        <p class="mt-2 text-sm leading-relaxed" style="color:var(--jfo-text-3)">
-          The best free online JSON formatter. Beautify, validate, and minify JSON instantly — no installation, no account, no data ever leaving your device.
-        </p>
-      </header>
-
-      <section>
-        <h2 class="mb-2 text-sm font-semibold uppercase tracking-wider" style="color:var(--jfo-accent);font-family:ui-monospace,monospace"><span>What Is a DevFormats?</span></h2>
-        <p class="text-sm leading-relaxed" style="color:var(--jfo-text-2)">
-          <span>A <strong style="color:var(--jfo-text-1)">JSON formatter online</strong> — also known as a JSON beautifier or <strong style="color:var(--jfo-text-1)">pretty JSON formatter</strong> — is a browser-based tool that takes raw, compact, or minified JSON text and restructures it with consistent indentation, proper line breaks, and aligned key–value pairs. The result is clean, human-readable JSON that makes debugging API responses, configuration files, and data payloads dramatically faster and easier.</span>
-        </p>
-        <p class="mt-3 text-sm leading-relaxed" style="color:var(--jfo-text-2)">
-          <span>Developers who work with REST APIs and GraphQL endpoints regularly receive responses as a single dense line of text. Dropping that blob into this <strong style="color:var(--jfo-text-1)">free JSON formatter</strong> instantly transforms it into a structured, indented document — revealing the exact shape of the data so every key and value is visible at a glance. No copying into an IDE, no installing browser plugins, no switching tools.</span>
-        </p>
-      </section>
-
-      <section>
-        <h2 class="mb-2 text-sm font-semibold uppercase tracking-wider" style="color:var(--jfo-accent);font-family:ui-monospace,monospace"><span>How to Use This Free Online JSON Formatter</span></h2>
-        <p class="text-sm leading-relaxed" style="color:var(--jfo-text-2)">
-          <span>Using this <strong style="color:var(--jfo-text-1)">free online JSON formatter</strong> takes three seconds. Paste your JSON into the left editor panel, choose your indentation style — 2 spaces, 4 spaces, or tab — then click <strong style="color:var(--jfo-text-1)">⚡ Format</strong>. The right panel instantly displays syntax-highlighted, beautifully indented output. Copy it to the clipboard, download it as a <code style="font-family:ui-monospace,monospace;font-size:0.85em;color:var(--jfo-accent)">.json</code> file, or load a file directly from disk. Your input is automatically saved in the browser — switching to the Validator or Minifier tab and back restores exactly what you had.</span>
-        </p>
-        <p class="mt-3 text-sm leading-relaxed" style="color:var(--jfo-text-2)">
-          <span>The <strong style="color:var(--jfo-text-1)">JSON formatter tool</strong> does not auto-format on every keystroke. It waits for your explicit click so you stay in control — paste, edit, then format when you are ready. An amber pulse dot on the Format button signals that your input has changed since the last format, so you always know the output is fresh.</span>
-        </p>
-      </section>
-
-      <section>
-        <h2 class="mb-2 text-sm font-semibold uppercase tracking-wider" style="color:var(--jfo-accent);font-family:ui-monospace,monospace"><span>JSON Formatter and Validator — Both in One Tool</span></h2>
-        <p class="text-sm leading-relaxed" style="color:var(--jfo-text-2)">
-          <span>This is more than a <strong style="color:var(--jfo-text-1)">pretty JSON formatter</strong> — it is a full <strong style="color:var(--jfo-text-1)">JSON formatter and validator</strong> combined. Every time you click Format, your JSON is silently validated against RFC 8259. If there is a syntax error — a missing comma, an unquoted key, a trailing comma after the last item, or mismatched brackets — a red error bar appears with the exact line and column of the problem. You get a precise location, not a vague "invalid JSON" message.</span>
-        </p>
-        <p class="mt-3 text-sm leading-relaxed" style="color:var(--jfo-text-2)">
-          <span>This makes the tool a dual-purpose <strong style="color:var(--jfo-text-1)">JSON formatter &amp; validator</strong>: format successfully and you have proof the JSON is valid; fail to format and you have the exact coordinates of the error. For deeper analysis — total key counts, maximum nesting depth, and per-error structural context — use the dedicated <a href="/json-validator" style="color:var(--jfo-accent);text-decoration:underline;text-underline-offset:2px">JSON Validator</a>.</span>
-        </p>
-      </section>
-
-      <section>
-        <h2 class="mb-2 text-sm font-semibold uppercase tracking-wider" style="color:var(--jfo-accent);font-family:ui-monospace,monospace"><span>Why This Is the Best DevFormats</span></h2>
-        <div class="grid gap-3 sm:grid-cols-3">
-          <div class="rounded-lg border p-3" style="border-color:var(--jfo-border);background:var(--jfo-bg-soft)">
-            <div class="mb-1 text-xs font-semibold" style="color:var(--jfo-text-1)">100% Free, Forever</div>
-            <p class="text-xs leading-relaxed" style="color:var(--jfo-text-3)">No sign-up, no rate limits, no paywalled features. Every tool on this site is completely free — the <strong>best free JSON formatter</strong> available with zero strings attached.</p>
-          </div>
-          <div class="rounded-lg border p-3" style="border-color:var(--jfo-border);background:var(--jfo-bg-soft)">
-            <div class="mb-1 text-xs font-semibold" style="color:var(--jfo-text-1)">Private by Design</div>
-            <p class="text-xs leading-relaxed" style="color:var(--jfo-text-3)">All processing runs in your browser. This <strong>free online JSON formatter</strong> makes zero server requests — your API keys, passwords, and confidential payloads never leave your device.</p>
-          </div>
-          <div class="rounded-lg border p-3" style="border-color:var(--jfo-border);background:var(--jfo-bg-soft)">
-            <div class="mb-1 text-xs font-semibold" style="color:var(--jfo-text-1)">8 Languages</div>
-            <p class="text-xs leading-relaxed" style="color:var(--jfo-text-3)">Full UI in English, Spanish, French, German, Chinese, Hindi, Portuguese, and Japanese. Switch instantly from the language picker — no page reload.</p>
-          </div>
-        </div>
-      </section>
-
-      <section>
-        <h2 class="mb-2 text-sm font-semibold uppercase tracking-wider" style="color:var(--jfo-accent);font-family:ui-monospace,monospace"><span>Complete JSON Toolkit — Five Free Tools</span></h2>
-        <p class="text-sm leading-relaxed" style="color:var(--jfo-text-2)"><span>Beyond the core <strong style="color:var(--jfo-text-1)">online JSON formatter</strong>, this site provides four additional utilities covering the complete JSON workflow:</span></p>
-        <ul class="mt-3 space-y-2 text-sm list-none" style="color:var(--jfo-text-2)">
-          <li class="flex gap-2">
-            <span style="color:var(--jfo-accent)">→</span>
-            <span><a href="/json-validator" style="color:var(--jfo-text-1);font-weight:600">JSON Validator</a> — RFC 8259 syntax check with exact line/column errors and structural stats. Acts as a standalone <strong>json formatter and validator</strong> for deep inspection.</span>
-          </li>
-          <li class="flex gap-2">
-            <span style="color:var(--jfo-accent)">→</span>
-            <span><a href="/json-minifier" style="color:var(--jfo-text-1);font-weight:600">JSON Minifier</a> — Strip all whitespace and compress JSON to its smallest valid form. Shows exact byte savings and compression percentage.</span>
-          </li>
-          <li class="flex gap-2">
-            <span style="color:var(--jfo-accent)">→</span>
-            <span><a href="/json-to-csv" style="color:var(--jfo-text-1);font-weight:600">JSON to CSV Converter</a> — Transform any JSON array of objects into a spreadsheet-ready CSV. Keys become column headers; download as a <code style="font-family:ui-monospace,monospace;font-size:0.85em;color:var(--jfo-accent)">.csv</code> file.</span>
-          </li>
-          <li class="flex gap-2">
-            <span style="color:var(--jfo-accent)">→</span>
-            <span><a href="/json-diff" style="color:var(--jfo-text-1);font-weight:600">JSON Diff Checker</a> — Compare two JSON documents side by side. Colour-coded additions, deletions, and changes with full dot-notation key paths.</span>
-          </li>
-        </ul>
-      </section>
-
-      <section>
-        <h2 class="mb-2 text-sm font-semibold uppercase tracking-wider" style="color:var(--jfo-accent);font-family:ui-monospace,monospace"><span>Frequently Asked Questions</span></h2>
-        <div class="space-y-4">
-          <div>
-            <h3 class="text-sm font-semibold" style="color:var(--jfo-text-1)">What is JSON format?</h3>
-            <p class="mt-1 text-sm leading-relaxed" style="color:var(--jfo-text-2)">JSON (JavaScript Object Notation) format is a lightweight, text-based data interchange format. It represents data as key-value pairs enclosed in curly braces <code style="font-family:ui-monospace,monospace;font-size:0.85em;color:var(--jfo-accent)">{}</code> for objects and square brackets <code style="font-family:ui-monospace,monospace;font-size:0.85em;color:var(--jfo-accent)">[]</code> for arrays. JSON is language-independent, human-readable, and the most widely used format for transmitting data between a server and a web application.</p>
-          </div>
-          <div>
-            <h3 class="text-sm font-semibold" style="color:var(--jfo-text-1)">What is a JSON file format?</h3>
-            <p class="mt-1 text-sm leading-relaxed" style="color:var(--jfo-text-2)">A JSON file is a plain text file saved with the <code style="font-family:ui-monospace,monospace;font-size:0.85em;color:var(--jfo-accent)">.json</code> extension that stores data in JavaScript Object Notation format. JSON files are used to transmit structured data in web APIs, store application configuration, and exchange data between systems. They can be opened with any text editor and parsed by virtually every modern programming language.</p>
-          </div>
-          <div>
-            <h3 class="text-sm font-semibold" style="color:var(--jfo-text-1)">What is the full form of JSON?</h3>
-            <p class="mt-1 text-sm leading-relaxed" style="color:var(--jfo-text-2)">JSON stands for <strong style="color:var(--jfo-text-1)">JavaScript Object Notation</strong>. Despite the name, JSON is completely language-independent — it is supported natively in Python, Java, PHP, Ruby, Go, Rust, and virtually every other programming language, making it the universal standard for data exchange on the web.</p>
-          </div>
-          <div>
-            <h3 class="text-sm font-semibold" style="color:var(--jfo-text-1)">What does JSON format look like?</h3>
-            <p class="mt-1 text-sm leading-relaxed" style="color:var(--jfo-text-2)">JSON uses curly braces for objects and square brackets for arrays. Keys must be double-quoted strings. Values can be strings, numbers, booleans, null, objects, or arrays. Example: <code style="font-family:ui-monospace,monospace;font-size:0.85em;color:var(--jfo-accent)">{"{"}\"name\": \"Alice\", \"age\": 30, \"roles\": [\"admin\", \"editor\"]{"}"}</code>. A <strong>JSON formatter online</strong> makes this structure easy to read by adding indentation and line breaks.</p>
-          </div>
-          <div>
-            <h3 class="text-sm font-semibold" style="color:var(--jfo-text-1)">What is a JSON formatter?</h3>
-            <p class="mt-1 text-sm leading-relaxed" style="color:var(--jfo-text-2)">A <strong>JSON formatter</strong> is a tool that takes raw, compact, or minified JSON and reformats it with consistent indentation and line breaks — also called pretty-printing or beautifying. It makes JSON data human-readable without changing the underlying data. A <strong>JSON formatter online</strong> does this instantly in your browser with no installation required.</p>
-          </div>
-          <div>
-            <h3 class="text-sm font-semibold" style="color:var(--jfo-text-1)">How to format JSON?</h3>
-            <p class="mt-1 text-sm leading-relaxed" style="color:var(--jfo-text-2)">To format JSON online: 1) Paste your JSON text into the input panel. 2) Choose your indentation style (2 spaces, 4 spaces, or tab). 3) Click the Format button. The tool parses the JSON and outputs a neatly indented, syntax-highlighted version. You can then copy the formatted output or download it as a <code style="font-family:ui-monospace,monospace;font-size:0.85em;color:var(--jfo-accent)">.json</code> file.</p>
-          </div>
-          <div>
-            <h3 class="text-sm font-semibold" style="color:var(--jfo-text-1)">How to properly format JSON data?</h3>
-            <p class="mt-1 text-sm leading-relaxed" style="color:var(--jfo-text-2)">Properly formatted JSON data follows these rules: all keys must be double-quoted strings; string values must use double quotes; no trailing commas after the last item in an object or array; no comments; no <code style="font-family:ui-monospace,monospace;font-size:0.85em;color:var(--jfo-accent)">undefined</code> values. Use a <strong>free JSON formatter and validator</strong> to check and fix formatting automatically.</p>
-          </div>
-          <div>
-            <h3 class="text-sm font-semibold" style="color:var(--jfo-text-1)">How to beautify JSON format?</h3>
-            <p class="mt-1 text-sm leading-relaxed" style="color:var(--jfo-text-2)">To beautify JSON, paste your minified or raw JSON into a <strong>pretty JSON formatter</strong> and click Format. The formatter runs <code style="font-family:ui-monospace,monospace;font-size:0.85em;color:var(--jfo-accent)">JSON.parse()</code> to validate the data, then <code style="font-family:ui-monospace,monospace;font-size:0.85em;color:var(--jfo-accent)">JSON.stringify()</code> with an indentation argument to produce clean, indented output with each key on its own line — also called JSON pretty-printing.</p>
-          </div>
-          <div>
-            <h3 class="text-sm font-semibold" style="color:var(--jfo-text-1)">How to use a JSON formatter?</h3>
-            <p class="mt-1 text-sm leading-relaxed" style="color:var(--jfo-text-2)">Using this <strong>free online JSON formatter</strong> takes three seconds: 1) Open the site. 2) Paste your JSON into the left input panel, or click Load File. 3) Select your indentation (2sp, 4sp, or Tab). 4) Click ⚡ Format. The right panel shows syntax-highlighted output. 5) Click Copy or Download. Your input is automatically remembered when you switch tabs.</p>
-          </div>
-          <div>
-            <h3 class="text-sm font-semibold" style="color:var(--jfo-text-1)">How does a JSON formatter work?</h3>
-            <p class="mt-1 text-sm leading-relaxed" style="color:var(--jfo-text-2)">A <strong>JSON formatter</strong> works in two steps. First, it passes your input through <code style="font-family:ui-monospace,monospace;font-size:0.85em;color:var(--jfo-accent)">JSON.parse()</code>, which validates the syntax and builds an in-memory data structure — reporting the exact line and column of any error. Second, it serializes the data back with <code style="font-family:ui-monospace,monospace;font-size:0.85em;color:var(--jfo-accent)">JSON.stringify()</code> and an indentation parameter, producing neatly formatted output.</p>
-          </div>
-          <div>
-            <h3 class="text-sm font-semibold" style="color:var(--jfo-text-1)">What are the benefits of using a JSON formatter?</h3>
-            <p class="mt-1 text-sm leading-relaxed" style="color:var(--jfo-text-2)">The main benefits: (1) <strong>Readability</strong> — transforms dense single-line JSON into structured, scannable text. (2) <strong>Error detection</strong> — validates syntax and pinpoints errors with line and column numbers. (3) <strong>Debugging</strong> — makes it easy to inspect API responses and config files. (4) <strong>Productivity</strong> — saves time compared to reading minified JSON manually. (5) <strong>Privacy</strong> — a client-side formatter never sends your data to any server.</p>
-          </div>
-          <div>
-            <h3 class="text-sm font-semibold" style="color:var(--jfo-text-1)">What is the best JSON formatter online?</h3>
-            <p class="mt-1 text-sm leading-relaxed" style="color:var(--jfo-text-2)">The <strong>best JSON formatter online</strong> combines formatting, validation, minification, and comparison in a single free tool. DevFormats is completely free with no sign-up, processes all data in your browser for privacy, supports 8 languages, works on mobile, and persists your work across tool tabs.</p>
-          </div>
-          <div>
-            <h3 class="text-sm font-semibold" style="color:var(--jfo-text-1)">How to install JSON Formatter in Sublime Text?</h3>
-            <p class="mt-1 text-sm leading-relaxed" style="color:var(--jfo-text-2)">1) Open the Command Palette (<kbd style="font-family:ui-monospace,monospace;font-size:0.85em;color:var(--jfo-text-1)">Ctrl+Shift+P</kbd> / <kbd style="font-family:ui-monospace,monospace;font-size:0.85em;color:var(--jfo-text-1)">Cmd+Shift+P</kbd>). 2) Install Package Control if not present. 3) Run <em>Package Control: Install Package</em>. 4) Search for <strong>Pretty JSON</strong> and install. 5) Open a <code style="font-family:ui-monospace,monospace;font-size:0.85em;color:var(--jfo-accent)">.json</code> file and run <em>Pretty JSON: Format JSON</em>. Alternatively, use this free online JSON formatter — no installation needed.</p>
-          </div>
-          <div>
-            <h3 class="text-sm font-semibold" style="color:var(--jfo-text-1)">Is this JSON formatter online completely free?</h3>
-            <p class="mt-1 text-sm leading-relaxed" style="color:var(--jfo-text-2)">Yes — 100% free, no account required. This is a <strong>free JSON formatter</strong> with no rate limits, no premium upsell, and no ads blocking the editor area. All five tools (formatter, validator, minifier, CSV converter, diff checker) are free forever.</p>
-          </div>
-          <div>
-            <h3 class="text-sm font-semibold" style="color:var(--jfo-text-1)">Is my data safe in this free online JSON formatter?</h3>
-            <p class="mt-1 text-sm leading-relaxed" style="color:var(--jfo-text-2)">Your JSON never leaves your browser. There are no server requests, no logging, and no data storage of any kind. This <strong>free JSON formatter tool</strong> is safe for API tokens, passwords, and confidential payloads.</p>
-          </div>
-          <div>
-            <h3 class="text-sm font-semibold" style="color:var(--jfo-text-1)">Can I format large JSON files with this tool?</h3>
-            <p class="mt-1 text-sm leading-relaxed" style="color:var(--jfo-text-2)">Yes. This <strong>JSON formatter tool</strong> uses native browser <code style="font-family:ui-monospace,monospace;font-size:0.85em;color:var(--jfo-accent)">JSON.parse</code> and <code style="font-family:ui-monospace,monospace;font-size:0.85em;color:var(--jfo-accent)">JSON.stringify</code>, so performance scales with your device. Files up to tens of megabytes format in milliseconds on any modern computer or mobile device.</p>
-          </div>
-        </div>
-      </section>
-
+  <!-- Hero -->
+  <section class="border-b px-4 py-20 text-center sm:py-28" style="border-color:var(--border)">
+    <div class="mx-auto max-w-2xl animate-[fadein_0.4s_ease-out]">
+      <div class="mb-6 flex items-center justify-center gap-2">
+        <img src="/favicon-96x96.png" alt="" class="h-9 w-9 rounded-lg" />
+        <span class="text-lg font-semibold tracking-tight" style="color:var(--fg)">Dev<span style="color:var(--accent)">Formats</span></span>
+      </div>
+      <h1 class="text-3xl font-bold tracking-tight sm:text-4xl" style="color:var(--fg)">Fast Developer Tools for Structured Data</h1>
+      <p class="mx-auto mt-4 max-w-xl text-base leading-relaxed" style="color:var(--fg-muted)">
+        Format, validate, convert and generate JSON, YAML, XML, JWT, CSV and more — all processed locally in your browser.
+      </p>
+      <div class="mx-auto mt-8 max-w-xl">
+        <SearchTrigger variant="hero" />
+      </div>
+      <p class="mt-4 text-xs" style="color:var(--fg-subtle)">Turn off your wifi — the tools still work. Nothing is ever uploaded.</p>
     </div>
-  </article>
+  </section>
+
+  <!-- Popular Tools -->
+  <section class="mx-auto max-w-[1200px] px-4 py-14">
+    <h2 class="mb-5 font-mono text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Popular Tools</h2>
+    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      {popularTools.map(tool => <ToolCard tool={tool} />)}
+    </div>
+  </section>
+
+  <!-- Browse by Category -->
+  <section class="border-t px-4 py-14" style="border-color:var(--border);background:var(--bg-subtle)">
+    <div class="mx-auto max-w-[1200px]">
+      <h2 class="mb-5 font-mono text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Browse by Category</h2>
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {categories.map(c => <CategoryCard category={c} />)}
+      </div>
+    </div>
+  </section>
+
+  <!-- Recently Added -->
+  <section class="mx-auto max-w-[1200px] px-4 py-14">
+    <h2 class="mb-5 font-mono text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Recently Added</h2>
+    <div class="flex gap-3 overflow-x-auto pb-2" style="scrollbar-width:thin">
+      {recentTools.map(tool => (
+        <div class="w-64 shrink-0">
+          <ToolCard tool={tool} />
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Why DevFormats -->
+  <section class="border-t px-4 py-14" style="border-color:var(--border);background:var(--bg-subtle)">
+    <div class="mx-auto max-w-[1200px]">
+      <h2 class="mb-5 font-mono text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Why DevFormats</h2>
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="rounded-lg border p-4" style="border-color:var(--border);background:var(--bg)">
+          <div class="mb-2 text-xl">⚡</div>
+          <div class="mb-1 text-sm font-semibold" style="color:var(--fg)">Fast</div>
+          <p class="text-xs leading-relaxed" style="color:var(--fg-muted)">Runs instantly, no upload, no queue.</p>
+        </div>
+        <div class="rounded-lg border p-4" style="border-color:var(--border);background:var(--bg)">
+          <div class="mb-2 text-xl">🔒</div>
+          <div class="mb-1 text-sm font-semibold" style="color:var(--fg)">Privacy First</div>
+          <p class="text-xs leading-relaxed" style="color:var(--fg-muted)">Everything stays in your browser. Nothing is uploaded, ever.</p>
+        </div>
+        <div class="rounded-lg border p-4" style="border-color:var(--border);background:var(--bg)">
+          <div class="mb-2 text-xl">🌍</div>
+          <div class="mb-1 text-sm font-semibold" style="color:var(--fg)">Free</div>
+          <p class="text-xs leading-relaxed" style="color:var(--fg-muted)">Unlimited usage. No signup, no limits, no watermarks.</p>
+        </div>
+        <div class="rounded-lg border p-4" style="border-color:var(--border);background:var(--bg)">
+          <div class="mb-2 text-xl">💻</div>
+          <div class="mb-1 text-sm font-semibold" style="color:var(--fg)">Built for Developers</div>
+          <p class="text-xs leading-relaxed" style="color:var(--fg-muted)">Keyboard shortcuts, dark mode, responsive on any device.</p>
+        </div>
+      </div>
+    </div>
+  </section>
 </Layout>
+
+<style>
+  @keyframes fadein { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+</style>

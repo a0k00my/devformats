@@ -1,6 +1,6 @@
 ---
-import ThemeToggle from './ThemeToggle';
-import CommandPalette from './CommandPalette';
+import ThemeToggle from './ThemeToggle.astro';
+import SearchTrigger from './SearchTrigger.astro';
 
 const links = [
   { href: '/tools', label: 'Tools' },
@@ -22,7 +22,7 @@ const pathname = Astro.url.pathname;
 
     <!-- Search / command palette trigger -->
     <div class="ml-2">
-      <CommandPalette client:load />
+      <SearchTrigger />
     </div>
 
     <!-- Desktop nav links -->
@@ -56,7 +56,7 @@ const pathname = Astro.url.pathname;
         <span class="h-1.5 w-1.5 animate-pulse rounded-full" style="background:var(--accent)"></span>
         <span class="font-mono text-[10px]" style="color:var(--fg-subtle)">CLIENT-SIDE</span>
       </div>
-      <ThemeToggle client:load />
+      <ThemeToggle />
 
       <!-- Hamburger (mobile only) -->
       <button

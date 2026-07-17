@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import NavBar from '../components/NavBar.astro';
 import Footer from '../components/Footer.astro';
+import CommandPaletteModal from '../components/CommandPaletteModal.astro';
 import ClientRouter from 'astro/components/ClientRouter.astro';
 
 interface Props {
@@ -94,5 +95,6 @@ const {
       <slot />
     </main>
     <Footer />
+    <CommandPaletteModal />
   </body>
 </html>

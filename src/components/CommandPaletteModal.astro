@@ -1,0 +1,162 @@
+---
+// Rendered once (in Layout.astro). Owns all command-palette behavior —
+// any number of .df-search-trigger buttons on the page open this same
+// instance via event delegation. Vanilla TS, no framework: a search box
+// doesn't justify shipping react-dom on every page (see Phase 3 notes).
+---
+<div id="cmdk-overlay" class="fixed inset-0 z-[100] hidden items-start justify-center px-4 pt-[12vh]" style="background:rgba(0,0,0,0.5)">
+  <div id="cmdk-panel" class="w-full max-w-lg overflow-hidden rounded-xl border shadow-2xl" style="border-color:var(--border);background:var(--bg-subtle)">
+    <div class="flex items-center gap-2 border-b px-4" style="border-color:var(--border)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--fg-subtle);flex-shrink:0">
+        <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+      </svg>
+      <input
+        id="cmdk-input"
+        placeholder="Search developer tools..."
+        class="w-full bg-transparent py-3 text-sm outline-none"
+        style="color:var(--fg)"
+        aria-label="Search developer tools"
+        autocomplete="off"
+      />
+      <kbd class="shrink-0 rounded border px-1.5 py-0.5 font-mono text-[10px]" style="border-color:var(--border);color:var(--fg-subtle)">Esc</kbd>
+    </div>
+    <ul id="cmdk-results" role="listbox" class="max-h-80 overflow-y-auto p-1.5"></ul>
+  </div>
+</div>
+
+<script>
+  import { tools, type Tool } from '../data/tools';
+
+  // Re-queried on every astro:page-load below — View Transitions swap these
+  // nodes out on navigation (same reason NavBar re-queries #hamburger), so
+  // caching them once at module scope would go stale after the first nav.
+  let overlay: HTMLDivElement;
+  let input: HTMLInputElement;
+  let list: HTMLUListElement;
+
+  let activeIndex = 0;
+  let results: Tool[] = [];
+
+  function matches(tool: Tool, query: string): boolean {
+    const q = query.toLowerCase().trim();
+    if (!q) return true;
+    const haystack = [tool.name, tool.category, ...tool.keywords].join(' ').toLowerCase();
+    return q.split(/\s+/).every(term => haystack.includes(term));
+  }
+
+  function render() {
+    results = tools.filter(t => matches(t, input.value)).slice(0, 8);
+    activeIndex = 0;
+    list.innerHTML = '';
+
+    if (results.length === 0) {
+      const li = document.createElement('li');
+      li.className = 'px-3 py-6 text-center text-xs';
+      li.style.color = 'var(--fg-subtle)';
+      li.textContent = `No tools match "${input.value}"`;
+      list.appendChild(li);
+      return;
+    }
+
+    results.forEach((tool, i) => {
+      const li = document.createElement('li');
+      li.setAttribute('role', 'option');
+      const a = document.createElement('a');
+      a.href = tool.status === 'live' ? `/${tool.slug}` : '#';
+      a.className = 'flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm cmdk-item';
+      a.dataset.index = String(i);
+      if (tool.status !== 'live') {
+        a.style.pointerEvents = 'none';
+        a.style.opacity = '0.5';
+      }
+      const name = document.createElement('span');
+      name.className = 'font-medium';
+      name.textContent = tool.name;
+      const cat = document.createElement('span');
+      cat.className = 'font-mono text-[10px]';
+      cat.style.color = 'var(--fg-subtle)';
+      cat.textContent = tool.category;
+      a.append(name, cat);
+      a.addEventListener('mouseenter', () => setActive(i));
+      li.appendChild(a);
+      list.appendChild(li);
+    });
+    setActive(0);
+  }
+
+  function setActive(i: number) {
+    activeIndex = i;
+    list.querySelectorAll<HTMLAnchorElement>('.cmdk-item').forEach((el, idx) => {
+      el.style.background = idx === i ? 'var(--accent-bg)' : 'transparent';
+      el.style.color = idx === i ? 'var(--accent)' : 'var(--fg)';
+    });
+  }
+
+  function open() {
+    overlay.classList.remove('hidden');
+    overlay.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+    input.value = '';
+    render();
+    requestAnimationFrame(() => input.focus());
+  }
+
+  function close() {
+    overlay.classList.add('hidden');
+    overlay.classList.remove('flex');
+    document.body.style.overflow = '';
+  }
+
+  function isOpen() {
+    return !overlay.classList.contains('hidden');
+  }
+
+  function init() {
+    // Re-query every page-load: View Transitions swap this markup out, so
+    // stale references from a previous page would silently do nothing.
+    overlay = document.getElementById('cmdk-overlay') as HTMLDivElement;
+    input = document.getElementById('cmdk-input') as HTMLInputElement;
+    list = document.getElementById('cmdk-results') as HTMLUListElement;
+    input.addEventListener('input', render);
+  }
+
+  // `document` itself persists across navigations (unlike the nodes above),
+  // so these listeners are attached exactly once and read the `let`
+  // variables above by reference — always current after each init().
+  document.addEventListener('click', e => {
+    const target = e.target as HTMLElement;
+    if (target.closest('.df-search-trigger')) open();
+    else if (target === overlay) close();
+  });
+
+  document.addEventListener('keydown', e => {
+    const target = e.target as HTMLElement;
+    const isTyping = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      isOpen() ? close() : open();
+      return;
+    }
+    if (e.key === '/' && !isTyping && !isOpen()) {
+      e.preventDefault();
+      open();
+      return;
+    }
+    if (!isOpen()) return;
+    if (e.key === 'Escape') {
+      close();
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActive(Math.min(activeIndex + 1, results.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActive(Math.max(activeIndex - 1, 0));
+    } else if (e.key === 'Enter') {
+      const tool = results[activeIndex];
+      if (tool && tool.status === 'live') window.location.href = `/${tool.slug}`;
+    }
+  });
+
+  document.addEventListener('astro:page-load', init);
+</script>
