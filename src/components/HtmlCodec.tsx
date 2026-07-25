@@ -44,7 +44,7 @@ export default function HtmlCodec({ mode }: Props) {
     <div className="flex flex-col border-y" style={{ minHeight: 'min(70vh, 640px)', borderColor: 'var(--jfo-border)' }}>
       <div className="toolbar-scroll flex flex-wrap items-center gap-1.5 border-b px-3 py-2" style={{ background: 'var(--jfo-toolbar)', borderColor: 'var(--jfo-border)' }}>
         <button onClick={doRun} className="tb-btn-primary" title="Cmd/Ctrl+Enter">⚡ {mode === 'encode' ? 'Encode' : 'Decode'}</button>
-        <button onClick={doCopy} className="tb-btn" style={copied ? { background: 'var(--jfo-accent-bg)', borderColor: 'var(--jfo-accent-border)', color: 'var(--jfo-accent)' } : {}}>{copied ? '✓ Copied' : 'Copy'}</button>
+        <button onClick={doCopy} className={`tb-btn${copied ? ' tb-copy-pop' : ''}`} style={copied ? { background: "var(--jfo-accent-bg)", borderColor: "var(--jfo-accent-border)", color: "var(--jfo-accent)" } : {}}>{copied ? '✓ Copied' : 'Copy'}</button>
         <button onClick={doClear} className="tb-btn-ghost">Clear</button>
       </div>
 

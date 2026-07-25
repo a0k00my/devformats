@@ -21,8 +21,15 @@ const pathname = Astro.url.pathname;
     </a>
 
     <!-- Search / command palette trigger -->
-    <div class="ml-2">
+    <div class="relative ml-2">
       <SearchTrigger />
+      <div
+        id="search-hint"
+        class="pointer-events-none absolute left-0 top-full z-10 mt-2 hidden items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 py-2 text-xs opacity-0 transition-opacity duration-300"
+        style="border-color:var(--accent-border);background:var(--bg-subtle);color:var(--fg-muted);box-shadow:var(--shadow-md)"
+      >
+        Press <kbd class="rounded border px-1 font-mono text-[10px]" style="border-color:var(--border);background:var(--bg-muted);color:var(--fg)">⌘K</kbd> to search any tool
+      </div>
     </div>
 
     <!-- Desktop nav links -->
@@ -93,4 +100,32 @@ const pathname = Astro.url.pathname;
 
   // astro:page-load fires on first load AND after every View Transition swap
   document.addEventListener('astro:page-load', initNav);
+
+  // First-run hint pointing at ⌘K search — shown once ever per browser,
+  // dismissed by any interaction so it never lingers in the way.
+  const HINT_SEEN_KEY = 'df-seen-search-hint';
+  let hintDismissed = localStorage.getItem(HINT_SEEN_KEY) === '1';
+  let hintTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function dismissHint() {
+    if (hintDismissed) return;
+    hintDismissed = true;
+    localStorage.setItem(HINT_SEEN_KEY, '1');
+    const hint = document.getElementById('search-hint');
+    if (hint) hint.style.opacity = '0';
+    if (hintTimer) clearTimeout(hintTimer);
+  }
+
+  function initSearchHint() {
+    const hint = document.getElementById('search-hint');
+    if (!hint || hintDismissed) return;
+    hint.classList.remove('hidden');
+    hint.classList.add('flex');
+    requestAnimationFrame(() => { hint.style.opacity = '1'; });
+    hintTimer = setTimeout(dismissHint, 6000);
+  }
+
+  document.addEventListener('astro:page-load', initSearchHint);
+  document.addEventListener('click', dismissHint);
+  document.addEventListener('keydown', dismissHint);
 </script>

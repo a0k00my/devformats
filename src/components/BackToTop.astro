@@ -1,0 +1,47 @@
+---
+// Appears after scrolling past one viewport height on long tool pages.
+// Vanilla — no framework needed for a scroll-position toggle + smooth scroll.
+---
+<button
+  id="back-to-top"
+  aria-label="Back to top"
+  class="back-to-top fixed bottom-6 right-6 z-40 flex h-10 w-10 items-center justify-center rounded-full border opacity-0 transition-all duration-300 ease-out"
+  style="border-color:var(--border);background:var(--bg-subtle);color:var(--fg-muted);box-shadow:var(--shadow-md);transform:translateY(12px);pointer-events:none"
+>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="12" y1="19" x2="12" y2="5" /><polyline points="5 12 12 5 19 12" />
+  </svg>
+</button>
+
+<script>
+  // `window` persists across View Transition navigations but #back-to-top
+  // is a fresh node each page-load — remove the previous scroll listener
+  // before attaching a new one so they don't stack up per navigation.
+  let currentScrollHandler: (() => void) | null = null;
+
+  function initBackToTop() {
+    const btn = document.getElementById('back-to-top');
+    if (!btn) return;
+
+    if (currentScrollHandler) window.removeEventListener('scroll', currentScrollHandler);
+
+    const onScroll = () => {
+      const show = window.scrollY > window.innerHeight * 0.8;
+      btn.style.opacity = show ? '1' : '0';
+      btn.style.transform = show ? 'translateY(0)' : 'translateY(12px)';
+      btn.style.pointerEvents = show ? 'auto' : 'none';
+    };
+    currentScrollHandler = onScroll;
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    btn.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    btn.addEventListener('mouseover', () => { btn.style.borderColor = 'var(--accent-border)'; btn.style.color = 'var(--accent)'; });
+    btn.addEventListener('mouseout', () => { btn.style.borderColor = 'var(--border)'; btn.style.color = 'var(--fg-muted)'; });
+  }
+
+  document.addEventListener('astro:page-load', initBackToTop);
+</script>

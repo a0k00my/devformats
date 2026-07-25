@@ -141,7 +141,7 @@ export default function YamlFormatter() {
         </button>
         <button onClick={doMinify} className="tb-btn">Minify</button>
         <div className="h-3.5 w-px" style={{ background: 'var(--jfo-border)' }} />
-        <button onClick={doCopy} className="tb-btn" style={copied ? { background: 'var(--jfo-accent-bg)', borderColor: 'var(--jfo-accent-border)', color: 'var(--jfo-accent)' } : {}}>
+        <button onClick={doCopy} className={`tb-btn${copied ? ' tb-copy-pop' : ''}`} style={copied ? { background: "var(--jfo-accent-bg)", borderColor: "var(--jfo-accent-border)", color: "var(--jfo-accent)" } : {}}>
           {copied ? '✓ Copied' : 'Copy'}
         </button>
         <button onClick={doDownload} className="tb-btn-ghost">↓ Download</button>

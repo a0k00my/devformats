@@ -8,6 +8,7 @@
 import Layout from './Layout.astro';
 import Breadcrumb from '../components/Breadcrumb.astro';
 import AdSlot from '../components/AdSlot.astro';
+import BackToTop from '../components/BackToTop.astro';
 import { CATEGORY_META, type Tool } from '../data/tools';
 
 interface Props {
@@ -46,4 +47,6 @@ const softwareAppSchema = {
   <!-- Reserved placement: between FAQ/docs and the footer. Disabled by
        default (PUBLIC_ADS_ENABLED) — see Phase 6 notes in AdSlot.astro. -->
   <AdSlot placement="pre-footer" />
+
+  <BackToTop />
 </Layout>

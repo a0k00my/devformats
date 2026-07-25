@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { Braces, AlertCircle } from 'lucide-react';
 import { useLang } from '../hooks/useLang';
 import { JsonTree } from './JsonTree';
 import { useSplitter, SplitDivider, useIsMobile } from './SplitPanel';
@@ -263,7 +264,7 @@ export default function JsonFormatter() {
 
         <div className="h-3.5 w-px" style={{ background: 'var(--jfo-border)' }} />
 
-        <button onClick={doCopy} className="tb-btn"
+        <button onClick={doCopy} className={`tb-btn${copied ? ' tb-copy-pop' : ''}`}
           style={copied ? { background: 'var(--jfo-accent-bg)', borderColor: 'var(--jfo-accent-border)', color: 'var(--jfo-accent)' } : {}}>
           {copied ? tr('copied') : tr('copy')}
         </button>
@@ -362,9 +363,10 @@ export default function JsonFormatter() {
                 ) : null
               )
             ) : (
-              <div className="flex h-full items-center justify-center text-xs"
+              <div className="flex h-full flex-col items-center justify-center gap-2 text-xs"
                 style={{ ...MONO, color: 'var(--jfo-placeholder)' }}>
-                {error ? tr('fixError') : tr('clickFormat')}
+                {error ? <AlertCircle size={22} strokeWidth={1.5} /> : <Braces size={22} strokeWidth={1.5} />}
+                <span>{error ? tr('fixError') : tr('clickFormat')}</span>
               </div>
             )}
           </div>

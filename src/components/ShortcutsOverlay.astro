@@ -1,0 +1,71 @@
+---
+// Press ? anywhere (outside an input) to see the shortcuts that already
+// exist across the site but have no other discoverability.
+const SHORTCUTS = [
+  { keys: ['⌘', 'K'], label: 'Open search' },
+  { keys: ['/'], label: 'Open search' },
+  { keys: ['⌘', 'Enter'], label: 'Run the current tool (Format / Validate / Convert…)' },
+  { keys: ['Esc'], label: 'Close search or clear focus' },
+  { keys: ['?'], label: 'Show this menu' },
+];
+---
+<div id="shortcuts-overlay" class="fixed inset-0 z-[100] hidden items-center justify-center px-4" style="background:rgba(0,0,0,0.5)">
+  <div class="w-full max-w-sm overflow-hidden rounded-xl border shadow-2xl" style="border-color:var(--border);background:var(--bg-subtle)">
+    <div class="flex items-center justify-between border-b px-4 py-3" style="border-color:var(--border)">
+      <span class="text-sm font-semibold" style="color:var(--fg)">Keyboard shortcuts</span>
+      <kbd class="rounded border px-1.5 py-0.5 font-mono text-[10px]" style="border-color:var(--border);color:var(--fg-subtle)">Esc</kbd>
+    </div>
+    <ul class="p-2">
+      {SHORTCUTS.map(s => (
+        <li class="flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm" style="color:var(--fg-muted)">
+          <span>{s.label}</span>
+          <span class="flex shrink-0 gap-1">
+            {s.keys.map(k => (
+              <kbd class="rounded border px-1.5 py-0.5 font-mono text-[11px]" style="border-color:var(--border);background:var(--bg-muted);color:var(--fg)">{k}</kbd>
+            ))}
+          </span>
+        </li>
+      ))}
+    </ul>
+  </div>
+</div>
+
+<script>
+  // `document` persists across View Transition navigations (unlike the
+  // overlay node itself) — same pattern as CommandPaletteModal: re-query
+  // the node each page-load, but attach document-level listeners once.
+  let overlay: HTMLElement | null = null;
+
+  const open = () => {
+    if (!overlay) return;
+    overlay.classList.remove('hidden');
+    overlay.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+  };
+  const close = () => {
+    if (!overlay) return;
+    overlay.classList.add('hidden');
+    overlay.classList.remove('flex');
+    document.body.style.overflow = '';
+  };
+  const isOpen = () => !!overlay && !overlay.classList.contains('hidden');
+
+  function initShortcutsOverlay() {
+    overlay = document.getElementById('shortcuts-overlay');
+  }
+
+  document.addEventListener('click', e => { if (e.target === overlay) close(); });
+
+  document.addEventListener('keydown', e => {
+    const target = e.target as HTMLElement;
+    const isTyping = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+    if (e.key === '?' && !isTyping) {
+      e.preventDefault();
+      isOpen() ? close() : open();
+    } else if (e.key === 'Escape' && isOpen()) {
+      close();
+    }
+  });
+
+  document.addEventListener('astro:page-load', initShortcutsOverlay);
+</script>

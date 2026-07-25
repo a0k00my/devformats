@@ -69,7 +69,7 @@ export default function JsonToYaml() {
           {dirty && <span className="absolute -right-1 -top-1 h-2 w-2 animate-pulse rounded-full bg-[#f59e0b]" />}
         </button>
         <div className="h-3.5 w-px" style={{ background: 'var(--jfo-border)' }} />
-        <button onClick={doCopy} className="tb-btn" style={copied ? { background: 'var(--jfo-accent-bg)', borderColor: 'var(--jfo-accent-border)', color: 'var(--jfo-accent)' } : {}}>{copied ? '✓ Copied' : 'Copy'}</button>
+        <button onClick={doCopy} className={`tb-btn${copied ? ' tb-copy-pop' : ''}`} style={copied ? { background: "var(--jfo-accent-bg)", borderColor: "var(--jfo-accent-border)", color: "var(--jfo-accent)" } : {}}>{copied ? '✓ Copied' : 'Copy'}</button>
         <button onClick={doDownload} className="tb-btn-ghost">↓ Download</button>
         <button onClick={() => fileRef.current?.click()} className="tb-btn-ghost">↑ Load File</button>
         <input ref={fileRef} type="file" accept=".json,text/plain" className="hidden" onChange={doLoadFile} />

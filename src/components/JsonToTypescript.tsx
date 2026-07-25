@@ -118,7 +118,7 @@ export default function JsonToTypescript() {
         <input value={rootName} onChange={e => setRootName(e.target.value)} placeholder="Root" className="w-20 rounded border px-2 py-1 text-xs outline-none" style={{ ...MONO, background: 'var(--jfo-editor)', borderColor: 'var(--jfo-border)', color: 'var(--jfo-code)' }} />
         <div className="h-3.5 w-px" style={{ background: 'var(--jfo-border)' }} />
         <button onClick={doGenerate} className="tb-btn-primary" title="Cmd/Ctrl+Enter">⚡ Generate</button>
-        <button onClick={doCopy} className="tb-btn" style={copied ? { background: 'var(--jfo-accent-bg)', borderColor: 'var(--jfo-accent-border)', color: 'var(--jfo-accent)' } : {}}>{copied ? '✓ Copied' : 'Copy'}</button>
+        <button onClick={doCopy} className={`tb-btn${copied ? ' tb-copy-pop' : ''}`} style={copied ? { background: "var(--jfo-accent-bg)", borderColor: "var(--jfo-accent-border)", color: "var(--jfo-accent)" } : {}}>{copied ? '✓ Copied' : 'Copy'}</button>
         <button onClick={doDownload} className="tb-btn-ghost">↓ Download</button>
         <button onClick={() => fileRef.current?.click()} className="tb-btn-ghost">↑ Load File</button>
         <input ref={fileRef} type="file" accept=".json,text/plain" className="hidden" onChange={doLoadFile} />

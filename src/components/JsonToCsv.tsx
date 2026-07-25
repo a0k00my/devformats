@@ -112,7 +112,7 @@ export default function JsonToCsv() {
 
         <button onClick={doConvert} className="tb-btn-primary">{tr('convertToCsv')}</button>
 
-        <button onClick={doCopy} className="tb-btn"
+        <button onClick={doCopy} className={`tb-btn${copied ? ' tb-copy-pop' : ''}`}
           style={copied ? { background: 'var(--jfo-accent-bg)', borderColor: 'var(--jfo-accent-border)', color: 'var(--jfo-accent)' } : {}}>
           {copied ? tr('copied') : tr('copyCSV')}
         </button>

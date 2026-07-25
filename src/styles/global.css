@@ -48,7 +48,7 @@
   --border-strong: #3a3a3a;
   --fg:            #e5e5e5;
   --fg-muted:      #888888;
-  --fg-subtle:     #555555;
+  --fg-subtle:     #808080;
   --accent:        #50e3c2;
   --accent-fg:     #04211c;
   --accent-bg:     rgba(80,227,194,0.1);
@@ -98,11 +98,11 @@ html.light {
   --border-strong: #c8c8c8;
   --fg:            #171717;
   --fg-muted:      #555555;
-  --fg-subtle:     #888888;
-  --accent:        #0070f3;
+  --fg-subtle:     #6e6e6e;
+  --accent:        #0062cc;
   --accent-fg:     #ffffff;
-  --accent-bg:     rgba(0,112,243,0.08);
-  --accent-border: rgba(0,112,243,0.25);
+  --accent-bg:     rgba(0,98,204,0.08);
+  --accent-border: rgba(0,98,204,0.25);
   --success:       #1a7f37;
   --success-bg:    rgba(26,127,55,0.08);
   --warning:       #9a6700;
@@ -229,6 +229,17 @@ html.light {
   position: relative;
   background: linear-gradient(135deg, var(--accent-bg), var(--accent-border));
   box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+/* ── Copy-success pop: brief scale-bounce on the button when a copy
+   succeeds, instead of just a static color swap. ── */
+@media (prefers-reduced-motion: no-preference) {
+  .tb-copy-pop { animation: tb-copy-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  @keyframes tb-copy-pop {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.08); }
+    100% { transform: scale(1); }
+  }
 }
 
 /* ── Toolbar buttons ── */

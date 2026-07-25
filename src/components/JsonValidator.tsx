@@ -101,7 +101,7 @@ export default function JsonValidator() {
 
         <button onClick={validate} className="tb-btn-primary">{tr('validate')}</button>
 
-        <button onClick={doCopy} className="tb-btn"
+        <button onClick={doCopy} className={`tb-btn${copied ? ' tb-copy-pop' : ''}`}
           style={copied ? { background: 'var(--jfo-accent-bg)', borderColor: 'var(--jfo-accent-border)', color: 'var(--jfo-accent)' } : {}}>
           {copied ? tr('copied') : tr('copy')}
         </button>

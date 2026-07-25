@@ -32,10 +32,16 @@
     syncIcon();
     document.getElementById('theme-toggle')?.addEventListener('click', () => {
       const next = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
-      document.documentElement.classList.remove('dark', 'light');
-      document.documentElement.classList.add(next);
-      localStorage.setItem('jfo-theme', next);
-      syncIcon();
+      const apply = () => {
+        document.documentElement.classList.remove('dark', 'light');
+        document.documentElement.classList.add(next);
+        localStorage.setItem('jfo-theme', next);
+        syncIcon();
+      };
+      // Reuses the same view-transition fade already defined for page
+      // navigation, so a theme flip cross-fades instead of hard-snapping.
+      if (document.startViewTransition) document.startViewTransition(apply);
+      else apply();
     });
   }
 
