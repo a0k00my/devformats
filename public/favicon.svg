@@ -1,0 +1,23 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#161616"/>
+      <stop offset="1" stop-color="#0a0a0a"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- hand-drawn curly braces as strokes, not font glyphs -->
+  <g fill="none" stroke="#50e3c2" stroke-width="26" stroke-linecap="round">
+    <path d="M 176 128
+             C 140 128 148 168 148 196
+             C 148 220 132 228 118 232
+             C 132 236 148 244 148 268
+             C 148 296 140 336 176 336"/>
+    <path d="M 336 128
+             C 372 128 364 168 364 196
+             C 364 220 380 228 394 232
+             C 380 236 364 244 364 268
+             C 364 296 372 336 336 336"/>
+  </g>
+  <circle cx="256" cy="232" r="14" fill="#50e3c2"/>
+</svg>
