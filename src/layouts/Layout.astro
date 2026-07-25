@@ -89,6 +89,25 @@ const {
       document.addEventListener('astro:after-swap', applyTheme);
     </script>
     <ClientRouter />
+
+    <!-- Scroll-reveal: fades/rises .reveal and .reveal-stagger elements into
+         view once, re-armed after every View Transition page swap. -->
+    <script is:inline>
+      function initReveal() {
+        var els = document.querySelectorAll('.reveal:not(.is-visible), .reveal-stagger:not(.is-visible)');
+        if (!els.length) return;
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('is-visible');
+              io.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.1, rootMargin: '0px 0px -10% 0px' });
+        els.forEach(function (el) { io.observe(el); });
+      }
+      document.addEventListener('astro:page-load', initReveal);
+    </script>
   </head>
   <body class="flex min-h-screen flex-col" style="background:var(--jfo-bg);color:var(--jfo-text-1)">
     <NavBar />

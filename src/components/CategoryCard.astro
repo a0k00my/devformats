@@ -13,13 +13,13 @@ const Icon = (icons as any)[meta.icon] ?? icons.Folder;
 ---
 <a
   href={`/${category}`}
-  class="flex flex-col gap-3 rounded-lg border p-5 transition-all"
+  class="group flex flex-col gap-3 rounded-lg border p-5 transition-all duration-200 ease-out hover:-translate-y-0.5"
   style="border-color:var(--border);background:var(--bg-subtle)"
-  onmouseover="this.style.borderColor='var(--accent-border)'"
-  onmouseout="this.style.borderColor='var(--border)'"
+  onmouseover="this.style.borderColor='var(--accent-border)';this.style.boxShadow='var(--shadow-md)'"
+  onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='none'"
 >
   <div class="flex items-center justify-between">
-    <span class="flex h-10 w-10 items-center justify-center rounded-lg" style="background:var(--accent-bg);color:var(--accent)">
+    <span class="flex h-10 w-10 items-center justify-center rounded-lg transition-transform duration-200 ease-out group-hover:scale-110" style="background:var(--accent-bg);color:var(--accent)">
       <Icon size={20} />
     </span>
     <span class="font-mono text-[11px]" style="color:var(--fg-subtle)">{count} {count === 1 ? 'tool' : 'tools'}</span>
