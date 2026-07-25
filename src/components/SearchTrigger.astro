@@ -21,14 +21,14 @@ const { variant = 'nav' } = Astro.props;
   </button>
 ) : (
   <button
-    class="df-search-trigger flex h-7 items-center gap-2 rounded px-2.5 text-xs transition-colors"
-    style="cursor:pointer;border:1px solid var(--border);background:var(--bg-muted);color:var(--fg-subtle)"
+    class="df-search-trigger flex h-9 min-w-[160px] items-center gap-2 rounded-lg px-3 text-sm transition-colors sm:min-w-[220px]"
+    style="cursor:pointer;border:1px solid var(--border-strong);background:var(--bg);color:var(--fg-muted);box-shadow:var(--shadow-sm)"
     aria-label="Search developer tools"
   >
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">
       <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
     </svg>
-    <span class="hidden sm:inline">Search tools…</span>
-    <kbd class="hidden rounded border px-1 font-mono text-[10px] sm:inline" style="border-color:var(--border);color:var(--fg-subtle)">⌘K</kbd>
+    <span class="hidden flex-1 text-left sm:inline">Search tools…</span>
+    <kbd class="hidden shrink-0 rounded border px-1.5 py-0.5 font-mono text-[11px] sm:inline" style="border-color:var(--border);color:var(--fg-subtle)">⌘K</kbd>
   </button>
 )}

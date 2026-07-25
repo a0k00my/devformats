@@ -3,7 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import SearchTrigger from '../components/SearchTrigger.astro';
 import ToolCard from '../components/ToolCard.astro';
 import CategoryCard from '../components/CategoryCard.astro';
-import { getToolsOrThrow, getRecentTools, CATEGORY_META, type Category } from '../data/tools';
+import { getToolsOrThrow, CATEGORY_META, type Category } from '../data/tools';
 
 const popularSlugs = [
   'json-formatter', 'json-validator', 'json-parser', 'json-viewer',
@@ -12,7 +12,6 @@ const popularSlugs = [
 ];
 const popularTools = getToolsOrThrow(popularSlugs);
 const categories = Object.keys(CATEGORY_META) as Category[];
-const recentTools = getRecentTools(8);
 
 const schema = {
   '@context': 'https://schema.org',
@@ -76,20 +75,8 @@ const schema = {
     </div>
   </section>
 
-  <!-- Recently Added -->
-  <section class="mx-auto max-w-[1200px] px-4 py-14">
-    <h2 class="mb-5 font-mono text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Recently Added</h2>
-    <div class="flex gap-3 overflow-x-auto pb-2" style="scrollbar-width:thin">
-      {recentTools.map(tool => (
-        <div class="w-64 shrink-0">
-          <ToolCard tool={tool} />
-        </div>
-      ))}
-    </div>
-  </section>
-
   <!-- Why DevFormats -->
-  <section class="border-t px-4 py-14" style="border-color:var(--border);background:var(--bg-subtle)">
+  <section class="border-t px-4 py-14" style="border-color:var(--border)">
     <div class="mx-auto max-w-[1200px]">
       <h2 class="mb-5 font-mono text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Why DevFormats</h2>
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
