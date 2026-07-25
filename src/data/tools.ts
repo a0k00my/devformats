@@ -449,6 +449,16 @@ export function getTool(slug: string): Tool | undefined {
   return tools.find(t => t.slug === slug);
 }
 
+// For hand-curated slug lists (e.g. homepage "Popular Tools") — throws at
+// build time instead of silently dropping a link if the slug doesn't exist.
+export function getToolsOrThrow(slugs: string[]): Tool[] {
+  return slugs.map(slug => {
+    const tool = getTool(slug);
+    if (!tool) throw new Error(`getToolsOrThrow: no tool with slug "${slug}" in the registry`);
+    return tool;
+  });
+}
+
 export function getToolsByCategory(category: Category): Tool[] {
   return tools.filter(t => t.category === category);
 }

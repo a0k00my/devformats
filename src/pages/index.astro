@@ -3,14 +3,14 @@ import Layout from '../layouts/Layout.astro';
 import SearchTrigger from '../components/SearchTrigger.astro';
 import ToolCard from '../components/ToolCard.astro';
 import CategoryCard from '../components/CategoryCard.astro';
-import { getTool, getRecentTools, CATEGORY_META, type Category } from '../data/tools';
+import { getToolsOrThrow, getRecentTools, CATEGORY_META, type Category } from '../data/tools';
 
 const popularSlugs = [
   'json-formatter', 'json-validator', 'json-parser', 'json-viewer',
   'yaml-formatter', 'xml-formatter', 'jwt-decoder', 'base64',
   'csv-to-json', 'json-to-yaml',
 ];
-const popularTools = popularSlugs.map(getTool).filter((t): t is NonNullable<typeof t> => Boolean(t));
+const popularTools = getToolsOrThrow(popularSlugs);
 const categories = Object.keys(CATEGORY_META) as Category[];
 const recentTools = getRecentTools(8);
 
