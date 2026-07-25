@@ -1,5 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { JsonTree } from './JsonTree';
+import { LineNumberedTextarea } from './LineNumberedTextarea';
+import { describeJsonError } from '../lib/jsonError';
 
 const SAMPLE = `{
   "name": "DevFormats",
@@ -18,6 +20,7 @@ export default function JsonViewer() {
   const [input, setInput] = useState(() => (typeof window === 'undefined' ? SAMPLE : localStorage.getItem(LS_INPUT) ?? SAMPLE));
   const [parsed, setParsed] = useState<unknown>(null);
   const [error, setError] = useState('');
+  const [errorLine, setErrorLine] = useState<number | null>(null);
   const [search, setSearch] = useState('');
   const [isLight, setIsLight] = useState(false);
   const [copiedPath, setCopiedPath] = useState<string | null>(null);
@@ -32,12 +35,14 @@ export default function JsonViewer() {
   }, []);
 
   const doParse = useCallback((text: string) => {
-    if (!text.trim()) { setParsed(null); setError(''); return; }
+    if (!text.trim()) { setParsed(null); setError(''); setErrorLine(null); return; }
     try {
       setParsed(JSON.parse(text));
-      setError('');
+      setError(''); setErrorLine(null);
     } catch (e: unknown) {
-      setError((e as Error).message);
+      const described = describeJsonError(text, e as Error);
+      setError(described.message);
+      setErrorLine(described.line);
       setParsed(null);
     }
   }, []);
@@ -57,7 +62,7 @@ export default function JsonViewer() {
     r.readAsText(file); e.target.value = '';
   };
   const doSampleData = () => setInput(SAMPLE);
-  const doClear = () => { setInput(''); setParsed(null); setError(''); localStorage.removeItem(LS_INPUT); };
+  const doClear = () => { setInput(''); setParsed(null); setError(''); setErrorLine(null); localStorage.removeItem(LS_INPUT); };
 
   return (
     <div className="flex flex-col border-y" style={{ minHeight: 'min(70vh, 640px)', borderColor: 'var(--jfo-border)' }}>
@@ -95,12 +100,11 @@ export default function JsonViewer() {
             <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>Input</span>
             <span style={{ ...MONO, fontSize: '10px', color: 'var(--jfo-text-4)' }}>{input.length} chars</span>
           </div>
-          <textarea
+          <LineNumberedTextarea
             value={input}
             onChange={e => setInput(e.target.value)}
             placeholder="Paste your JSON here…"
-            className="flex-1 resize-none p-4 text-[13px] outline-none"
-            style={{ ...MONO, lineHeight: '1.65', background: 'var(--jfo-editor)', color: 'var(--jfo-code)', cursor: 'text', minHeight: 200 }}
+            errorLine={errorLine}
             spellCheck={false} autoComplete="off" autoCapitalize="off"
           />
         </div>

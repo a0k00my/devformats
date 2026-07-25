@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLang } from '../hooks/useLang';
 import { useSplitter, SplitDivider, useIsMobile } from './SplitPanel';
+import { LineNumberedTextarea } from './LineNumberedTextarea';
+import { describeJsonError } from '../lib/jsonError';
 
 const MONO = { fontFamily: "ui-monospace, 'Geist Mono', SFMono-Regular, Menlo, monospace" };
 
@@ -41,6 +43,7 @@ export default function JsonToCsv() {
     typeof window !== 'undefined' ? (localStorage.getItem(LS_OUTPUT) ?? '') : ''
   );
   const [error, setError] = useState('');
+  const [errorLine, setErrorLine] = useState<number | null>(null);
   const [stats, setStats] = useState<{ rows: number; cols: number } | null>(() => {
     if (typeof window === 'undefined') return null;
     const out = localStorage.getItem(LS_OUTPUT) || '';
@@ -74,9 +77,12 @@ export default function JsonToCsv() {
       const p = JSON.parse(input);
       if (!Array.isArray(p)) throw new Error('Input must be a JSON array of objects.');
       const { csv, cols } = jsonToCsv(p);
-      setOutput(csv); setError('');
+      setOutput(csv); setError(''); setErrorLine(null);
       setStats({ rows: p.length, cols });
-    } catch (e: unknown) { setError((e as Error).message); setOutput(''); setStats(null); }
+    } catch (e: unknown) {
+      const described = describeJsonError(input, e as Error);
+      setError(described.message); setErrorLine(described.line); setOutput(''); setStats(null);
+    }
   };
 
   const doCopy = async () => {
@@ -95,7 +101,7 @@ export default function JsonToCsv() {
   const doLoadFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]; if (!f) return;
     const r = new FileReader();
-    r.onload = ev => { setInput(ev.target?.result as string); setOutput(''); setStats(null); setError(''); };
+    r.onload = ev => { setInput(ev.target?.result as string); setOutput(''); setStats(null); setError(''); setErrorLine(null); };
     r.readAsText(f); e.target.value = '';
   };
 
@@ -114,7 +120,7 @@ export default function JsonToCsv() {
         <button onClick={doDownload} className="tb-btn-ghost">{tr('downloadCSV')}</button>
         <button onClick={() => fileRef.current?.click()} className="tb-btn-ghost">{tr('loadFile')}</button>
         <input ref={fileRef} type="file" accept=".json,text/plain" className="hidden" onChange={doLoadFile} />
-        <button onClick={() => { setInput(''); setOutput(''); setError(''); setStats(null); localStorage.removeItem(LS_INPUT); localStorage.removeItem(LS_OUTPUT); }} className="tb-btn-ghost">{tr('clear')}</button>
+        <button onClick={() => { setInput(''); setOutput(''); setError(''); setErrorLine(null); setStats(null); localStorage.removeItem(LS_INPUT); localStorage.removeItem(LS_OUTPUT); }} className="tb-btn-ghost">{tr('clear')}</button>
 
         {stats && (
           <div className="ml-auto flex items-center gap-1.5" style={{ ...MONO, fontSize: '11px', color: 'var(--jfo-text-3)' }}>
@@ -137,9 +143,9 @@ export default function JsonToCsv() {
           <div className="border-b px-3 py-1" style={{ background: 'var(--jfo-panel-hdr)', borderColor: 'var(--jfo-border-2)' }}>
             <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>{tr('jsonInput')}</span>
           </div>
-          <textarea value={input} onChange={e => setInput(e.target.value)}
-            placeholder={tr('pasteArray')} className="flex-1 resize-none p-4 text-[13px] outline-none"
-            style={{ ...MONO, lineHeight: '1.65', background: 'var(--jfo-editor)', color: 'var(--jfo-code)', cursor: 'text' }}
+          <LineNumberedTextarea value={input} onChange={e => setInput(e.target.value)}
+            placeholder={tr('pasteArray')}
+            errorLine={errorLine}
             spellCheck={false} />
         </div>
 

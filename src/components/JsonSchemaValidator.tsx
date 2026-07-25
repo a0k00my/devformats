@@ -1,6 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
 import Ajv, { type ErrorObject } from 'ajv';
 import { useToolShortcuts } from './SplitPanel';
+import { LineNumberedTextarea } from './LineNumberedTextarea';
+import { describeJsonError } from '../lib/jsonError';
 
 const SAMPLE_SCHEMA = `{
   "type": "object",
@@ -26,16 +28,28 @@ export default function JsonSchemaValidator() {
   const [dataText, setDataText] = useState(() => (typeof window === 'undefined' ? SAMPLE_DATA : localStorage.getItem(LS_DATA) ?? SAMPLE_DATA));
   const [errors, setErrors] = useState<ErrorObject[] | null>(null);
   const [parseError, setParseError] = useState('');
+  const [errorField, setErrorField] = useState<'schema' | 'data' | null>(null);
+  const [errorLine, setErrorLine] = useState<number | null>(null);
   const [valid, setValid] = useState<boolean | null>(null);
 
   useEffect(() => { localStorage.setItem(LS_SCHEMA, schemaText); }, [schemaText]);
   useEffect(() => { localStorage.setItem(LS_DATA, dataText); }, [dataText]);
 
   const doValidate = useCallback(() => {
-    setParseError(''); setErrors(null); setValid(null);
+    setParseError(''); setErrorField(null); setErrorLine(null); setErrors(null); setValid(null);
     let schema: unknown, data: unknown;
-    try { schema = JSON.parse(schemaText); } catch (e) { setParseError(`Schema: ${(e as Error).message}`); return; }
-    try { data = JSON.parse(dataText); } catch (e) { setParseError(`Data: ${(e as Error).message}`); return; }
+    try { schema = JSON.parse(schemaText); }
+    catch (e) {
+      const described = describeJsonError(schemaText, e as Error);
+      setParseError(`Schema: ${described.message}`); setErrorField('schema'); setErrorLine(described.line);
+      return;
+    }
+    try { data = JSON.parse(dataText); }
+    catch (e) {
+      const described = describeJsonError(dataText, e as Error);
+      setParseError(`Data: ${described.message}`); setErrorField('data'); setErrorLine(described.line);
+      return;
+    }
     try {
       const ajv = new Ajv({ allErrors: true, strict: false });
       const validateFn = ajv.compile(schema as object);
@@ -50,7 +64,7 @@ export default function JsonSchemaValidator() {
   useToolShortcuts(doValidate);
 
   const doSampleData = () => { setSchemaText(SAMPLE_SCHEMA); setDataText(SAMPLE_DATA); };
-  const doClear = () => { setSchemaText(''); setDataText(''); setErrors(null); setValid(null); setParseError(''); localStorage.removeItem(LS_SCHEMA); localStorage.removeItem(LS_DATA); };
+  const doClear = () => { setSchemaText(''); setDataText(''); setErrors(null); setValid(null); setParseError(''); setErrorField(null); setErrorLine(null); localStorage.removeItem(LS_SCHEMA); localStorage.removeItem(LS_DATA); };
 
   return (
     <div className="flex flex-col border-y" style={{ minHeight: 'min(70vh, 640px)', borderColor: 'var(--jfo-border)' }}>
@@ -65,16 +79,16 @@ export default function JsonSchemaValidator() {
           <div className="border-b px-3 py-1" style={{ background: 'var(--jfo-panel-hdr)', borderColor: 'var(--jfo-border-2)' }}>
             <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>JSON Schema</span>
           </div>
-          <textarea value={schemaText} onChange={e => setSchemaText(e.target.value)} placeholder="Paste your JSON Schema here…"
-            className="flex-1 resize-none p-4 text-[13px] outline-none" style={{ ...MONO, lineHeight: '1.65', background: 'var(--jfo-editor)', color: 'var(--jfo-code)', minHeight: 240 }}
+          <LineNumberedTextarea value={schemaText} onChange={e => setSchemaText(e.target.value)} placeholder="Paste your JSON Schema here…"
+            errorLine={errorField === 'schema' ? errorLine : null}
             spellCheck={false} autoComplete="off" autoCapitalize="off" />
         </div>
         <div className="flex flex-1 flex-col overflow-hidden border-t md:border-l md:border-t-0" style={{ borderColor: 'var(--jfo-border-2)', minWidth: 0 }}>
           <div className="border-b px-3 py-1" style={{ background: 'var(--jfo-panel-hdr)', borderColor: 'var(--jfo-border-2)' }}>
             <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>Data</span>
           </div>
-          <textarea value={dataText} onChange={e => setDataText(e.target.value)} placeholder="Paste the JSON data to validate…"
-            className="flex-1 resize-none p-4 text-[13px] outline-none" style={{ ...MONO, lineHeight: '1.65', background: 'var(--jfo-editor)', color: 'var(--jfo-code)', minHeight: 240 }}
+          <LineNumberedTextarea value={dataText} onChange={e => setDataText(e.target.value)} placeholder="Paste the JSON data to validate…"
+            errorLine={errorField === 'data' ? errorLine : null}
             spellCheck={false} autoComplete="off" autoCapitalize="off" />
         </div>
       </div>

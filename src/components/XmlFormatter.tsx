@@ -1,5 +1,13 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useSplitter, SplitDivider, useIsMobile, useToolShortcuts } from './SplitPanel';
+import { LineNumberedTextarea } from './LineNumberedTextarea';
+
+// Browser DOMParser error text isn't standardized, but both Chromium and
+// Firefox mention "line N" somewhere in the message — pull it out if present.
+function extractXmlErrorLine(message: string): number | null {
+  const m = message.match(/line[:\s]+(\d+)/i);
+  return m ? parseInt(m[1], 10) : null;
+}
 
 const SAMPLE = `<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns:dev="https://devformats.com">
@@ -76,6 +84,7 @@ export default function XmlFormatter() {
   });
   const [output, setOutput] = useState('');
   const [error, setError] = useState('');
+  const [errorLine, setErrorLine] = useState<number | null>(null);
   const [indentSize, setIndentSize] = useState(() => (typeof window === 'undefined' ? 2 : parseInt(localStorage.getItem(LS_INDENT) || '2', 10)));
   const [stats, setStats] = useState<{ lines: number; size: string } | null>(null);
   const [copied, setCopied] = useState(false);
@@ -89,15 +98,17 @@ export default function XmlFormatter() {
   useEffect(() => { localStorage.setItem(LS_INDENT, String(indentSize)); }, [indentSize]);
 
   const doFormat = useCallback((text: string, size: number) => {
-    if (!text.trim()) { setOutput(''); setError(''); setStats(null); return; }
+    if (!text.trim()) { setOutput(''); setError(''); setErrorLine(null); setStats(null); return; }
     try {
       const formatted = prettyPrintXml(text, size);
       setOutput(formatted);
-      setError('');
+      setError(''); setErrorLine(null);
       setStats({ lines: formatted.split('\n').length, size: formatBytes(new TextEncoder().encode(formatted).length) });
       setDirty(false);
     } catch (e: unknown) {
-      setError((e as Error).message);
+      const msg = (e as Error).message;
+      setError(msg);
+      setErrorLine(extractXmlErrorLine(msg));
       setOutput(''); setStats(null);
     }
   }, []);
@@ -118,10 +129,14 @@ export default function XmlFormatter() {
       if (doc.querySelector('parsererror')) throw new Error('Malformed XML');
       const serialized = new XMLSerializer().serializeToString(doc).replace(/>\s+</g, '><').trim();
       setOutput(serialized);
-      setError('');
+      setError(''); setErrorLine(null);
       setStats({ lines: 1, size: formatBytes(new TextEncoder().encode(serialized).length) });
       setDirty(false);
-    } catch (e: unknown) { setError((e as Error).message); }
+    } catch (e: unknown) {
+      const msg = (e as Error).message;
+      setError(msg);
+      setErrorLine(extractXmlErrorLine(msg));
+    }
   };
 
   const doCopy = async () => {
@@ -142,14 +157,14 @@ export default function XmlFormatter() {
   const doLoadFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file) return;
     const r = new FileReader();
-    r.onload = ev => { setInput(ev.target?.result as string); setOutput(''); setStats(null); setError(''); setDirty(true); };
+    r.onload = ev => { setInput(ev.target?.result as string); setOutput(''); setStats(null); setError(''); setErrorLine(null); setDirty(true); };
     r.readAsText(file); e.target.value = '';
   };
 
   const doSampleData = () => { setInput(SAMPLE); setDirty(true); };
 
   const doClear = () => {
-    setInput(''); setOutput(''); setError(''); setStats(null); setDirty(false);
+    setInput(''); setOutput(''); setError(''); setErrorLine(null); setStats(null); setDirty(false);
     localStorage.removeItem(LS_INPUT);
   };
 
@@ -200,12 +215,11 @@ export default function XmlFormatter() {
             <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>Input</span>
             <span style={{ ...MONO, fontSize: '10px', color: 'var(--jfo-text-4)' }}>{input.length} chars</span>
           </div>
-          <textarea
+          <LineNumberedTextarea
             value={input}
             onChange={e => { setInput(e.target.value); setDirty(true); }}
             placeholder="Paste your XML here…"
-            className="flex-1 resize-none p-4 text-[13px] outline-none"
-            style={{ ...MONO, lineHeight: '1.65', background: 'var(--jfo-editor)', color: 'var(--jfo-code)', cursor: 'text' }}
+            errorLine={errorLine}
             spellCheck={false} autoComplete="off" autoCapitalize="off"
           />
         </div>

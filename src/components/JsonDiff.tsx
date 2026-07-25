@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLang } from '../hooks/useLang';
+import { LineNumberedTextarea } from './LineNumberedTextarea';
+import { describeJsonError } from '../lib/jsonError';
 
 const MONO = { fontFamily: "ui-monospace, 'Geist Mono', SFMono-Regular, Menlo, monospace" };
 
@@ -73,15 +75,29 @@ export default function JsonDiff() {
     try { return JSON.parse(stored); } catch { return null; }
   });
   const [error, setError] = useState('');
+  const [errorSide, setErrorSide] = useState<'left' | 'right' | null>(null);
+  const [errorLine, setErrorLine] = useState<number | null>(null);
 
   useEffect(() => { localStorage.setItem(LS_LEFT, left); }, [left]);
   useEffect(() => { localStorage.setItem(LS_RIGHT, right); }, [right]);
   useEffect(() => { if (diffs !== null) localStorage.setItem(LS_DIFFS, JSON.stringify(diffs)); else localStorage.removeItem(LS_DIFFS); }, [diffs]);
 
   const doCompare = () => {
-    if (left.length > 5_000_000 || right.length > 5_000_000) { setError(tr('inputTooLarge')); setDiffs(null); return; }
-    try { setDiffs(diffObjects(JSON.parse(left), JSON.parse(right))); setError(''); }
-    catch (e: unknown) { setError((e as Error).message); setDiffs(null); }
+    if (left.length > 5_000_000 || right.length > 5_000_000) { setError(tr('inputTooLarge')); setErrorSide(null); setErrorLine(null); setDiffs(null); return; }
+    let a: unknown, b: unknown;
+    try { a = JSON.parse(left); }
+    catch (e: unknown) {
+      const described = describeJsonError(left, e as Error);
+      setError(`(A) ${described.message}`); setErrorSide('left'); setErrorLine(described.line); setDiffs(null);
+      return;
+    }
+    try { b = JSON.parse(right); }
+    catch (e: unknown) {
+      const described = describeJsonError(right, e as Error);
+      setError(`(B) ${described.message}`); setErrorSide('right'); setErrorLine(described.line); setDiffs(null);
+      return;
+    }
+    setDiffs(diffObjects(a, b)); setError(''); setErrorSide(null); setErrorLine(null);
   };
 
   const added   = diffs?.filter(d => d.type === 'added').length ?? 0;
@@ -94,7 +110,7 @@ export default function JsonDiff() {
         style={{ background: 'var(--jfo-toolbar)', borderColor: 'var(--jfo-border)' }}>
 
         <button onClick={doCompare} className="tb-btn-primary">{tr('compare')}</button>
-        <button onClick={() => { setLeft(''); setRight(''); setDiffs(null); setError(''); localStorage.removeItem(LS_LEFT); localStorage.removeItem(LS_RIGHT); localStorage.removeItem(LS_DIFFS); }} className="tb-btn-ghost">{tr('clear')}</button>
+        <button onClick={() => { setLeft(''); setRight(''); setDiffs(null); setError(''); setErrorSide(null); setErrorLine(null); localStorage.removeItem(LS_LEFT); localStorage.removeItem(LS_RIGHT); localStorage.removeItem(LS_DIFFS); }} className="tb-btn-ghost">{tr('clear')}</button>
 
         {diffs !== null && (
           <div className="ml-auto flex items-center gap-1.5">
@@ -123,9 +139,9 @@ export default function JsonDiff() {
               {tr('original')} <span style={{ color: '#f87171' }}>(A)</span>
             </span>
           </div>
-          <textarea value={left} onChange={e => { setLeft(e.target.value); setDiffs(null); }}
-            placeholder={tr('pasteOriginal')} className="flex-1 resize-none p-4 text-[13px] outline-none"
-            style={{ ...MONO, lineHeight: '1.65', background: 'var(--jfo-editor)', color: 'var(--jfo-code)', cursor: 'text' }}
+          <LineNumberedTextarea value={left} onChange={e => { setLeft(e.target.value); setDiffs(null); }}
+            placeholder={tr('pasteOriginal')}
+            errorLine={errorSide === 'left' ? errorLine : null}
             spellCheck={false} />
         </div>
         <div className="editor-panel flex flex-col overflow-hidden">
@@ -134,9 +150,9 @@ export default function JsonDiff() {
               {tr('modified')} <span style={{ color: '#4ade80' }}>(B)</span>
             </span>
           </div>
-          <textarea value={right} onChange={e => { setRight(e.target.value); setDiffs(null); }}
-            placeholder={tr('pasteModified')} className="flex-1 resize-none p-4 text-[13px] outline-none"
-            style={{ ...MONO, lineHeight: '1.65', background: 'var(--jfo-editor)', color: 'var(--jfo-code)', cursor: 'text' }}
+          <LineNumberedTextarea value={right} onChange={e => { setRight(e.target.value); setDiffs(null); }}
+            placeholder={tr('pasteModified')}
+            errorLine={errorSide === 'right' ? errorLine : null}
             spellCheck={false} />
         </div>
       </div>

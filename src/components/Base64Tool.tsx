@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useToolShortcuts } from './SplitPanel';
+import { LineNumberedTextarea } from './LineNumberedTextarea';
 
 type Mode = 'encode' | 'decode';
 const LS_INPUT = 'df-input-base64';
@@ -127,12 +128,10 @@ export default function Base64Tool() {
             <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>{mode === 'encode' ? 'Plain Text' : 'Base64'}</span>
             <span style={{ ...MONO, fontSize: '10px', color: 'var(--jfo-text-4)' }}>{input.length} chars</span>
           </div>
-          <textarea
+          <LineNumberedTextarea
             value={input}
             onChange={e => setInput(e.target.value)}
             placeholder={mode === 'encode' ? 'Type or paste text…' : 'Paste Base64 here…'}
-            className="flex-1 resize-none p-4 text-[13px] outline-none"
-            style={{ ...MONO, lineHeight: '1.65', background: 'var(--jfo-editor)', color: 'var(--jfo-code)', cursor: 'text', minHeight: 200 }}
             spellCheck={false} autoComplete="off" autoCapitalize="off"
           />
         </div>

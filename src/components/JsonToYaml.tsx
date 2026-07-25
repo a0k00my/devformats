@@ -1,6 +1,8 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import * as yaml from 'js-yaml';
 import { useSplitter, SplitDivider, useIsMobile, useToolShortcuts } from './SplitPanel';
+import { LineNumberedTextarea } from './LineNumberedTextarea';
+import { describeJsonError } from '../lib/jsonError';
 
 const SAMPLE = `{
   "name": "DevFormats",
@@ -16,6 +18,7 @@ export default function JsonToYaml() {
   const [input, setInput] = useState(() => (typeof window === 'undefined' ? SAMPLE : localStorage.getItem(LS_INPUT) ?? SAMPLE));
   const [output, setOutput] = useState('');
   const [error, setError] = useState('');
+  const [errorLine, setErrorLine] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
   const [dirty, setDirty] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -25,15 +28,18 @@ export default function JsonToYaml() {
   useEffect(() => { localStorage.setItem(LS_INPUT, input); }, [input]);
 
   const doConvert = useCallback((text: string) => {
-    if (!text.trim()) { setOutput(''); setError(''); return; }
+    if (!text.trim()) { setOutput(''); setError(''); setErrorLine(null); return; }
     try {
       // JSON.parse preserves insertion order for string keys, and js-yaml's
       // dump walks own-enumerable keys in that same order — key order survives.
       const data = JSON.parse(text);
       setOutput(yaml.dump(data, { lineWidth: -1 }));
-      setError('');
+      setError(''); setErrorLine(null);
       setDirty(false);
-    } catch (e: unknown) { setError((e as Error).message); setOutput(''); }
+    } catch (e: unknown) {
+      const described = describeJsonError(text, e as Error);
+      setError(described.message); setErrorLine(described.line); setOutput('');
+    }
   }, []);
 
   const handleConvert = () => doConvert(input);
@@ -49,11 +55,11 @@ export default function JsonToYaml() {
   const doLoadFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file) return;
     const r = new FileReader();
-    r.onload = ev => { setInput(ev.target?.result as string); setOutput(''); setError(''); setDirty(true); };
+    r.onload = ev => { setInput(ev.target?.result as string); setOutput(''); setError(''); setErrorLine(null); setDirty(true); };
     r.readAsText(file); e.target.value = '';
   };
   const doSampleData = () => { setInput(SAMPLE); setDirty(true); };
-  const doClear = () => { setInput(''); setOutput(''); setError(''); setDirty(false); localStorage.removeItem(LS_INPUT); };
+  const doClear = () => { setInput(''); setOutput(''); setError(''); setErrorLine(null); setDirty(false); localStorage.removeItem(LS_INPUT); };
 
   return (
     <div className="tool-height flex flex-col border-y" style={{ height: 'min(70vh, 640px)', borderColor: 'var(--jfo-border)' }}>
@@ -85,8 +91,8 @@ export default function JsonToYaml() {
             <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>JSON Input</span>
             <span style={{ ...MONO, fontSize: '10px', color: 'var(--jfo-text-4)' }}>{input.length} chars</span>
           </div>
-          <textarea value={input} onChange={e => { setInput(e.target.value); setDirty(true); }} placeholder="Paste your JSON here…"
-            className="flex-1 resize-none p-4 text-[13px] outline-none" style={{ ...MONO, lineHeight: '1.65', background: 'var(--jfo-editor)', color: 'var(--jfo-code)', cursor: 'text' }}
+          <LineNumberedTextarea value={input} onChange={e => { setInput(e.target.value); setDirty(true); }} placeholder="Paste your JSON here…"
+            errorLine={errorLine}
             spellCheck={false} autoComplete="off" autoCapitalize="off" />
         </div>
         <SplitDivider onMouseDown={onMouseDown} onTouchStart={onTouchStart} isMobile={isMobile} />

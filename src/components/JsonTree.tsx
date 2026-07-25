@@ -53,6 +53,16 @@ function matchesSearch(keyName: string | undefined, value: JsonValue, term: stri
   return false;
 }
 
+/** Recursively checks whether a search term matches any key or value inside a
+ *  subtree, so collapsed branches can be auto-expanded to reveal the match. */
+function subtreeHasMatch(value: JsonValue, term: string): boolean {
+  if (!term) return false;
+  const t = term.toLowerCase();
+  if (!isCollapsible(value)) return String(value).toLowerCase().includes(t);
+  if (Array.isArray(value)) return value.some(v => subtreeHasMatch(v, term));
+  return Object.entries(value).some(([k, v]) => k.toLowerCase().includes(t) || subtreeHasMatch(v, term));
+}
+
 /** Wraps matching substrings in a <mark>-like highlight span. */
 function Highlight({ text, term, color }: { text: string; term?: string; color: string }) {
   if (!term) return <>{text}</>;
@@ -105,9 +115,13 @@ const JsonNode = memo(function JsonNode({ keyName, value, depth, isLight, isLast
   const bracket = Array.isArray(value) ? ['[', ']'] : ['{', '}'];
   const indent = depth * 18; // px per level
   const isMatch = matchesSearch(keyName, value, searchTerm ?? '');
+  // A collapsed branch containing a match must render expanded so the match
+  // is actually visible — searching should never hide results behind a fold.
+  const forceOpenForSearch = collapsible && !!searchTerm && subtreeHasMatch(value, searchTerm);
+  const effectiveOpen = open || forceOpenForSearch;
 
   // ── Collapsed inline preview ──────────────────────────────────────────────
-  if (collapsible && !open) {
+  if (collapsible && !effectiveOpen) {
     const count = childCount(value);
     return (
       <div style={{ display: 'flex', alignItems: 'baseline', paddingLeft: indent, background: isMatch ? 'var(--jfo-accent-bg)' : undefined }}>
@@ -148,7 +162,7 @@ const JsonNode = memo(function JsonNode({ keyName, value, depth, isLight, isLast
   }
 
   // ── Expanded object/array ─────────────────────────────────────────────────
-  if (collapsible && open) {
+  if (collapsible && effectiveOpen) {
     const entries: [string | number, JsonValue][] = Array.isArray(value)
       ? value.map((v, i) => [i, v])
       : Object.entries(value);

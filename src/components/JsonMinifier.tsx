@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLang } from '../hooks/useLang';
 import { useSplitter, SplitDivider, useIsMobile } from './SplitPanel';
+import { LineNumberedTextarea } from './LineNumberedTextarea';
+import { describeJsonError } from '../lib/jsonError';
 
 const MONO = { fontFamily: "ui-monospace, 'Geist Mono', SFMono-Regular, Menlo, monospace" };
 const fmt = (b: number) => b < 1024 ? b+' B' : (b/1024).toFixed(1)+' KB';
@@ -22,6 +24,7 @@ export default function JsonMinifier() {
     typeof window !== 'undefined' ? (localStorage.getItem(LS_OUTPUT) ?? '') : ''
   );
   const [error, setError] = useState('');
+  const [errorLine, setErrorLine] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
   const [stats, setStats] = useState<{ orig: number; mini: number; pct: number } | null>(() => {
     if (typeof window === 'undefined') return null;
@@ -44,10 +47,15 @@ export default function JsonMinifier() {
     if (input.length > 5_000_000) { setError('Input exceeds 5 MB — paste a smaller JSON document.'); return; }
     try {
       const m = JSON.stringify(JSON.parse(input));
-      setOutput(m); setError('');
+      setOutput(m); setError(''); setErrorLine(null);
       const o = new TextEncoder().encode(input).length, mi = new TextEncoder().encode(m).length;
       setStats({ orig: o, mini: mi, pct: Math.round((1-mi/o)*100) });
-    } catch (e: unknown) { setError((e as Error).message); setOutput(''); setStats(null); }
+    } catch (e: unknown) {
+      const described = describeJsonError(input, e as Error);
+      setError(described.message);
+      setErrorLine(described.line);
+      setOutput(''); setStats(null);
+    }
   };
 
   const doCopy = async () => {
@@ -68,7 +76,7 @@ export default function JsonMinifier() {
   const doLoadFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]; if (!f) return;
     const r = new FileReader();
-    r.onload = ev => { setInput(ev.target?.result as string); setOutput(''); setStats(null); setError(''); };
+    r.onload = ev => { setInput(ev.target?.result as string); setOutput(''); setStats(null); setError(''); setErrorLine(null); };
     r.readAsText(f); e.target.value = '';
   };
 
@@ -87,7 +95,7 @@ export default function JsonMinifier() {
         <button onClick={doDownload} className="tb-btn-ghost">{tr('download')}</button>
         <button onClick={() => fileRef.current?.click()} className="tb-btn-ghost">{tr('loadFile')}</button>
         <input ref={fileRef} type="file" accept=".json,text/plain" className="hidden" onChange={doLoadFile} />
-        <button onClick={() => { setInput(''); setOutput(''); setError(''); setStats(null); localStorage.removeItem(LS_INPUT); localStorage.removeItem(LS_OUTPUT); }} className="tb-btn-ghost">{tr('clear')}</button>
+        <button onClick={() => { setInput(''); setOutput(''); setError(''); setErrorLine(null); setStats(null); localStorage.removeItem(LS_INPUT); localStorage.removeItem(LS_OUTPUT); }} className="tb-btn-ghost">{tr('clear')}</button>
 
         {stats && (
           <div className="ml-auto flex items-center gap-2" style={{ ...MONO, fontSize: '11px', color: 'var(--jfo-text-3)' }}>
@@ -111,9 +119,9 @@ export default function JsonMinifier() {
           <div className="border-b px-3 py-1" style={{ background: 'var(--jfo-panel-hdr)', borderColor: 'var(--jfo-border-2)' }}>
             <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>{tr('inputFormatted')}</span>
           </div>
-          <textarea value={input} onChange={e => setInput(e.target.value)}
-            placeholder={tr('pasteJson')} className="flex-1 resize-none p-4 text-[13px] outline-none"
-            style={{ ...MONO, lineHeight: '1.65', background: 'var(--jfo-editor)', color: 'var(--jfo-code)', cursor: 'text' }}
+          <LineNumberedTextarea value={input} onChange={e => setInput(e.target.value)}
+            placeholder={tr('pasteJson')}
+            errorLine={errorLine}
             spellCheck={false} />
         </div>
 

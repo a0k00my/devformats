@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import * as yaml from 'js-yaml';
 import { useToolShortcuts } from './SplitPanel';
+import { LineNumberedTextarea } from './LineNumberedTextarea';
 
 const SAMPLE = `name: DevFormats
 valid: true
@@ -27,7 +28,7 @@ function countKeysAndDepth(value: unknown, depth = 0): { keys: number; maxDepth:
 
 export default function YamlValidatorTool() {
   const [input, setInput] = useState(() => (typeof window === 'undefined' ? SAMPLE : localStorage.getItem(LS_INPUT) ?? SAMPLE));
-  const [result, setResult] = useState<{ valid: boolean; message: string; stats?: { keys: number; maxDepth: number } } | null>(null);
+  const [result, setResult] = useState<{ valid: boolean; message: string; line?: number | null; stats?: { keys: number; maxDepth: number } } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { localStorage.setItem(LS_INPUT, input); }, [input]);
@@ -40,7 +41,7 @@ export default function YamlValidatorTool() {
     } catch (e: unknown) {
       const err = e as yaml.YAMLException;
       const mark = (err as any).mark;
-      setResult({ valid: false, message: mark ? `${err.message} (line ${mark.line + 1}, col ${mark.column + 1})` : err.message });
+      setResult({ valid: false, message: mark ? `${err.message} (line ${mark.line + 1}, col ${mark.column + 1})` : err.message, line: mark ? mark.line + 1 : null });
     }
   }, [input]);
 
@@ -70,8 +71,8 @@ export default function YamlValidatorTool() {
           <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>YAML Input</span>
           <span style={{ ...MONO, fontSize: '10px', color: 'var(--jfo-text-4)' }}>{input.length} chars</span>
         </div>
-        <textarea value={input} onChange={e => setInput(e.target.value)} placeholder="Paste your YAML here…"
-          className="flex-1 resize-none p-4 text-[13px] outline-none" style={{ ...MONO, lineHeight: '1.65', background: 'var(--jfo-editor)', color: 'var(--jfo-code)', minHeight: 260 }}
+        <LineNumberedTextarea value={input} onChange={e => setInput(e.target.value)} placeholder="Paste your YAML here…"
+          errorLine={result && !result.valid ? (result.line ?? null) : null}
           spellCheck={false} autoComplete="off" autoCapitalize="off" />
       </div>
 

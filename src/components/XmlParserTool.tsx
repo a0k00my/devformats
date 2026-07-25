@@ -1,5 +1,11 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { JsonTree } from './JsonTree';
+import { LineNumberedTextarea } from './LineNumberedTextarea';
+
+function extractXmlErrorLine(message: string): number | null {
+  const m = message.match(/line[:\s]+(\d+)/i);
+  return m ? parseInt(m[1], 10) : null;
+}
 
 const SAMPLE = `<root>
   <name>DevFormats</name>
@@ -37,6 +43,7 @@ export default function XmlParserTool() {
   const [input, setInput] = useState(() => (typeof window === 'undefined' ? SAMPLE : localStorage.getItem(LS_INPUT) ?? SAMPLE));
   const [parsed, setParsed] = useState<unknown>(null);
   const [error, setError] = useState('');
+  const [errorLine, setErrorLine] = useState<number | null>(null);
   const [isLight, setIsLight] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -49,12 +56,15 @@ export default function XmlParserTool() {
   }, []);
 
   const doParse = useCallback((text: string) => {
-    if (!text.trim()) { setParsed(null); setError(''); return; }
+    if (!text.trim()) { setParsed(null); setError(''); setErrorLine(null); return; }
     const doc = new DOMParser().parseFromString(text, 'application/xml');
     const parseError = doc.querySelector('parsererror');
-    if (parseError) { setError(parseError.textContent?.split('\n')[0] || 'Malformed XML'); setParsed(null); return; }
+    if (parseError) {
+      const message = parseError.textContent?.split('\n')[0] || 'Malformed XML';
+      setError(message); setErrorLine(extractXmlErrorLine(message)); setParsed(null); return;
+    }
     setParsed({ [doc.documentElement.tagName]: elementToObject(doc.documentElement) });
-    setError('');
+    setError(''); setErrorLine(null);
   }, []);
 
   useEffect(() => { doParse(input); }, [input, doParse]);
@@ -66,7 +76,7 @@ export default function XmlParserTool() {
     r.readAsText(file); e.target.value = '';
   };
   const doSampleData = () => setInput(SAMPLE);
-  const doClear = () => { setInput(''); setParsed(null); setError(''); localStorage.removeItem(LS_INPUT); };
+  const doClear = () => { setInput(''); setParsed(null); setError(''); setErrorLine(null); localStorage.removeItem(LS_INPUT); };
 
   return (
     <div className="flex flex-col border-y" style={{ minHeight: 'min(70vh, 640px)', borderColor: 'var(--jfo-border)' }}>
@@ -88,8 +98,8 @@ export default function XmlParserTool() {
           <div className="flex items-center justify-between border-b px-3 py-1" style={{ background: 'var(--jfo-panel-hdr)', borderColor: 'var(--jfo-border-2)' }}>
             <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>XML Input</span>
           </div>
-          <textarea value={input} onChange={e => setInput(e.target.value)} placeholder="Paste your XML here…"
-            className="flex-1 resize-none p-4 text-[13px] outline-none" style={{ ...MONO, lineHeight: '1.65', background: 'var(--jfo-editor)', color: 'var(--jfo-code)', minHeight: 240 }}
+          <LineNumberedTextarea value={input} onChange={e => setInput(e.target.value)} placeholder="Paste your XML here…"
+            errorLine={errorLine}
             spellCheck={false} autoComplete="off" autoCapitalize="off" />
         </div>
         <div className="flex flex-col overflow-hidden border-t md:w-1/2 md:border-l md:border-t-0" style={{ borderColor: 'var(--jfo-border-2)', minWidth: 0 }}>

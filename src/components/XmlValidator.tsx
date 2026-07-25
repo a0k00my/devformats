@@ -1,5 +1,11 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useToolShortcuts } from './SplitPanel';
+import { LineNumberedTextarea } from './LineNumberedTextarea';
+
+function extractXmlErrorLine(message: string): number | null {
+  const m = message.match(/line[:\s]+(\d+)/i);
+  return m ? parseInt(m[1], 10) : null;
+}
 
 const SAMPLE = `<root>
   <name>DevFormats</name>
@@ -11,7 +17,7 @@ const MONO = { fontFamily: "ui-monospace, 'Geist Mono', SFMono-Regular, Menlo, m
 
 export default function XmlValidator() {
   const [input, setInput] = useState(() => (typeof window === 'undefined' ? SAMPLE : localStorage.getItem(LS_INPUT) ?? SAMPLE));
-  const [result, setResult] = useState<{ valid: boolean; message: string } | null>(null);
+  const [result, setResult] = useState<{ valid: boolean; message: string; line?: number | null } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { localStorage.setItem(LS_INPUT, input); }, [input]);
@@ -21,7 +27,8 @@ export default function XmlValidator() {
     const doc = new DOMParser().parseFromString(input, 'application/xml');
     const parseError = doc.querySelector('parsererror');
     if (parseError) {
-      setResult({ valid: false, message: parseError.textContent?.trim() || 'Malformed XML' });
+      const message = parseError.textContent?.trim() || 'Malformed XML';
+      setResult({ valid: false, message, line: extractXmlErrorLine(message) });
     } else {
       setResult({ valid: true, message: `Well-formed XML — root element <${doc.documentElement.tagName}>` });
     }
@@ -53,8 +60,8 @@ export default function XmlValidator() {
           <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>XML Input</span>
           <span style={{ ...MONO, fontSize: '10px', color: 'var(--jfo-text-4)' }}>{input.length} chars</span>
         </div>
-        <textarea value={input} onChange={e => setInput(e.target.value)} placeholder="Paste your XML here…"
-          className="flex-1 resize-none p-4 text-[13px] outline-none" style={{ ...MONO, lineHeight: '1.65', background: 'var(--jfo-editor)', color: 'var(--jfo-code)', minHeight: 260 }}
+        <LineNumberedTextarea value={input} onChange={e => setInput(e.target.value)} placeholder="Paste your XML here…"
+          errorLine={result && !result.valid ? (result.line ?? null) : null}
           spellCheck={false} autoComplete="off" autoCapitalize="off" />
       </div>
 

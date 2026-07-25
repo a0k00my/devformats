@@ -2,6 +2,8 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useLang } from '../hooks/useLang';
 import { JsonTree } from './JsonTree';
 import { useSplitter, SplitDivider, useIsMobile } from './SplitPanel';
+import { LineNumberedTextarea } from './LineNumberedTextarea';
+import { describeJsonError } from '../lib/jsonError';
 
 type IndentMode = '2' | '4' | 'tab';
 type ViewMode = 'tree' | 'raw';
@@ -29,18 +31,6 @@ function formatBytes(b: number) {
   if (b < 1024) return b + ' B';
   if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
   return (b / 1048576).toFixed(2) + ' MB';
-}
-
-// V8's JSON.parse errors include a raw string offset ("...at position 42")
-// but no line/col — recover both by walking the original text up to that offset.
-function describeJsonError(text: string, err: Error): string {
-  const match = err.message.match(/position (\d+)/);
-  if (!match) return err.message;
-  const pos = parseInt(match[1], 10);
-  const upToError = text.slice(0, pos);
-  const line = upToError.split('\n').length;
-  const col = pos - upToError.lastIndexOf('\n');
-  return `${err.message} (line ${line}, col ${col})`;
 }
 
 function sortKeysDeep(value: unknown): unknown {
@@ -92,6 +82,7 @@ export default function JsonFormatter() {
   });
   const [highlighted, setHighlighted] = useState('');
   const [error, setError] = useState('');
+  const [errorLine, setErrorLine] = useState<number | null>(null);
   const [indentMode, setIndentMode] = useState<IndentMode>(savedIndent || '2');
   const [viewMode, setViewMode] = useState<ViewMode>(savedView || 'tree');
   const [stats, setStats] = useState<Stats | null>(() => {
@@ -121,8 +112,8 @@ export default function JsonFormatter() {
   }, []);
 
   const doFormat = useCallback((text: string, mode: IndentMode, light: boolean, sort: boolean) => {
-    if (!text.trim()) { setOutput(''); setHighlighted(''); setError(''); setStats(null); setParsedData(null); return; }
-    if (text.length > 5_000_000) { setError('Input exceeds 5 MB — paste a smaller JSON document.'); setOutput(''); setHighlighted(''); setStats(null); setParsedData(null); return; }
+    if (!text.trim()) { setOutput(''); setHighlighted(''); setError(''); setErrorLine(null); setStats(null); setParsedData(null); return; }
+    if (text.length > 5_000_000) { setError('Input exceeds 5 MB — paste a smaller JSON document.'); setErrorLine(null); setOutput(''); setHighlighted(''); setStats(null); setParsedData(null); return; }
     try {
       const indent = mode === 'tab' ? '\t' : parseInt(mode);
       let parsed = JSON.parse(text);
@@ -132,10 +123,13 @@ export default function JsonFormatter() {
       setHighlighted(highlightJson(formatted, light));
       setParsedData(parsed);
       setError('');
+      setErrorLine(null);
       setStats({ lines: formatted.split('\n').length, size: formatBytes(new TextEncoder().encode(formatted).length) });
       setDirty(false);
     } catch (e: unknown) {
-      setError(describeJsonError(text, e as Error));
+      const described = describeJsonError(text, e as Error);
+      setError(described.message);
+      setErrorLine(described.line);
       setOutput(''); setHighlighted(''); setStats(null); setParsedData(null);
     }
   }, []);
@@ -167,9 +161,17 @@ export default function JsonFormatter() {
       setHighlighted(highlightJson(m, isLight));
       setParsedData(parsed);
       setError('');
+      setErrorLine(null);
       setStats({ lines: 1, size: formatBytes(new TextEncoder().encode(m).length) });
       setDirty(false);
-    } catch (e: unknown) { setError(describeJsonError(input, e as Error)); }
+      // Tree view re-indents regardless of minification, which makes minify look like
+      // a no-op — force Raw view so the compact single-line result is actually visible.
+      setViewMode('raw');
+    } catch (e: unknown) {
+      const described = describeJsonError(input, e as Error);
+      setError(described.message);
+      setErrorLine(described.line);
+    }
   };
 
   const doSampleData = () => {
@@ -195,12 +197,12 @@ export default function JsonFormatter() {
   const doLoadFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file) return;
     const r = new FileReader();
-    r.onload = ev => { setInput(ev.target?.result as string); setOutput(''); setHighlighted(''); setStats(null); setError(''); setParsedData(null); setDirty(true); };
+    r.onload = ev => { setInput(ev.target?.result as string); setOutput(''); setHighlighted(''); setStats(null); setError(''); setErrorLine(null); setParsedData(null); setDirty(true); };
     r.readAsText(file); e.target.value = '';
   };
 
   const doClear = () => {
-    setInput(''); setOutput(''); setHighlighted(''); setError(''); setStats(null); setDirty(false); setParsedData(null);
+    setInput(''); setOutput(''); setHighlighted(''); setError(''); setErrorLine(null); setStats(null); setDirty(false); setParsedData(null);
     localStorage.removeItem(LS_INPUT); localStorage.removeItem(LS_OUTPUT);
   };
 
@@ -301,12 +303,11 @@ export default function JsonFormatter() {
             <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>{tr('input')}</span>
             <span style={{ ...MONO, fontSize: '10px', color: 'var(--jfo-text-4)' }}>{input.length} chars</span>
           </div>
-          <textarea
+          <LineNumberedTextarea
             value={input}
             onChange={e => { setInput(e.target.value); setDirty(true); }}
             placeholder={tr('pasteJson')}
-            className="flex-1 resize-none p-4 text-[13px] outline-none"
-            style={{ ...MONO, lineHeight: '1.65', background: 'var(--jfo-editor)', color: 'var(--jfo-code)', cursor: 'text' }}
+            errorLine={errorLine}
             spellCheck={false} autoComplete="off" autoCapitalize="off"
           />
         </div>

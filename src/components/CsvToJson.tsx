@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import Papa from 'papaparse';
 import { useToolShortcuts } from './SplitPanel';
+import { LineNumberedTextarea } from './LineNumberedTextarea';
 
 const SAMPLE = `name,age,city
 Alice,30,New York
@@ -13,6 +14,7 @@ export default function CsvToJson() {
   const [input, setInput] = useState(() => (typeof window === 'undefined' ? SAMPLE : localStorage.getItem(LS_INPUT) ?? SAMPLE));
   const [output, setOutput] = useState('');
   const [error, setError] = useState('');
+  const [errorLine, setErrorLine] = useState<number | null>(null);
   const [hasHeader, setHasHeader] = useState(true);
   const [rowCount, setRowCount] = useState(0);
   const [copied, setCopied] = useState(false);
@@ -21,16 +23,18 @@ export default function CsvToJson() {
   useEffect(() => { localStorage.setItem(LS_INPUT, input); }, [input]);
 
   const doConvert = useCallback((text: string, header: boolean) => {
-    if (!text.trim()) { setOutput(''); setError(''); setRowCount(0); return; }
+    if (!text.trim()) { setOutput(''); setError(''); setErrorLine(null); setRowCount(0); return; }
     const result = Papa.parse(text.trim(), { header, skipEmptyLines: true, dynamicTyping: true });
     if (result.errors.length > 0) {
-      setError(result.errors[0].message);
+      const firstErr = result.errors[0];
+      setError(`${firstErr.message}${typeof firstErr.row === 'number' ? ` (row ${firstErr.row + 1})` : ''}`);
+      setErrorLine(typeof firstErr.row === 'number' ? firstErr.row + 1 + (header ? 1 : 0) : null);
       setOutput(''); setRowCount(0);
       return;
     }
     setOutput(JSON.stringify(result.data, null, 2));
     setRowCount(result.data.length);
-    setError('');
+    setError(''); setErrorLine(null);
   }, []);
 
   const handleConvert = () => doConvert(input, hasHeader);
@@ -48,11 +52,11 @@ export default function CsvToJson() {
   const doLoadFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file) return;
     const r = new FileReader();
-    r.onload = ev => { setInput(ev.target?.result as string); setOutput(''); setError(''); };
+    r.onload = ev => { setInput(ev.target?.result as string); setOutput(''); setError(''); setErrorLine(null); };
     r.readAsText(file); e.target.value = '';
   };
   const doSampleData = () => setInput(SAMPLE);
-  const doClear = () => { setInput(''); setOutput(''); setError(''); setRowCount(0); localStorage.removeItem(LS_INPUT); };
+  const doClear = () => { setInput(''); setOutput(''); setError(''); setErrorLine(null); setRowCount(0); localStorage.removeItem(LS_INPUT); };
 
   return (
     <div className="tool-height flex flex-col border-y" style={{ height: 'min(70vh, 640px)', borderColor: 'var(--jfo-border)' }}>
@@ -86,8 +90,8 @@ export default function CsvToJson() {
             <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>CSV Input</span>
             <span style={{ ...MONO, fontSize: '10px', color: 'var(--jfo-text-4)' }}>{input.length} chars</span>
           </div>
-          <textarea value={input} onChange={e => setInput(e.target.value)} placeholder="Paste your CSV here…"
-            className="flex-1 resize-none p-4 text-[13px] outline-none" style={{ ...MONO, lineHeight: '1.65', background: 'var(--jfo-editor)', color: 'var(--jfo-code)', cursor: 'text' }}
+          <LineNumberedTextarea value={input} onChange={e => setInput(e.target.value)} placeholder="Paste your CSV here…"
+            errorLine={errorLine}
             spellCheck={false} autoComplete="off" autoCapitalize="off" />
         </div>
         <div className="flex flex-col overflow-hidden border-t md:w-1/2 md:border-l md:border-t-0" style={{ borderColor: 'var(--jfo-border-2)', minWidth: 0 }}>

@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useToolShortcuts } from './SplitPanel';
+import { LineNumberedTextarea } from './LineNumberedTextarea';
 
 const LS_INPUT_ENCODE = 'df-input-html-encode';
 const LS_INPUT_DECODE = 'df-input-html-decode';
@@ -52,8 +53,7 @@ export default function HtmlCodec({ mode }: Props) {
           <div className="flex items-center justify-between border-b px-3 py-1" style={{ background: 'var(--jfo-panel-hdr)', borderColor: 'var(--jfo-border-2)' }}>
             <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>{mode === 'encode' ? 'Raw HTML' : 'Encoded Entities'}</span>
           </div>
-          <textarea value={input} onChange={e => setInput(e.target.value)} placeholder={mode === 'encode' ? 'Type or paste HTML…' : 'Paste HTML entities…'}
-            className="flex-1 resize-none p-4 text-[13px] outline-none" style={{ ...MONO, lineHeight: '1.65', background: 'var(--jfo-editor)', color: 'var(--jfo-code)', minHeight: 200 }}
+          <LineNumberedTextarea value={input} onChange={e => setInput(e.target.value)} placeholder={mode === 'encode' ? 'Type or paste HTML…' : 'Paste HTML entities…'}
             spellCheck={false} autoComplete="off" autoCapitalize="off" />
         </div>
         <div className="flex flex-1 flex-col overflow-hidden border-t md:border-l md:border-t-0" style={{ borderColor: 'var(--jfo-border-2)', minWidth: 0 }}>

@@ -1,5 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useToolShortcuts } from './SplitPanel';
+import { LineNumberedTextarea } from './LineNumberedTextarea';
+import { describeJsonError } from '../lib/jsonError';
 
 const SAMPLE = `{
   "name": "DevFormats",
@@ -59,6 +61,7 @@ export default function JsonToTypescript() {
   const [input, setInput] = useState(() => (typeof window === 'undefined' ? SAMPLE : localStorage.getItem(LS_INPUT) ?? SAMPLE));
   const [output, setOutput] = useState('');
   const [error, setError] = useState('');
+  const [errorLine, setErrorLine] = useState<number | null>(null);
   const [declKind, setDeclKind] = useState<'interface' | 'type'>('interface');
   const [unknownType, setUnknownType] = useState<'unknown' | 'any'>('unknown');
   const [rootName, setRootName] = useState('Root');
@@ -68,11 +71,14 @@ export default function JsonToTypescript() {
   useEffect(() => { localStorage.setItem(LS_INPUT, input); }, [input]);
 
   const doGenerate = useCallback(() => {
-    if (!input.trim()) { setOutput(''); setError(''); return; }
+    if (!input.trim()) { setOutput(''); setError(''); setErrorLine(null); return; }
     try {
       setOutput(jsonToTypescript(input, { declKind, unknownType, rootName: rootName || 'Root' }));
-      setError('');
-    } catch (e: unknown) { setError((e as Error).message); setOutput(''); }
+      setError(''); setErrorLine(null);
+    } catch (e: unknown) {
+      const described = describeJsonError(input, e as Error);
+      setError(described.message); setErrorLine(described.line); setOutput('');
+    }
   }, [input, declKind, unknownType, rootName]);
 
   useToolShortcuts(doGenerate);
@@ -88,11 +94,11 @@ export default function JsonToTypescript() {
   const doLoadFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file) return;
     const r = new FileReader();
-    r.onload = ev => { setInput(ev.target?.result as string); setOutput(''); setError(''); };
+    r.onload = ev => { setInput(ev.target?.result as string); setOutput(''); setError(''); setErrorLine(null); };
     r.readAsText(file); e.target.value = '';
   };
   const doSampleData = () => setInput(SAMPLE);
-  const doClear = () => { setInput(''); setOutput(''); setError(''); localStorage.removeItem(LS_INPUT); };
+  const doClear = () => { setInput(''); setOutput(''); setError(''); setErrorLine(null); localStorage.removeItem(LS_INPUT); };
 
   return (
     <div className="tool-height flex flex-col border-y" style={{ height: 'min(70vh, 640px)', borderColor: 'var(--jfo-border)' }}>
@@ -131,8 +137,8 @@ export default function JsonToTypescript() {
           <div className="flex items-center justify-between border-b px-3 py-1" style={{ background: 'var(--jfo-panel-hdr)', borderColor: 'var(--jfo-border-2)' }}>
             <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>JSON Input</span>
           </div>
-          <textarea value={input} onChange={e => setInput(e.target.value)} placeholder="Paste your JSON here…"
-            className="flex-1 resize-none p-4 text-[13px] outline-none" style={{ ...MONO, lineHeight: '1.65', background: 'var(--jfo-editor)', color: 'var(--jfo-code)', cursor: 'text' }}
+          <LineNumberedTextarea value={input} onChange={e => setInput(e.target.value)} placeholder="Paste your JSON here…"
+            errorLine={errorLine}
             spellCheck={false} autoComplete="off" autoCapitalize="off" />
         </div>
         <div className="flex flex-col overflow-hidden border-t md:w-1/2 md:border-l md:border-t-0" style={{ borderColor: 'var(--jfo-border-2)', minWidth: 0 }}>

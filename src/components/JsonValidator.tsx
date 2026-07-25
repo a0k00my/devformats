@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLang } from '../hooks/useLang';
 import { useSplitter, SplitDivider, useIsMobile } from './SplitPanel';
+import { LineNumberedTextarea } from './LineNumberedTextarea';
 
 const MONO = { fontFamily: "ui-monospace, 'Geist Mono', SFMono-Regular, Menlo, monospace" };
 
@@ -91,7 +92,7 @@ export default function JsonValidator() {
     r.readAsText(f); e.target.value = '';
   };
 
-  const lines = input.split('\n');
+  const errorLine = result && !result.valid ? (result.errors[0]?.line ?? null) : null;
 
   return (
     <div className="tool-height flex flex-col" style={{ height: 'min(70vh, 640px)' }}>
@@ -115,17 +116,10 @@ export default function JsonValidator() {
           <div className="border-b px-3 py-1" style={{ background: 'var(--jfo-panel-hdr)', borderColor: 'var(--jfo-border-2)' }}>
             <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>{tr('input')}</span>
           </div>
-          <div className="relative flex flex-1 overflow-auto" style={{ background: 'var(--jfo-editor)' }}>
-            <div className="select-none border-r px-2 py-4 text-right"
-              style={{ ...MONO, fontSize: '11px', lineHeight: '1.65', color: 'var(--jfo-placeholder)', borderColor: 'var(--jfo-border-2)', minWidth: '2.5rem' }}>
-              {lines.map((_, i) => <div key={i}>{i+1}</div>)}
-            </div>
-            <textarea value={input} onChange={e => { setInput(e.target.value); setResult(null); }}
-              placeholder={tr('pasteJson')}
-              className="flex-1 resize-none py-4 pl-3 pr-4 text-[13px] outline-none"
-              style={{ ...MONO, lineHeight: '1.65', background: 'transparent', color: 'var(--jfo-code)', cursor: 'text' }}
-              spellCheck={false} />
-          </div>
+          <LineNumberedTextarea value={input} onChange={e => { setInput(e.target.value); setResult(null); }}
+            placeholder={tr('pasteJson')}
+            errorLine={errorLine}
+            spellCheck={false} />
         </div>
 
         <SplitDivider onMouseDown={onMouseDown} onTouchStart={onTouchStart} isMobile={isMobile} />

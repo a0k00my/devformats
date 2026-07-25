@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import * as yaml from 'js-yaml';
 import { useSplitter, SplitDivider, useIsMobile, useToolShortcuts } from './SplitPanel';
+import { LineNumberedTextarea } from './LineNumberedTextarea';
 
 type IndentMode = '2' | '4';
 
@@ -35,6 +36,7 @@ export default function YamlFormatter() {
   });
   const [output, setOutput] = useState('');
   const [error, setError] = useState('');
+  const [errorLine, setErrorLine] = useState<number | null>(null);
   const [indentMode, setIndentMode] = useState<IndentMode>(() => (typeof window === 'undefined' ? '2' : (localStorage.getItem(LS_INDENT) as IndentMode) || '2'));
   const [stats, setStats] = useState<{ lines: number; size: string } | null>(null);
   const [copied, setCopied] = useState(false);
@@ -48,18 +50,20 @@ export default function YamlFormatter() {
   useEffect(() => { localStorage.setItem(LS_INDENT, indentMode); }, [indentMode]);
 
   const doFormat = useCallback((text: string, mode: IndentMode) => {
-    if (!text.trim()) { setOutput(''); setError(''); setStats(null); return; }
+    if (!text.trim()) { setOutput(''); setError(''); setErrorLine(null); setStats(null); return; }
     try {
       const data = yaml.load(text);
       const formatted = yaml.dump(data, { indent: parseInt(mode, 10), lineWidth: -1 });
       setOutput(formatted);
       setError('');
+      setErrorLine(null);
       setStats({ lines: formatted.split('\n').length, size: formatBytes(new TextEncoder().encode(formatted).length) });
       setDirty(false);
     } catch (e: unknown) {
       const err = e as yaml.YAMLException;
       const mark = (err as any).mark;
       setError(mark ? `${err.message} (line ${mark.line + 1}, col ${mark.column + 1})` : err.message);
+      setErrorLine(mark ? mark.line + 1 : null);
       setOutput(''); setStats(null);
     }
   }, []);
@@ -79,9 +83,15 @@ export default function YamlFormatter() {
       const compact = yaml.dump(data, { flowLevel: 0, lineWidth: -1 });
       setOutput(compact);
       setError('');
+      setErrorLine(null);
       setStats({ lines: compact.split('\n').length, size: formatBytes(new TextEncoder().encode(compact).length) });
       setDirty(false);
-    } catch (e: unknown) { setError((e as Error).message); }
+    } catch (e: unknown) {
+      const err = e as yaml.YAMLException;
+      const mark = (err as any).mark;
+      setError(mark ? `${err.message} (line ${mark.line + 1}, col ${mark.column + 1})` : err.message);
+      setErrorLine(mark ? mark.line + 1 : null);
+    }
   };
 
   const doCopy = async () => {
@@ -102,14 +112,14 @@ export default function YamlFormatter() {
   const doLoadFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file) return;
     const r = new FileReader();
-    r.onload = ev => { setInput(ev.target?.result as string); setOutput(''); setStats(null); setError(''); setDirty(true); };
+    r.onload = ev => { setInput(ev.target?.result as string); setOutput(''); setStats(null); setError(''); setErrorLine(null); setDirty(true); };
     r.readAsText(file); e.target.value = '';
   };
 
   const doSampleData = () => { setInput(SAMPLE); setDirty(true); };
 
   const doClear = () => {
-    setInput(''); setOutput(''); setError(''); setStats(null); setDirty(false);
+    setInput(''); setOutput(''); setError(''); setErrorLine(null); setStats(null); setDirty(false);
     localStorage.removeItem(LS_INPUT);
   };
 
@@ -160,12 +170,11 @@ export default function YamlFormatter() {
             <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>Input</span>
             <span style={{ ...MONO, fontSize: '10px', color: 'var(--jfo-text-4)' }}>{input.length} chars</span>
           </div>
-          <textarea
+          <LineNumberedTextarea
             value={input}
             onChange={e => { setInput(e.target.value); setDirty(true); }}
             placeholder="Paste your YAML here…"
-            className="flex-1 resize-none p-4 text-[13px] outline-none"
-            style={{ ...MONO, lineHeight: '1.65', background: 'var(--jfo-editor)', color: 'var(--jfo-code)', cursor: 'text' }}
+            errorLine={errorLine}
             spellCheck={false} autoComplete="off" autoCapitalize="off"
           />
         </div>
