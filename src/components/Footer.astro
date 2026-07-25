@@ -7,9 +7,8 @@ const popularTools = tools.filter(t => t.status === 'live').slice(0, 8);
 const resources = [
   { href: '/tools', label: 'All Tools' },
   { href: '/blog', label: 'Blog' },
-  { href: 'https://github.com/a0k00my/devformats', label: 'GitHub', external: true },
 ];
-const company = [
+const legal = [
   { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact' },
   { href: '/privacy-policy', label: 'Privacy' },
@@ -47,15 +46,15 @@ const company = [
         <div class="mb-3 font-mono text-[10px] uppercase tracking-wider" style="color:var(--fg-subtle)">Resources</div>
         <ul class="space-y-1.5">
           {resources.map(r => (
-            <li><a href={r.href} target={r.external ? '_blank' : undefined} rel={r.external ? 'noopener' : undefined} class="text-xs transition-colors" style="color:var(--fg-muted)">{r.label}</a></li>
+            <li><a href={r.href} class="text-xs transition-colors" style="color:var(--fg-muted)">{r.label}</a></li>
           ))}
         </ul>
       </div>
       <div>
-        <div class="mb-3 font-mono text-[10px] uppercase tracking-wider" style="color:var(--fg-subtle)">Company</div>
+        <div class="mb-3 font-mono text-[10px] uppercase tracking-wider" style="color:var(--fg-subtle)">Legal</div>
         <ul class="space-y-1.5">
-          {company.map(c => (
-            <li><a href={c.href} class="text-xs transition-colors" style="color:var(--fg-muted)">{c.label}</a></li>
+          {legal.map(l => (
+            <li><a href={l.href} class="text-xs transition-colors" style="color:var(--fg-muted)">{l.label}</a></li>
           ))}
         </ul>
       </div>
