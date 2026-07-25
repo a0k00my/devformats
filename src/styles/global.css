@@ -204,6 +204,33 @@ html.light {
   }
 }
 
+/* ── Card treatment: gradient surface, resting elevation, accent top-bar
+   that sweeps in on hover, and a glowing icon badge. Shared by tool cards,
+   category cards, and feature cards so the whole site reads as one system. ── */
+.df-card {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(165deg, var(--bg-subtle) 0%, var(--bg) 100%);
+  box-shadow: var(--shadow-sm);
+}
+.df-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), transparent 85%);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.df-card:hover::before { transform: scaleX(1); }
+
+.df-card-icon {
+  position: relative;
+  background: linear-gradient(135deg, var(--accent-bg), var(--accent-border));
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
 /* ── Toolbar buttons ── */
 .tb-btn {
   cursor: pointer;

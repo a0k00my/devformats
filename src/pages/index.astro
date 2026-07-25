@@ -85,23 +85,35 @@ const schema = {
     <div class="mx-auto max-w-[1200px]">
       <h2 class="reveal mb-5 font-mono text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Why DevFormats</h2>
       <div class="reveal-stagger grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="rounded-lg border p-4 transition-all duration-200 ease-out hover:-translate-y-0.5" style="border-color:var(--border);background:var(--bg)">
-          <div class="mb-2 text-xl">⚡</div>
+        <div class="df-card group rounded-lg border p-4 transition-all duration-200 ease-out hover:-translate-y-0.5"
+          style="border-color:var(--border)"
+          onmouseover="this.style.borderColor='var(--accent-border)';this.style.boxShadow='var(--shadow-md)'"
+          onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='var(--shadow-sm)'">
+          <div class="df-card-icon mb-3 flex h-9 w-9 items-center justify-center rounded-lg text-base transition-transform duration-200 ease-out group-hover:scale-110">⚡</div>
           <div class="mb-1 text-sm font-semibold" style="color:var(--fg)">Fast</div>
           <p class="text-xs leading-relaxed" style="color:var(--fg-muted)">Runs instantly, no upload, no queue.</p>
         </div>
-        <div class="rounded-lg border p-4 transition-all duration-200 ease-out hover:-translate-y-0.5" style="border-color:var(--border);background:var(--bg)">
-          <div class="mb-2 text-xl">🔒</div>
+        <div class="df-card group rounded-lg border p-4 transition-all duration-200 ease-out hover:-translate-y-0.5"
+          style="border-color:var(--border)"
+          onmouseover="this.style.borderColor='var(--accent-border)';this.style.boxShadow='var(--shadow-md)'"
+          onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='var(--shadow-sm)'">
+          <div class="df-card-icon mb-3 flex h-9 w-9 items-center justify-center rounded-lg text-base transition-transform duration-200 ease-out group-hover:scale-110">🔒</div>
           <div class="mb-1 text-sm font-semibold" style="color:var(--fg)">Privacy First</div>
           <p class="text-xs leading-relaxed" style="color:var(--fg-muted)">Everything stays in your browser. Nothing is uploaded, ever.</p>
         </div>
-        <div class="rounded-lg border p-4 transition-all duration-200 ease-out hover:-translate-y-0.5" style="border-color:var(--border);background:var(--bg)">
-          <div class="mb-2 text-xl">🌍</div>
+        <div class="df-card group rounded-lg border p-4 transition-all duration-200 ease-out hover:-translate-y-0.5"
+          style="border-color:var(--border)"
+          onmouseover="this.style.borderColor='var(--accent-border)';this.style.boxShadow='var(--shadow-md)'"
+          onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='var(--shadow-sm)'">
+          <div class="df-card-icon mb-3 flex h-9 w-9 items-center justify-center rounded-lg text-base transition-transform duration-200 ease-out group-hover:scale-110">🌍</div>
           <div class="mb-1 text-sm font-semibold" style="color:var(--fg)">Free</div>
           <p class="text-xs leading-relaxed" style="color:var(--fg-muted)">Unlimited usage. No signup, no limits, no watermarks.</p>
         </div>
-        <div class="rounded-lg border p-4 transition-all duration-200 ease-out hover:-translate-y-0.5" style="border-color:var(--border);background:var(--bg)">
-          <div class="mb-2 text-xl">💻</div>
+        <div class="df-card group rounded-lg border p-4 transition-all duration-200 ease-out hover:-translate-y-0.5"
+          style="border-color:var(--border)"
+          onmouseover="this.style.borderColor='var(--accent-border)';this.style.boxShadow='var(--shadow-md)'"
+          onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='var(--shadow-sm)'">
+          <div class="df-card-icon mb-3 flex h-9 w-9 items-center justify-center rounded-lg text-base transition-transform duration-200 ease-out group-hover:scale-110">💻</div>
           <div class="mb-1 text-sm font-semibold" style="color:var(--fg)">Built for Developers</div>
           <p class="text-xs leading-relaxed" style="color:var(--fg-muted)">Keyboard shortcuts, dark mode, responsive on any device.</p>
         </div>
