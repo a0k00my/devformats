@@ -86,6 +86,8 @@ export default function JsonToCsv() {
     }
   };
 
+  useEffect(() => { if (!output) doConvert(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const doCopy = async () => {
     if (!output) return;
     await navigator.clipboard.writeText(output);

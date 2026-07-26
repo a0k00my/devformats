@@ -1,50 +1,17 @@
 import { useState, useCallback, useEffect } from 'react';
 import {useToolShortcuts, useSplitter, SplitDivider, useIsMobile, useFullscreen, FullscreenButton, toolContainerStyle} from './SplitPanel';
-import { openApiToPostman } from '../lib/postmanOpenapi';
+import { parseDockerRunCommands, dockerRunToCompose } from '../lib/dockerRunToCompose';
 import { highlightCode } from '../lib/codeHighlight';
 
-const SAMPLE = `openapi: 3.0.3
-info:
-  title: Sample API
-  version: 1.0.0
-paths:
-  /users/{id}:
-    get:
-      summary: Get user
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-  /users:
-    post:
-      summary: Create user
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  example: Alice
-                email:
-                  type: string
-                  example: alice@example.com
-      responses:
-        '200':
-          description: OK
-`;
+const SAMPLE = `docker run -d --name web -p 8080:80 -e NODE_ENV=production -v ./html:/usr/share/nginx/html nginx:latest
 
-const LS_INPUT = 'df-input-openapi-to-postman';
-const LS_SPLIT = 'df-split-openapi-to-postman';
+docker run -d --name db -p 5432:5432 -e POSTGRES_PASSWORD=secret -v db-data:/var/lib/postgresql/data postgres:15`;
+
+const LS_INPUT = 'df-input-docker-run-to-compose';
+const LS_SPLIT = 'df-split-docker-run-to-compose';
 const MONO = { fontFamily: "ui-monospace, 'Geist Mono', SFMono-Regular, Menlo, monospace" };
 
-export default function OpenApiToPostman() {
+export default function DockerRunToCompose() {
   const [input, setInput] = useState(() => (typeof window === 'undefined' ? SAMPLE : localStorage.getItem(LS_INPUT) ?? SAMPLE));
   const [output, setOutput] = useState('');
   const [error, setError] = useState('');
@@ -55,24 +22,23 @@ export default function OpenApiToPostman() {
   const doGenerate = useCallback(() => {
     if (!input.trim()) { setOutput(''); setError(''); return; }
     try {
-      const collection = openApiToPostman(input);
-      setOutput(JSON.stringify(collection, null, 2));
+      const commands = parseDockerRunCommands(input);
+      setOutput(dockerRunToCompose(commands));
       setError('');
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Could not parse this spec.');
+      setError(e instanceof Error ? e.message : 'Could not parse this docker run command.');
       setOutput('');
     }
   }, [input]);
 
   useToolShortcuts(doGenerate);
-
-  useEffect(() => { if (!output) doGenerate(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (input) doGenerate(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const doCopy = async () => { if (!output) return; await navigator.clipboard.writeText(output); setCopied(true); setTimeout(() => setCopied(false), 2000); };
   const doDownload = () => {
     if (!output) return;
-    const url = URL.createObjectURL(new Blob([output], { type: 'application/json' }));
-    Object.assign(document.createElement('a'), { href: url, download: 'postman_collection.json' }).click();
+    const url = URL.createObjectURL(new Blob([output], { type: 'text/yaml' }));
+    Object.assign(document.createElement('a'), { href: url, download: 'docker-compose.yml' }).click();
     URL.revokeObjectURL(url);
   };
   const doSampleData = () => setInput(SAMPLE);
@@ -109,12 +75,12 @@ export default function OpenApiToPostman() {
       <div ref={containerRef} className="flex flex-col md:flex-row flex-1 overflow-hidden" style={{ position: 'relative' }}>
         <div className="flex flex-col overflow-hidden" style={{ width: isMobile ? '100%' : `${splitPct}%`, height: isMobile ? '50%' : 'auto', minWidth: 0 }}>
           <div className="flex items-center justify-between border-b px-3 py-1" style={{ background: 'var(--jfo-panel-hdr)', borderColor: 'var(--jfo-border-2)' }}>
-            <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>OpenAPI Input (YAML or JSON)</span>
+            <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>docker run Input</span>
           </div>
           <textarea
             value={input}
             onChange={e => setInput(e.target.value)}
-            placeholder="Paste your OpenAPI spec (YAML or JSON) here…"
+            placeholder="Paste one or more docker run commands, separated by a blank line…"
             spellCheck={false}
             autoComplete="off"
             autoCapitalize="off"
@@ -126,14 +92,14 @@ export default function OpenApiToPostman() {
 
         <div className="flex flex-col overflow-hidden border-t md:border-l md:border-t-0" style={{ flex: 1, borderColor: 'var(--jfo-border-2)', minWidth: 0 }}>
           <div className="flex items-center justify-between border-b px-3 py-1" style={{ background: 'var(--jfo-panel-hdr)', borderColor: 'var(--jfo-border-2)' }}>
-            <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>Postman Collection Output</span>
+            <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>docker-compose.yml Output</span>
           </div>
           <div className="flex-1 overflow-auto p-4" style={{ background: 'var(--jfo-editor)' }}>
             {output ? (
-              <pre style={{ ...MONO, lineHeight: '1.65', fontSize: '13px', whiteSpace: 'pre-wrap', wordBreak: 'break-all', color: 'var(--jfo-code)' }} dangerouslySetInnerHTML={{ __html: highlightCode(output, 'json', isLight) }} />
+              <pre style={{ ...MONO, lineHeight: '1.65', fontSize: '13px', whiteSpace: 'pre-wrap', wordBreak: 'break-all', color: 'var(--jfo-code)' }} dangerouslySetInnerHTML={{ __html: highlightCode(output, 'yaml', isLight) }} />
             ) : (
               <div className="flex h-full items-center justify-center text-xs" style={{ ...MONO, color: 'var(--jfo-placeholder)' }}>
-                {error ? '← fix the error' : 'Postman collection appears here'}
+                {error ? '← fix the error' : 'docker-compose.yml appears here'}
               </div>
             )}
           </div>

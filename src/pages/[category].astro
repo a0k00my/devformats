@@ -3,6 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import Breadcrumb from '../components/Breadcrumb.astro';
 import ToolCard from '../components/ToolCard.astro';
 import { CATEGORY_META, getToolsByCategory, type Category } from '../data/tools';
+import { CATEGORY_PROSE } from '../data/categoryProse';
 
 export function getStaticPaths() {
   return (Object.keys(CATEGORY_META) as Category[]).map(category => ({ params: { category } }));
@@ -16,6 +17,7 @@ const categoryTools = getToolsByCategory(category);
   title={`${meta.name} Tools | DevFormats`}
   description={meta.description}
   canonical={`https://devformats.com/${category}`}
+  ogImage={`https://devformats.com/og/category/${category}.png`}
 >
   <div class="mx-auto max-w-[1200px] px-4 py-10">
     <Breadcrumb items={[{ name: 'Categories', href: '/categories' }, { name: meta.name }]} />
@@ -24,5 +26,22 @@ const categoryTools = getToolsByCategory(category);
     <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {categoryTools.map(tool => <ToolCard tool={tool} />)}
     </div>
+
+    <div class="category-prose mt-12 max-w-[760px] space-y-4 text-sm leading-relaxed" style="color:var(--fg-muted)" set:html={CATEGORY_PROSE[category]} />
   </div>
 </Layout>
+
+<style>
+  .category-prose :global(strong) { color: var(--fg); font-weight: 600; }
+  .category-prose :global(code) {
+    font-family: ui-monospace, 'Geist Mono', SFMono-Regular, Menlo, monospace;
+    font-size: 0.85em;
+    color: var(--accent);
+    background: var(--accent-bg);
+    padding: 0.05em 0.35em;
+    border-radius: 0.25rem;
+  }
+  .category-prose :global(ul) { list-style: disc; padding-left: 1.25rem; }
+  .category-prose :global(li) { margin-top: 0.25rem; }
+  .category-prose :global(li strong) { color: var(--fg); }
+</style>

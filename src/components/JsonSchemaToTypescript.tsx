@@ -1,50 +1,32 @@
 import { useState, useCallback, useEffect } from 'react';
 import {useToolShortcuts, useSplitter, SplitDivider, useIsMobile, useFullscreen, FullscreenButton, toolContainerStyle} from './SplitPanel';
-import { openApiToPostman } from '../lib/postmanOpenapi';
+import { jsonSchemaToTypescript } from '../lib/jsonSchemaToTypescript';
 import { highlightCode } from '../lib/codeHighlight';
 
-const SAMPLE = `openapi: 3.0.3
-info:
-  title: Sample API
-  version: 1.0.0
-paths:
-  /users/{id}:
-    get:
-      summary: Get user
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-  /users:
-    post:
-      summary: Create user
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  example: Alice
-                email:
-                  type: string
-                  example: alice@example.com
-      responses:
-        '200':
-          description: OK
-`;
+const SAMPLE = `{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/User",
+  "$defs": {
+    "User": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "enum": ["admin", "member", "guest"] },
+        "tags": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["id", "name", "email"],
+      "additionalProperties": false
+    }
+  }
+}`;
 
-const LS_INPUT = 'df-input-openapi-to-postman';
-const LS_SPLIT = 'df-split-openapi-to-postman';
+const LS_INPUT = 'df-input-json-schema-to-typescript';
+const LS_SPLIT = 'df-split-json-schema-to-typescript';
 const MONO = { fontFamily: "ui-monospace, 'Geist Mono', SFMono-Regular, Menlo, monospace" };
 
-export default function OpenApiToPostman() {
+export default function JsonSchemaToTypescript() {
   const [input, setInput] = useState(() => (typeof window === 'undefined' ? SAMPLE : localStorage.getItem(LS_INPUT) ?? SAMPLE));
   const [output, setOutput] = useState('');
   const [error, setError] = useState('');
@@ -55,24 +37,22 @@ export default function OpenApiToPostman() {
   const doGenerate = useCallback(() => {
     if (!input.trim()) { setOutput(''); setError(''); return; }
     try {
-      const collection = openApiToPostman(input);
-      setOutput(JSON.stringify(collection, null, 2));
+      setOutput(jsonSchemaToTypescript(input));
       setError('');
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Could not parse this spec.');
+      setError(e instanceof Error ? e.message : 'Could not parse this JSON Schema.');
       setOutput('');
     }
   }, [input]);
 
   useToolShortcuts(doGenerate);
-
   useEffect(() => { if (!output) doGenerate(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const doCopy = async () => { if (!output) return; await navigator.clipboard.writeText(output); setCopied(true); setTimeout(() => setCopied(false), 2000); };
   const doDownload = () => {
     if (!output) return;
-    const url = URL.createObjectURL(new Blob([output], { type: 'application/json' }));
-    Object.assign(document.createElement('a'), { href: url, download: 'postman_collection.json' }).click();
+    const url = URL.createObjectURL(new Blob([output], { type: 'text/typescript' }));
+    Object.assign(document.createElement('a'), { href: url, download: 'schema.ts' }).click();
     URL.revokeObjectURL(url);
   };
   const doSampleData = () => setInput(SAMPLE);
@@ -109,12 +89,12 @@ export default function OpenApiToPostman() {
       <div ref={containerRef} className="flex flex-col md:flex-row flex-1 overflow-hidden" style={{ position: 'relative' }}>
         <div className="flex flex-col overflow-hidden" style={{ width: isMobile ? '100%' : `${splitPct}%`, height: isMobile ? '50%' : 'auto', minWidth: 0 }}>
           <div className="flex items-center justify-between border-b px-3 py-1" style={{ background: 'var(--jfo-panel-hdr)', borderColor: 'var(--jfo-border-2)' }}>
-            <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>OpenAPI Input (YAML or JSON)</span>
+            <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>JSON Schema Input</span>
           </div>
           <textarea
             value={input}
             onChange={e => setInput(e.target.value)}
-            placeholder="Paste your OpenAPI spec (YAML or JSON) here…"
+            placeholder="Paste a JSON Schema document here…"
             spellCheck={false}
             autoComplete="off"
             autoCapitalize="off"
@@ -126,14 +106,14 @@ export default function OpenApiToPostman() {
 
         <div className="flex flex-col overflow-hidden border-t md:border-l md:border-t-0" style={{ flex: 1, borderColor: 'var(--jfo-border-2)', minWidth: 0 }}>
           <div className="flex items-center justify-between border-b px-3 py-1" style={{ background: 'var(--jfo-panel-hdr)', borderColor: 'var(--jfo-border-2)' }}>
-            <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>Postman Collection Output</span>
+            <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>TypeScript Output</span>
           </div>
           <div className="flex-1 overflow-auto p-4" style={{ background: 'var(--jfo-editor)' }}>
             {output ? (
-              <pre style={{ ...MONO, lineHeight: '1.65', fontSize: '13px', whiteSpace: 'pre-wrap', wordBreak: 'break-all', color: 'var(--jfo-code)' }} dangerouslySetInnerHTML={{ __html: highlightCode(output, 'json', isLight) }} />
+              <pre style={{ ...MONO, lineHeight: '1.65', fontSize: '13px', whiteSpace: 'pre-wrap', wordBreak: 'break-all', color: 'var(--jfo-code)' }} dangerouslySetInnerHTML={{ __html: highlightCode(output, 'clike', isLight) }} />
             ) : (
               <div className="flex h-full items-center justify-center text-xs" style={{ ...MONO, color: 'var(--jfo-placeholder)' }}>
-                {error ? '← fix the error' : 'Postman collection appears here'}
+                {error ? '← fix the error' : 'TypeScript interfaces appear here'}
               </div>
             )}
           </div>

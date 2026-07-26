@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import {useToolShortcuts, useSplitter, SplitDivider, useIsMobile, useFullscreen, FullscreenButton, toolContainerStyle} from './SplitPanel';
 import { parseCurl } from '../lib/curlParser';
-import { toPythonRequests, toGoNetHttp, toNodeFetch, toPhpCurl, toRustReqwest, toPostmanCollection } from '../lib/curlToCode';
+import { toPythonRequests, toGoNetHttp, toNodeFetch, toPhpCurl, toRustReqwest, toPostmanCollection, toJavaScriptFetch, toJavaHttpClient, toCSharpHttpClient } from '../lib/curlToCode';
 import { highlightCode } from '../lib/codeHighlight';
 
 const SAMPLE = `curl -X POST https://api.example.com/v1/users \\
@@ -11,7 +11,7 @@ const SAMPLE = `curl -X POST https://api.example.com/v1/users \\
 
 const MONO = { fontFamily: "ui-monospace, 'Geist Mono', SFMono-Regular, Menlo, monospace" };
 
-export type TargetLang = 'python' | 'go' | 'node' | 'php' | 'rust' | 'postman';
+export type TargetLang = 'python' | 'go' | 'node' | 'php' | 'rust' | 'postman' | 'javascript' | 'java' | 'csharp';
 
 const TARGETS: Record<TargetLang, { label: string; ext: string; mime: string; generate: (cmd: string) => string }> = {
   python: { label: 'Python (requests)', ext: 'py', mime: 'text/x-python', generate: cmd => toPythonRequests(parseCurl(cmd)) },
@@ -20,6 +20,9 @@ const TARGETS: Record<TargetLang, { label: string; ext: string; mime: string; ge
   php: { label: 'PHP (curl)', ext: 'php', mime: 'text/x-php', generate: cmd => toPhpCurl(parseCurl(cmd)) },
   rust: { label: 'Rust (reqwest)', ext: 'rs', mime: 'text/x-rust', generate: cmd => toRustReqwest(parseCurl(cmd)) },
   postman: { label: 'Postman Collection', ext: 'json', mime: 'application/json', generate: cmd => toPostmanCollection(parseCurl(cmd)) },
+  javascript: { label: 'JavaScript (fetch)', ext: 'js', mime: 'text/javascript', generate: cmd => toJavaScriptFetch(parseCurl(cmd)) },
+  java: { label: 'Java (HttpClient)', ext: 'java', mime: 'text/x-java-source', generate: cmd => toJavaHttpClient(parseCurl(cmd)) },
+  csharp: { label: 'C# (HttpClient)', ext: 'cs', mime: 'text/x-csharp', generate: cmd => toCSharpHttpClient(parseCurl(cmd)) },
 };
 
 export default function CurlConverter({ lang }: { lang: TargetLang }) {

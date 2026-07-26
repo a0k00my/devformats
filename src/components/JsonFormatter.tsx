@@ -140,6 +140,8 @@ export default function JsonFormatter() {
     else setHighlighted('');
   }, [isLight, output]);
 
+  useEffect(() => { if (!output) doFormat(input, indentMode, isLight, sortKeys); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleFormat = () => doFormat(input, indentMode, isLight, sortKeys);
 
   const handleIndentChange = (mode: IndentMode) => {

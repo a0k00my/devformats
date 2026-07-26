@@ -114,6 +114,8 @@ export default function XmlFormatter() {
     }
   }, []);
 
+  useEffect(() => { if (!output) doFormat(input, indentSize); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleFormat = () => doFormat(input, indentSize);
   useToolShortcuts(handleFormat);
 

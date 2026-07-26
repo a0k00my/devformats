@@ -336,3 +336,52 @@ export function toPydantic(root: TypeNode): string {
   const pydanticImports = ['BaseModel', ...(usesField ? ['Field'] : [])];
   return `from typing import ${typingImports.join(', ')}\nfrom pydantic import ${pydanticImports.join(', ')}\n\n\n` + classes.join('\n\n\n');
 }
+
+// ── JSON Schema (Draft 2020-12) ──
+// Nested object types become named $defs entries, same decomposition every other
+// emitter in this file uses — the root schema is just a $ref into $defs. A field
+// whose only sample value was null, or an array with no elements, has no type
+// signal to infer at all; rather than guessing, the schema for that field carries
+// no "type" keyword (so it validates anything) plus a description saying why.
+export function toJsonSchema(root: TypeNode): string {
+  const schemaFor = (t: TypeNode): Record<string, unknown> => {
+    switch (t.kind) {
+      case 'string': return { type: 'string' };
+      case 'boolean': return { type: 'boolean' };
+      case 'number': return { type: t.isInteger ? 'integer' : 'number' };
+      case 'null': return { description: 'Sample value was null — no type could be inferred.' };
+      case 'unknown': return { description: 'Sample array was empty — no element type could be inferred.' };
+      case 'array': return { type: 'array', items: schemaFor(t.item) };
+      case 'object': return { $ref: `#/$defs/${t.name}` };
+    }
+  };
+
+  if (root.kind !== 'object') {
+    return JSON.stringify(schemaFor(root), null, 2);
+  }
+
+  const objects = collectObjects(root);
+  const defs: Record<string, unknown> = {};
+  for (const o of objects) {
+    if (o.kind !== 'object') continue;
+    const properties: Record<string, unknown> = {};
+    const required: string[] = [];
+    for (const f of o.fields) {
+      properties[f.key] = schemaFor(f.type);
+      if (!f.optional) required.push(f.key);
+    }
+    defs[o.name] = {
+      type: 'object',
+      properties,
+      ...(required.length ? { required } : {}),
+      additionalProperties: false,
+    };
+  }
+
+  const schema = {
+    '$schema': 'https://json-schema.org/draft/2020-12/schema',
+    '$ref': `#/$defs/${root.name}`,
+    '$defs': defs,
+  };
+  return JSON.stringify(schema, null, 2);
+}

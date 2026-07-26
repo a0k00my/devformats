@@ -1,6 +1,6 @@
 import { OGImageRoute } from 'astro-og-canvas';
 import { getCollection } from 'astro:content';
-import { tools } from '../../data/tools';
+import { tools, CATEGORY_META, type Category } from '../../data/tools';
 
 type PageMeta = { name: string; description: string };
 
@@ -9,6 +9,11 @@ pages['home'] = {
   name: 'DevFormats',
   description: 'Fast, private developer tools for formatting, validating, converting and generating structured data.',
 };
+
+for (const category of Object.keys(CATEGORY_META) as Category[]) {
+  const meta = CATEGORY_META[category];
+  pages[`category/${category}`] = { name: `${meta.name} Tools`, description: meta.description };
+}
 
 const posts = await getCollection('blog', ({ data }) => !data.draft);
 for (const post of posts) {

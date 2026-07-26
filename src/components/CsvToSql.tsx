@@ -42,6 +42,8 @@ export default function CsvToSql() {
     setError(''); setErrorLine(null);
   }, []);
 
+  useEffect(() => { if (!output) doConvert(input, table); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleConvert = () => doConvert(input, table);
   useToolShortcuts(handleConvert);
 

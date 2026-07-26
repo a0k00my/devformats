@@ -3,8 +3,9 @@ import Layout from '../layouts/Layout.astro';
 import SearchTrigger from '../components/SearchTrigger.astro';
 import ToolCard from '../components/ToolCard.astro';
 import CategoryCard from '../components/CategoryCard.astro';
-import { getToolsOrThrow, CATEGORY_META, type Category } from '../data/tools';
+import { getToolsOrThrow, tools, CATEGORY_META, type Category } from '../data/tools';
 
+const toolCount = tools.length;
 const popularSlugs = [
   'json-formatter', 'json-validator', 'json-parser', 'json-viewer',
   'yaml-formatter', 'xml-formatter', 'jwt-decoder', 'base64',
@@ -57,7 +58,7 @@ const schema = {
         <img src="/favicon-96x96.png" alt="" class="h-10 w-10 rounded-lg" />
         <span class="text-xl font-semibold tracking-tight" style="color:var(--fg)">Dev<span style="color:var(--accent)">Formats</span></span>
       </div>
-      <span class="hero-badge mb-5">✨ 50+ free developer tools, zero signup</span>
+      <span class="hero-badge mb-5">✨ {toolCount} free developer tools, zero signup</span>
       <h1 class="text-4xl font-bold tracking-tight sm:text-5xl" style="color:var(--fg)">
         Fast Developer Tools<br />for <span class="gradient-text">Structured Data</span>
       </h1>
@@ -71,7 +72,7 @@ const schema = {
 
       <div class="reveal-stagger mx-auto mt-14 grid max-w-lg grid-cols-3 gap-6">
         <div class="stat-item">
-          <div class="stat-num">50+</div>
+          <div class="stat-num">{toolCount}</div>
           <div class="mt-1 text-xs" style="color:var(--fg-subtle)">Tools</div>
         </div>
         <div class="stat-item">

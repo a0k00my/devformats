@@ -178,6 +178,170 @@ export function toNodeFetch(p: ParsedCurl): string {
   return lines.join('\n');
 }
 
+// ── JavaScript (browser fetch) ──
+// Same shape as the Node target, but there's no Buffer global in a browser, so
+// Basic auth is base64-encoded with btoa() instead — and the file-attach TODO
+// points at a File from a form input rather than fs, since Node's filesystem
+// module doesn't exist in this environment either.
+export function toJavaScriptFetch(p: ParsedCurl): string {
+  const lines: string[] = [];
+  const headers = allHeaders(p);
+  const opts: string[] = [`  method: ${jsStr(p.method)},`];
+
+  if (p.auth) {
+    lines.push(`const credentials = btoa(${jsStr(`${p.auth.user}:${p.auth.pass}`)});`);
+    lines.push('');
+    headers.push(['Authorization', '__BASIC_AUTH__']);
+  }
+  if (headers.length) {
+    opts.push('  headers: {');
+    for (const [k, v] of headers) {
+      const value = v === '__BASIC_AUTH__' ? '`Basic ${credentials}`' : jsStr(v);
+      opts.push(`    ${jsStr(k)}: ${value},`);
+    }
+    opts.push('  },');
+  }
+
+  if (p.form) {
+    lines.push('const form = new FormData();');
+    for (const f of p.form) {
+      if (f.isFile) {
+        lines.push(`// TODO: attach the actual File object here, e.g. from an <input type="file"> element`);
+        lines.push(`form.append(${jsStr(f.key)}, new Blob([/* file bytes */]), ${jsStr(f.value)});`);
+      } else {
+        lines.push(`form.append(${jsStr(f.key)}, ${jsStr(f.value)});`);
+      }
+    }
+    lines.push('');
+    opts.push('  body: form,');
+  } else if (p.data) {
+    opts.push(`  body: ${jsStr(p.data)},`);
+  }
+
+  lines.push(`const response = await fetch(${jsStr(p.url)}, {`);
+  lines.push(...opts);
+  lines.push('});');
+  lines.push('');
+  lines.push('const data = await response.text();');
+  lines.push('console.log(response.status, data);');
+  return lines.join('\n');
+}
+
+// ── Java (java.net.http.HttpClient) ──
+function javaStr(s: string): string {
+  return JSON.stringify(s);
+}
+
+export function toJavaHttpClient(p: ParsedCurl): string {
+  const headers = allHeaders(p);
+  const lines: string[] = [
+    'import java.net.URI;',
+    'import java.net.http.HttpClient;',
+    'import java.net.http.HttpRequest;',
+    'import java.net.http.HttpRequest.BodyPublishers;',
+    'import java.net.http.HttpResponse;',
+    'import java.util.Base64;',
+    '',
+    'public class Main {',
+    '    public static void main(String[] args) throws Exception {',
+  ];
+
+  if (p.form) {
+    lines.push('        // TODO: multipart/form-data has no built-in helper in java.net.http — build the');
+    lines.push('        // body manually (a boundary-delimited byte stream) or use a library like');
+    lines.push('        // okhttp\'s MultipartBody instead of HttpClient for this request:');
+    for (const f of p.form) {
+      lines.push(`        //   ${f.key} = ${f.isFile ? `<file: ${f.value}>` : f.value}`);
+    }
+    lines.push('');
+  }
+
+  lines.push('        HttpClient client = HttpClient.newHttpClient();');
+  lines.push('');
+  lines.push('        HttpRequest.Builder builder = HttpRequest.newBuilder()');
+  lines.push(`            .uri(URI.create(${javaStr(p.url)}))`);
+  for (const [k, v] of headers) lines.push(`            .header(${javaStr(k)}, ${javaStr(v)})`);
+  if (p.auth) {
+    lines.push(`            .header("Authorization", "Basic " + Base64.getEncoder().encodeToString(${javaStr(`${p.auth.user}:${p.auth.pass}`)}.getBytes()))`);
+  }
+
+  const bodyPublisher = p.data ? `BodyPublishers.ofString(${javaStr(p.data)})` : 'BodyPublishers.noBody()';
+  if (p.form) {
+    lines.push(`            .method(${javaStr(p.method)}, BodyPublishers.noBody()); // TODO: replace with the multipart body above`);
+  } else {
+    lines.push(`            .method(${javaStr(p.method)}, ${bodyPublisher});`);
+  }
+
+  lines.push('');
+  lines.push('        HttpRequest request = builder.build();');
+  lines.push('        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());');
+  lines.push('');
+  lines.push('        System.out.println(response.statusCode());');
+  lines.push('        System.out.println(response.body());');
+  lines.push('    }');
+  lines.push('}');
+  return lines.join('\n');
+}
+
+// ── C# (HttpClient) ──
+function csStr(s: string): string {
+  return JSON.stringify(s);
+}
+
+export function toCSharpHttpClient(p: ParsedCurl): string {
+  const headers = allHeaders(p);
+  const lines: string[] = [
+    'using System;',
+    'using System.Net.Http;',
+    'using System.Net.Http.Headers;',
+    'using System.Text;',
+    'using System.Threading.Tasks;',
+    '',
+    'class Program',
+    '{',
+    '    static async Task Main()',
+    '    {',
+    '        using var client = new HttpClient();',
+  ];
+
+  if (p.auth) {
+    lines.push(`        var credentials = Convert.ToBase64String(Encoding.UTF8.GetBytes(${csStr(`${p.auth.user}:${p.auth.pass}`)}));`);
+    lines.push('        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);');
+  }
+  for (const [k, v] of headers) {
+    lines.push(`        client.DefaultRequestHeaders.TryAddWithoutValidation(${csStr(k)}, ${csStr(v)});`);
+  }
+  lines.push('');
+
+  if (p.form) {
+    lines.push('        using var content = new MultipartFormDataContent();');
+    for (const f of p.form) {
+      if (f.isFile) {
+        lines.push(`        // TODO: attach the file at ${csStr(f.value)} — e.g. content.Add(new StreamContent(File.OpenRead(${csStr(f.value)})), ${csStr(f.key)}, ${csStr(f.value)});`);
+      } else {
+        lines.push(`        content.Add(new StringContent(${csStr(f.value)}), ${csStr(f.key)});`);
+      }
+    }
+    lines.push('');
+    lines.push(`        var request = new HttpRequestMessage(new HttpMethod(${csStr(p.method)}), ${csStr(p.url)}) { Content = content };`);
+  } else if (p.data) {
+    lines.push(`        var content = new StringContent(${csStr(p.data)}, Encoding.UTF8);`);
+    lines.push(`        var request = new HttpRequestMessage(new HttpMethod(${csStr(p.method)}), ${csStr(p.url)}) { Content = content };`);
+  } else {
+    lines.push(`        var request = new HttpRequestMessage(new HttpMethod(${csStr(p.method)}), ${csStr(p.url)});`);
+  }
+
+  lines.push('');
+  lines.push('        var response = await client.SendAsync(request);');
+  lines.push('        var body = await response.Content.ReadAsStringAsync();');
+  lines.push('');
+  lines.push('        Console.WriteLine((int)response.StatusCode);');
+  lines.push('        Console.WriteLine(body);');
+  lines.push('    }');
+  lines.push('}');
+  return lines.join('\n');
+}
+
 // ── PHP (curl) ──
 function phpStr(s: string): string {
   return "'" + s.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";

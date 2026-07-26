@@ -69,6 +69,8 @@ export default function YamlFormatter() {
     }
   }, []);
 
+  useEffect(() => { if (!output) doFormat(input, indentMode); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleFormat = () => doFormat(input, indentMode);
   useToolShortcuts(handleFormat);
 

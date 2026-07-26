@@ -1,0 +1,89 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import CurlConverter from '../components/CurlConverter';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('curl-to-java')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'Does this need a library like OkHttp or Apache HttpClient?', a: 'No — java.net.http.HttpClient has been part of the JDK itself since Java 11, so the generated code compiles and runs with zero extra dependencies on any reasonably current JDK.' },
+  { q: 'How is multipart/form-data (-F) handled?', a: 'It isn\'t auto-generated into a working request — java.net.http.HttpClient has no built-in multipart body builder, unlike okhttp\'s MultipartBody. The output lists the form fields as a comment instead of fabricating a hand-rolled boundary-stream implementation that\'s easy to get subtly wrong; if you need multipart uploads regularly, pulling in OkHttp is the more common real-world path anyway.' },
+  { q: 'How is Basic Auth handled?', a: 'Via java.util.Base64.getEncoder(), added directly as an Authorization header on the request builder — HttpClient has no built-in "basic auth" convenience method, so this is the standard way to do it with the JDK\'s own APIs.' },
+  { q: 'What Java version does the output need?', a: 'Java 11 or later, since that\'s when java.net.http.HttpClient was introduced as a standard part of the JDK. Earlier versions have no equivalent in the standard library.' },
+];
+---
+<ToolLayout tool={tool}>
+  <CurlConverter lang="java" client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is curl-to-Java?</h2>
+          <p>This tool converts a curl command into Java code using <code class="font-mono text-xs" style="color:var(--accent)">java.net.http.HttpClient</code> — the HTTP client that's been built into the JDK itself since Java 11, so the output needs no OkHttp, Apache HttpClient, or any other dependency to compile and run.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>The curl command is parsed into method, URL, headers, body, form fields, and auth by the same parser every cURL converter on this site shares. Headers map onto <code class="font-mono text-xs" style="color:var(--accent)">HttpRequest.Builder.header(...)</code> calls, and the body is passed to <code class="font-mono text-xs" style="color:var(--accent)">BodyPublishers.ofString(...)</code> as a raw string — never re-parsed and reconstructed as a Java object, so the exact payload curl would send is preserved byte for byte. <code class="font-mono text-xs" style="color:var(--accent)">-u user:pass</code> becomes a manually built <code class="font-mono text-xs" style="color:var(--accent)">Authorization</code> header using <code class="font-mono text-xs" style="color:var(--accent)">Base64.getEncoder().encodeToString(...)</code>, since <code class="font-mono text-xs" style="color:var(--accent)">HttpClient</code> has no dedicated Basic Auth helper the way some higher-level clients do.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Zero external dependencies — <code class="font-mono text-xs" style="color:var(--accent)">java.net.http.HttpClient</code> ships with the JDK (Java 11+)</li>
+            <li>Body passed through as a raw string, not re-encoded</li>
+            <li><code class="font-mono text-xs" style="color:var(--accent)">-u</code> Basic Auth computed via <code class="font-mono text-xs" style="color:var(--accent)">Base64.getEncoder()</code></li>
+            <li>Synchronous request via <code class="font-mono text-xs" style="color:var(--accent)">client.send(...)</code>, printing status code and body</li>
+            <li><code class="font-mono text-xs" style="color:var(--accent)">-F</code>/--form uploads listed explicitly as a comment rather than a guessed multipart implementation</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input: <code class="font-mono text-xs" style="color:var(--accent)">{`curl -X POST https://api.example.com/v1/users -H "Content-Type: application/json" -d '{"name":"Alice"}'`}</code></p>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublishers;
+import java.net.http.HttpResponse;
+import java.util.Base64;
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+        HttpClient client = HttpClient.newHttpClient();
+
+        HttpRequest.Builder builder = HttpRequest.newBuilder()
+            .uri(URI.create("https://api.example.com/v1/users"))
+            .header("Content-Type", "application/json")
+            .method("POST", BodyPublishers.ofString("{\\"name\\":\\"Alice\\"}"));
+
+        HttpRequest request = builder.build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        System.out.println(response.statusCode());
+        System.out.println(response.body());
+    }
+}`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>A <code class="font-mono text-xs" style="color:var(--accent)">-F</code>/<code class="font-mono text-xs" style="color:var(--accent)">--form</code> command produces a request built with <code class="font-mono text-xs" style="color:var(--accent)">BodyPublishers.noBody()</code> and a comment listing the fields, not a working multipart request — <code class="font-mono text-xs" style="color:var(--accent)">HttpClient</code> has no multipart body builder, and hand-rolling a boundary-delimited stream is exactly the kind of "reconstructed it wrong" bug this generator avoids by refusing to fabricate. If you need real multipart support, add OkHttp and use its <code class="font-mono text-xs" style="color:var(--accent)">MultipartBody</code> instead.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Check <code class="font-mono text-xs" style="color:var(--accent)">response.statusCode()</code> before trusting the body — <code class="font-mono text-xs" style="color:var(--accent)">client.send(...)</code> only throws on I/O failures (timeouts, connection resets), never on a 4xx/5xx HTTP status. For anything beyond a quick script, consider <code class="font-mono text-xs" style="color:var(--accent)">client.sendAsync(...)</code> instead of the synchronous call shown here, so a slow endpoint doesn't block a calling thread you actually need.</p>
+        </section>
+      </div>
+    </details>
+
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

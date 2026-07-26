@@ -59,6 +59,8 @@ export default function JsonMinifier() {
     }
   };
 
+  useEffect(() => { if (!output) doMinify(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const doCopy = async () => {
     const text = output || input;
     if (!text) return;

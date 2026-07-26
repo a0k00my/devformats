@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import {useToolShortcuts, useSplitter, SplitDivider, useIsMobile, useFullscreen, FullscreenButton, toolContainerStyle} from './SplitPanel';
 import { LineNumberedTextarea } from './LineNumberedTextarea';
 import { describeJsonError } from '../lib/jsonError';
-import { inferType, toZod, toJavaPojo, toRustStruct, toKotlinDataClass, toCSharpClass, toPydantic } from '../lib/jsonTypeGen';
+import { inferType, toZod, toJavaPojo, toRustStruct, toKotlinDataClass, toCSharpClass, toPydantic, toJsonSchema } from '../lib/jsonTypeGen';
 import { highlightCode } from '../lib/codeHighlight';
 
 const SAMPLE = `{
@@ -16,7 +16,7 @@ const SAMPLE = `{
 
 const MONO = { fontFamily: "ui-monospace, 'Geist Mono', SFMono-Regular, Menlo, monospace" };
 
-export type TargetLang = 'zod' | 'java' | 'rust' | 'kotlin' | 'csharp' | 'pydantic';
+export type TargetLang = 'zod' | 'java' | 'rust' | 'kotlin' | 'csharp' | 'pydantic' | 'jsonschema';
 
 const TARGETS: Record<TargetLang, { label: string; ext: string; mime: string; generate: (json: string, rootName: string) => string }> = {
   zod: { label: 'Zod Schema', ext: 'ts', mime: 'text/typescript', generate: (json, root) => toZod(inferType(JSON.parse(json), root)) },
@@ -25,6 +25,7 @@ const TARGETS: Record<TargetLang, { label: string; ext: string; mime: string; ge
   kotlin: { label: 'Kotlin Data Class', ext: 'kt', mime: 'text/x-kotlin', generate: (json, root) => toKotlinDataClass(inferType(JSON.parse(json), root)) },
   csharp: { label: 'C# Class', ext: 'cs', mime: 'text/x-csharp', generate: (json, root) => toCSharpClass(inferType(JSON.parse(json), root)) },
   pydantic: { label: 'Pydantic Model', ext: 'py', mime: 'text/x-python', generate: (json, root) => toPydantic(inferType(JSON.parse(json), root)) },
+  jsonschema: { label: 'JSON Schema', ext: 'json', mime: 'application/json', generate: (json, root) => toJsonSchema(inferType(JSON.parse(json), root)) },
 };
 
 export default function JsonTypeGenerator({ lang }: { lang: TargetLang }) {
@@ -121,7 +122,7 @@ export default function JsonTypeGenerator({ lang }: { lang: TargetLang }) {
           </div>
           <div className="flex-1 overflow-auto p-4" style={{ background: 'var(--jfo-editor)' }}>
             {output ? (
-              <pre style={{ ...MONO, lineHeight: '1.65', fontSize: '13px', whiteSpace: 'pre-wrap', wordBreak: 'break-all', color: 'var(--jfo-code)' }} dangerouslySetInnerHTML={{ __html: highlightCode(output, lang === 'pydantic' ? 'python' : 'clike', isLight) }} />
+              <pre style={{ ...MONO, lineHeight: '1.65', fontSize: '13px', whiteSpace: 'pre-wrap', wordBreak: 'break-all', color: 'var(--jfo-code)' }} dangerouslySetInnerHTML={{ __html: highlightCode(output, lang === 'pydantic' ? 'python' : lang === 'jsonschema' ? 'json' : 'clike', isLight) }} />
             ) : (
               <div className="flex h-full items-center justify-center text-xs" style={{ ...MONO, color: 'var(--jfo-placeholder)' }}>
                 {error ? '← fix the error' : `${target.label} output appears here`}

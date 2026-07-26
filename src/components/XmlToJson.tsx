@@ -78,6 +78,8 @@ export default function XmlToJson() {
 
   useToolShortcuts(doConvert);
 
+  useEffect(() => { if (!output) doConvert(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const doCopy = async () => { if (!output) return; await navigator.clipboard.writeText(output); setCopied(true); setTimeout(() => setCopied(false), 2000); };
   const doDownload = () => {
     if (!output) return;

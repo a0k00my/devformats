@@ -1,0 +1,89 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import CurlConverter from '../components/CurlConverter';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('curl-to-csharp')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'Does this need a NuGet package?', a: 'No — System.Net.Http.HttpClient has shipped in .NET itself since .NET Framework 4.5 and every version of .NET Core/.NET 5+, so the generated code needs nothing beyond the base class library.' },
+  { q: 'How is multipart/form-data (-F) handled?', a: 'Real fields become MultipartFormDataContent entries via StringContent. File fields get a TODO comment pointing at File.OpenRead(...) wrapped in a StreamContent, since this generator has no access to your actual filesystem to read real file bytes from.' },
+  { q: 'How is Basic Auth handled?', a: 'Via Convert.ToBase64String(Encoding.UTF8.GetBytes(...)), set as an AuthenticationHeaderValue("Basic", credentials) on the client\'s default request headers — the standard HttpClient pattern for Basic Auth, since there\'s no dedicated "basic auth" constructor argument.' },
+  { q: 'Why HttpRequestMessage instead of client.PostAsync/GetAsync?', a: 'Because the request\'s HTTP method comes from a curl flag at generation time (-X PATCH, -X DELETE, anything), not a fixed choice — HttpRequestMessage with new HttpMethod(...) handles an arbitrary method uniformly instead of picking a different HttpClient convenience method per verb.' },
+];
+---
+<ToolLayout tool={tool}>
+  <CurlConverter lang="csharp" client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is curl-to-C#?</h2>
+          <p>This tool converts a curl command into C# code using <code class="font-mono text-xs" style="color:var(--accent)">System.Net.Http.HttpClient</code> — the standard HTTP client in the .NET base class library, requiring no NuGet package for the request itself.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>The same curl parser used by every converter on this site extracts method, URL, headers, body, form fields, and auth. Because the target HTTP method can be anything a curl command specifies — not just GET or POST — the generator always builds an explicit <code class="font-mono text-xs" style="color:var(--accent)">HttpRequestMessage</code> with <code class="font-mono text-xs" style="color:var(--accent)">new HttpMethod("...")</code> rather than reaching for a per-verb convenience method like <code class="font-mono text-xs" style="color:var(--accent)">GetAsync</code>. The body becomes a <code class="font-mono text-xs" style="color:var(--accent)">StringContent</code> built from the raw <code class="font-mono text-xs" style="color:var(--accent)">-d</code> value, never re-parsed as JSON, so what curl would send and what the C# code sends match exactly. <code class="font-mono text-xs" style="color:var(--accent)">-u user:pass</code> becomes an <code class="font-mono text-xs" style="color:var(--accent)">AuthenticationHeaderValue("Basic", ...)</code> computed from <code class="font-mono text-xs" style="color:var(--accent)">Convert.ToBase64String(Encoding.UTF8.GetBytes(...))</code> at the top of the method.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Zero NuGet dependencies — <code class="font-mono text-xs" style="color:var(--accent)">System.Net.Http.HttpClient</code> ships with .NET</li>
+            <li>Handles any HTTP method via <code class="font-mono text-xs" style="color:var(--accent)">HttpRequestMessage</code> + <code class="font-mono text-xs" style="color:var(--accent)">HttpMethod</code>, not just GET/POST</li>
+            <li>Body passed through as a raw string, not re-encoded</li>
+            <li><code class="font-mono text-xs" style="color:var(--accent)">-u</code> Basic Auth computed via <code class="font-mono text-xs" style="color:var(--accent)">Convert.ToBase64String</code></li>
+            <li><code class="font-mono text-xs" style="color:var(--accent)">-F</code>/--form uploads become <code class="font-mono text-xs" style="color:var(--accent)">MultipartFormDataContent</code>, with file fields stubbed for a real <code class="font-mono text-xs" style="color:var(--accent)">FileStream</code></li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input: <code class="font-mono text-xs" style="color:var(--accent)">{`curl -X POST https://api.example.com/v1/users -H "Content-Type: application/json" -d '{"name":"Alice"}'`}</code></p>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`using System;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        using var client = new HttpClient();
+        client.DefaultRequestHeaders.TryAddWithoutValidation("Content-Type", "application/json");
+
+        var content = new StringContent("{\\"name\\":\\"Alice\\"}", Encoding.UTF8);
+        var request = new HttpRequestMessage(new HttpMethod("POST"), "https://api.example.com/v1/users") { Content = content };
+
+        var response = await client.SendAsync(request);
+        var body = await response.Content.ReadAsStringAsync();
+
+        Console.WriteLine((int)response.StatusCode);
+        Console.WriteLine(body);
+    }
+}`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>Setting <code class="font-mono text-xs" style="color:var(--accent)">Content-Type</code> via <code class="font-mono text-xs" style="color:var(--accent)">client.DefaultRequestHeaders</code> works for most headers, but <code class="font-mono text-xs" style="color:var(--accent)">HttpClient</code> is notoriously strict about a small set of headers (like <code class="font-mono text-xs" style="color:var(--accent)">Content-Type</code> and <code class="font-mono text-xs" style="color:var(--accent)">Content-Length</code>) that technically belong on the request's <em>content</em>, not the client or message — <code class="font-mono text-xs" style="color:var(--accent)">TryAddWithoutValidation</code> is used here specifically to avoid a <code class="font-mono text-xs" style="color:var(--accent)">InvalidOperationException</code> that <code class="font-mono text-xs" style="color:var(--accent)">Headers.Add</code> would throw for exactly that reason.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Reuse a single <code class="font-mono text-xs" style="color:var(--accent)">HttpClient</code> instance across requests in real applications rather than a <code class="font-mono text-xs" style="color:var(--accent)">using</code>-scoped one per call as shown here — the well-documented .NET socket-exhaustion issue comes from creating and disposing many short-lived <code class="font-mono text-xs" style="color:var(--accent)">HttpClient</code> instances, and <code class="font-mono text-xs" style="color:var(--accent)">IHttpClientFactory</code> is the standard fix in ASP.NET Core apps.</p>
+        </section>
+      </div>
+    </details>
+
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

@@ -39,6 +39,8 @@ export default function CsvToJson() {
     setError(''); setErrorLine(null);
   }, []);
 
+  useEffect(() => { if (!output) doConvert(input, hasHeader); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleConvert = () => doConvert(input, hasHeader);
   useToolShortcuts(handleConvert);
 

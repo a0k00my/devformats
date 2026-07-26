@@ -80,6 +80,8 @@ export default function JsonValidator() {
     }
   };
 
+  useEffect(() => { if (!result) validate(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const doCopy = async () => {
     await navigator.clipboard.writeText(input);
     setCopied(true); setTimeout(() => setCopied(false), 2000);

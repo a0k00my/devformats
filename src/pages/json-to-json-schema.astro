@@ -1,0 +1,91 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import JsonTypeGenerator from '../components/JsonTypeGenerator';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('json-to-json-schema')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'What happens to a field that was null in my sample?', a: 'It gets no "type" keyword at all — just a description noting the sample value was null, so the schema validates any type for that field rather than fabricating a guess like "string" that might be wrong in production data.' },
+  { q: 'What happens to an empty array?', a: 'Same honesty policy: an empty array has no element to infer a type from, so its items schema carries only a description explaining why, not a made-up type.' },
+  { q: 'Are nested objects inlined or split into $defs?', a: 'Split into $defs, one entry per distinct object shape found in your sample, with the root schema being a single $ref into $defs. That mirrors how every other generator on this site (TypeScript, Zod, Java) declares nested types as separate named declarations rather than one deeply nested blob.' },
+  { q: 'Does the output mark required vs optional fields?', a: 'Yes — every key present with a non-null value in your sample is added to that object\'s "required" array. A key that was null is treated as not required, since a single null sample can\'t tell you whether the field is always present but nullable, or sometimes absent entirely.' },
+];
+---
+<ToolLayout tool={tool}>
+  <JsonTypeGenerator lang="jsonschema" client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is JSON to JSON Schema?</h2>
+          <p>This tool infers a JSON Schema (Draft 2020-12) from a sample JSON document — the same type-inference pass used by every generator in this category (TypeScript, Zod, Go, Java, and the rest), just emitting a schema document instead of a language-specific type declaration.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>The sample is parsed into the same internal type tree every other generator on this site builds from — strings, numbers (split into integer/number), booleans, arrays, and nested objects, each object given a name derived from its key. Each distinct object shape becomes its own entry under <code class="font-mono text-xs" style="color:var(--accent)">$defs</code>, and the root schema is a single <code class="font-mono text-xs" style="color:var(--accent)">$ref</code> into that root object's definition — the same "declare each nested type once, reference it elsewhere" decomposition the TypeScript and Zod generators use, just expressed in JSON Schema's own referencing syntax instead of <code class="font-mono text-xs" style="color:var(--accent)">interface</code>/<code class="font-mono text-xs" style="color:var(--accent)">z.object</code> declarations. Every key present with a non-null value in the sample is added to that object's <code class="font-mono text-xs" style="color:var(--accent)">required</code> array; <code class="font-mono text-xs" style="color:var(--accent)">additionalProperties: false</code> is set on every object, since a single sample defines a closed shape by default — loosen it by hand if your real data legitimately carries extra fields the sample didn't show.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Draft 2020-12 output with a <code class="font-mono text-xs" style="color:var(--accent)">$schema</code> declaration</li>
+            <li>Nested objects split into named <code class="font-mono text-xs" style="color:var(--accent)">$defs</code> entries, not one deeply nested blob</li>
+            <li>Integers and floats distinguished (<code class="font-mono text-xs" style="color:var(--accent)">integer</code> vs. <code class="font-mono text-xs" style="color:var(--accent)">number</code>)</li>
+            <li>Present, non-null keys marked <code class="font-mono text-xs" style="color:var(--accent)">required</code> automatically</li>
+            <li>Null values and empty arrays get an honest description instead of a guessed type</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`{
+  "name": "DevFormats",
+  "rating": 4.9,
+  "free": true,
+  "logo": null,
+  "tags": ["json", "yaml"]
+}`}</pre>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/Root",
+  "$defs": {
+    "Root": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "rating": { "type": "number" },
+        "free": { "type": "boolean" },
+        "logo": { "description": "Sample value was null — no type could be inferred." },
+        "tags": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["name", "rating", "free", "tags"],
+      "additionalProperties": false
+    }
+  }
+}`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>A schema generated from one sample is only as complete as that sample — a field that's sometimes a string and sometimes a number will be typed as whichever it was in your sample, and validating a document where that field holds the other type will fail even though your real API considers both valid. There's no way to fix this from a single input; paste the most representative sample you have, and hand-edit the <code class="font-mono text-xs" style="color:var(--accent)">type</code> keyword to an array (e.g. <code class="font-mono text-xs" style="color:var(--accent)">["string", "number"]</code>) for any field you know varies.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Run the output through JSON Schema Validator against a handful of real documents — including edge cases the original sample didn't cover — before relying on it in a pipeline. <code class="font-mono text-xs" style="color:var(--accent)">additionalProperties: false</code> is the most common thing worth loosening: if your real payloads carry fields beyond what one sample happened to show, either add them explicitly or relax that constraint per object.</p>
+        </section>
+      </div>
+    </details>
+
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

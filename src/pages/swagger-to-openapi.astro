@@ -1,0 +1,95 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import SwaggerToOpenApi from '../components/SwaggerToOpenApi';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('swagger-to-openapi')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'Why 3.1 specifically, and not 3.0?', a: 'OpenAPI 3.1 aligns its schema keywords fully with JSON Schema 2020-12, which changes a couple of things Swagger 2.0 (and OpenAPI 3.0) express differently — most notably exclusiveMinimum/exclusiveMaximum, which are booleans paired with minimum/maximum in Swagger 2.0 but numeric bounds on their own in 3.1. This tool applies that specific 3.1 keyword change, not just the Swagger-to-3.0 structural transform other tools stop at.' },
+  { q: 'How are body and formData parameters handled?', a: 'Swagger 2.0\'s "in: body" parameter becomes a requestBody with the same schema, keyed by whatever content types the operation (or the document) declares in "consumes". "in: formData" parameters are collected into a single object schema and wrapped in multipart/form-data or application/x-www-form-urlencoded, based on whether any of them use the "file" type.' },
+  { q: 'What happens to Swagger\'s "file" type?', a: 'It becomes { type: "string", format: "binary" } — the standard, widely-used mapping, since OpenAPI has no dedicated file type of its own. This substitution is listed in the output\'s warning banner so it\'s never silently invisible.' },
+  { q: 'Does it handle oauth2 security definitions?', a: 'Yes — Swagger 2.0\'s flat oauth2 definition (a single "flow" field plus authorizationUrl/tokenUrl/scopes) is restructured into OpenAPI 3.1\'s nested flows object, with Swagger\'s flow names remapped to their 3.1 equivalents (accessCode becomes authorizationCode, application becomes clientCredentials).' },
+];
+---
+<ToolLayout tool={tool}>
+  <SwaggerToOpenApi client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is Swagger 2.0 to OpenAPI 3.1?</h2>
+          <p>This tool converts a Swagger 2.0 API specification into OpenAPI 3.1 — the two are different enough structurally (not just a version bump) that a real conversion has to rewrite <code class="font-mono text-xs" style="color:var(--accent)">body</code>/<code class="font-mono text-xs" style="color:var(--accent)">formData</code> parameters into <code class="font-mono text-xs" style="color:var(--accent)">requestBody</code>, move response schemas under <code class="font-mono text-xs" style="color:var(--accent)">content</code>, and restructure security definitions, on top of the JSON-Schema-alignment changes that 3.1 specifically introduced over 3.0.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p><code class="font-mono text-xs" style="color:var(--accent)">host</code>, <code class="font-mono text-xs" style="color:var(--accent)">basePath</code>, and <code class="font-mono text-xs" style="color:var(--accent)">schemes</code> combine into a single <code class="font-mono text-xs" style="color:var(--accent)">servers</code> entry. Every <code class="font-mono text-xs" style="color:var(--accent)">$ref</code> pointing at <code class="font-mono text-xs" style="color:var(--accent)">#/definitions/...</code> is rewritten to <code class="font-mono text-xs" style="color:var(--accent)">#/components/schemas/...</code>, and the top-level <code class="font-mono text-xs" style="color:var(--accent)">definitions</code> object becomes <code class="font-mono text-xs" style="color:var(--accent)">components.schemas</code> directly. For each operation, a parameter with <code class="font-mono text-xs" style="color:var(--accent)">in: "body"</code> becomes a <code class="font-mono text-xs" style="color:var(--accent)">requestBody</code> whose content type comes from the operation's (or document's) <code class="font-mono text-xs" style="color:var(--accent)">consumes</code> list; <code class="font-mono text-xs" style="color:var(--accent)">in: "formData"</code> parameters are collected into one object schema instead, since OpenAPI has no per-field form parameter concept. Every other parameter's inline <code class="font-mono text-xs" style="color:var(--accent)">type</code>/<code class="font-mono text-xs" style="color:var(--accent)">format</code>/<code class="font-mono text-xs" style="color:var(--accent)">items</code> fields move under a nested <code class="font-mono text-xs" style="color:var(--accent)">schema</code> object, which is where OpenAPI expects them. Response <code class="font-mono text-xs" style="color:var(--accent)">schema</code> fields move under <code class="font-mono text-xs" style="color:var(--accent)">content</code>, keyed by the operation's <code class="font-mono text-xs" style="color:var(--accent)">produces</code> list. <code class="font-mono text-xs" style="color:var(--accent)">securityDefinitions</code> becomes <code class="font-mono text-xs" style="color:var(--accent)">components.securitySchemes</code>, with oauth2's flat <code class="font-mono text-xs" style="color:var(--accent)">flow</code>/<code class="font-mono text-xs" style="color:var(--accent)">authorizationUrl</code>/<code class="font-mono text-xs" style="color:var(--accent)">scopes</code> fields restructured into 3.1's nested <code class="font-mono text-xs" style="color:var(--accent)">flows</code> object.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li><code class="font-mono text-xs" style="color:var(--accent)">host</code>/<code class="font-mono text-xs" style="color:var(--accent)">basePath</code>/<code class="font-mono text-xs" style="color:var(--accent)">schemes</code> → a single <code class="font-mono text-xs" style="color:var(--accent)">servers</code> URL</li>
+            <li><code class="font-mono text-xs" style="color:var(--accent)">body</code>/<code class="font-mono text-xs" style="color:var(--accent)">formData</code> parameters → <code class="font-mono text-xs" style="color:var(--accent)">requestBody</code></li>
+            <li>Response <code class="font-mono text-xs" style="color:var(--accent)">schema</code> → <code class="font-mono text-xs" style="color:var(--accent)">content</code>, keyed by <code class="font-mono text-xs" style="color:var(--accent)">produces</code></li>
+            <li><code class="font-mono text-xs" style="color:var(--accent)">definitions</code> → <code class="font-mono text-xs" style="color:var(--accent)">components.schemas</code>, every <code class="font-mono text-xs" style="color:var(--accent)">$ref</code> rewritten to match</li>
+            <li>oauth2 flow restructuring and boolean-exclusiveMinimum/Maximum → 3.1's numeric form, both flagged in an on-page warning banner</li>
+            <li>Output as either YAML or JSON</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input (abridged):</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`{
+  "swagger": "2.0",
+  "host": "api.example.com",
+  "basePath": "/v1",
+  "schemes": ["https"],
+  "paths": {
+    "/users/{id}": {
+      "get": {
+        "parameters": [{ "name": "id", "in": "path", "required": true, "type": "string" }],
+        "responses": { "200": { "description": "OK", "schema": { "$ref": "#/definitions/User" } } }
+      }
+    }
+  },
+  "definitions": { "User": { "type": "object", "properties": { "id": { "type": "string" } } } }
+}`}</pre>
+          <p>Output (abridged, JSON):</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`{
+  "openapi": "3.1.0",
+  "servers": [{ "url": "https://api.example.com/v1" }],
+  "paths": {
+    "/users/{id}": {
+      "get": {
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "OK", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/User" } } } } }
+      }
+    }
+  },
+  "components": { "schemas": { "User": { "type": "object", "properties": { "id": { "type": "string" } } } } }
+}`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>A document missing the top-level <code class="font-mono text-xs" style="color:var(--accent)">"swagger": "2.0"</code> field is rejected outright rather than guessed at — this tool only accepts genuine Swagger 2.0 input, not an OpenAPI 3.0 document that happens to be structurally similar. Vendor extensions (any <code class="font-mono text-xs" style="color:var(--accent)">x-*</code> field) at the root or on individual operations are passed through only where this converter explicitly copies that section (info, tags, paths); a vendor extension nested somewhere this converter doesn't walk won't appear in the output, since guessing where to place an unrecognized extension risks putting it somewhere that changes its meaning.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Read the warning banner above the output before treating the conversion as final — every best-effort substitution (the <code class="font-mono text-xs" style="color:var(--accent)">file</code> type mapping, the exclusiveMinimum/Maximum numeric conversion) is listed there, not buried in the spec itself. Validate the result with a real OpenAPI 3.1 linter or an editor like Redocly before publishing it, since a structurally valid-looking spec can still have semantic gaps a linter catches that this converter's rule-based transform can't.</p>
+        </section>
+      </div>
+    </details>
+
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

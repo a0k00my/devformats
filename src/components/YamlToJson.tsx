@@ -46,6 +46,8 @@ export default function YamlToJson() {
     }
   }, []);
 
+  useEffect(() => { if (!output) doConvert(input); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleConvert = () => doConvert(input);
   useToolShortcuts(handleConvert);
 

@@ -1,0 +1,88 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import JsonSchemaToTypescript from '../components/JsonSchemaToTypescript';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('json-schema-to-typescript')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'Does this support Draft 07 schemas, or only 2020-12?', a: 'Both — the parser reads named types from either $defs (2020-12) or definitions (Draft 07/04), whichever the schema uses, and resolves $ref pointers into either one the same way.' },
+  { q: 'What happens to oneOf / anyOf?', a: 'Each becomes a TypeScript union type (A | B | C). allOf is different — TypeScript has no direct "merge these schemas" operator that matches JSON Schema\'s allOf semantics exactly, so only the first branch is used, and a comment at the top of the output says so explicitly rather than silently producing an incomplete intersection.' },
+  { q: 'What about patternProperties or conditional (if/then/else) schemas?', a: 'Neither has a clean TypeScript equivalent, so neither is translated — only the explicit keys under "properties" become fields, and any if/then/else conditional is ignored in favor of the schema\'s base type. Both omissions are called out in a comment at the top of the generated code.' },
+  { q: 'How are required vs optional properties handled?', a: 'A property listed in the schema\'s "required" array becomes a non-optional field; everything else gets a ? — the standard TypeScript convention, and the exact inverse of what JSON to JSON Schema does when inferring required fields from a sample.' },
+];
+---
+<ToolLayout tool={tool}>
+  <JsonSchemaToTypescript client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is JSON Schema to TypeScript?</h2>
+          <p>This tool reads a JSON Schema document and generates the equivalent TypeScript <code class="font-mono text-xs" style="color:var(--accent)">interface</code>/<code class="font-mono text-xs" style="color:var(--accent)">type</code> declarations — the reverse of JSON to JSON Schema. Unlike that tool, which infers a schema from one sample and necessarily guesses at edge cases, this direction is a direct structural translation: a JSON Schema already states its types, required fields, and enums explicitly, so there's no inference involved for the parts of the schema this tool supports.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>Named types under <code class="font-mono text-xs" style="color:var(--accent)">$defs</code> (Draft 2020-12) or <code class="font-mono text-xs" style="color:var(--accent)">definitions</code> (Draft 07 and earlier) each become their own <code class="font-mono text-xs" style="color:var(--accent)">export interface</code> or <code class="font-mono text-xs" style="color:var(--accent)">export type</code>, with the def's key PascalCased into a type name. A <code class="font-mono text-xs" style="color:var(--accent)">$ref</code> anywhere in the schema resolves to that type name directly rather than inlining the referenced schema's body, so the output mirrors the schema's own structure instead of flattening it. <code class="font-mono text-xs" style="color:var(--accent)">type: "object"</code> with a <code class="font-mono text-xs" style="color:var(--accent)">properties</code> map becomes an interface, with each property optional (<code class="font-mono text-xs" style="color:var(--accent)">?</code>) unless it's listed in that object's <code class="font-mono text-xs" style="color:var(--accent)">required</code> array; <code class="font-mono text-xs" style="color:var(--accent)">type: "array"</code> with <code class="font-mono text-xs" style="color:var(--accent)">items</code> becomes <code class="font-mono text-xs" style="color:var(--accent)">T[]</code>; an <code class="font-mono text-xs" style="color:var(--accent)">enum</code> becomes a union of string/number literal types; and <code class="font-mono text-xs" style="color:var(--accent)">oneOf</code>/<code class="font-mono text-xs" style="color:var(--accent)">anyOf</code> become a union of each branch's translated type.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Supports both <code class="font-mono text-xs" style="color:var(--accent)">$defs</code> (2020-12) and <code class="font-mono text-xs" style="color:var(--accent)">definitions</code> (Draft 07)</li>
+            <li><code class="font-mono text-xs" style="color:var(--accent)">$ref</code> resolved to a named type reference, not inlined</li>
+            <li><code class="font-mono text-xs" style="color:var(--accent)">enum</code> → TypeScript literal union</li>
+            <li><code class="font-mono text-xs" style="color:var(--accent)">oneOf</code>/<code class="font-mono text-xs" style="color:var(--accent)">anyOf</code> → TypeScript union type</li>
+            <li>Unsupported constructs (<code class="font-mono text-xs" style="color:var(--accent)">allOf</code>, <code class="font-mono text-xs" style="color:var(--accent)">patternProperties</code>, conditional schemas) flagged in a comment rather than silently approximated</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/User",
+  "$defs": {
+    "User": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "name": { "type": "string" },
+        "role": { "enum": ["admin", "member"] }
+      },
+      "required": ["id", "name"]
+    }
+  }
+}`}</pre>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`export interface User {
+  id: number;
+  name: string;
+  role?: "admin" | "member";
+}
+
+export type Root = User;`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>A schema built with <code class="font-mono text-xs" style="color:var(--accent)">allOf</code> to merge several base schemas together won't produce a full intersection type — only the first branch is used, and a comment at the top of the output says exactly that, since silently unioning or picking-and-hoping would produce a type that looks plausible but is wrong. The same honesty applies to <code class="font-mono text-xs" style="color:var(--accent)">patternProperties</code> (regex-matched property names have no TypeScript index-signature equivalent this tool generates) and conditional <code class="font-mono text-xs" style="color:var(--accent)">if</code>/<code class="font-mono text-xs" style="color:var(--accent)">then</code>/<code class="font-mono text-xs" style="color:var(--accent)">else</code> schemas — both are named explicitly in the output comment rather than approximated.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>If your schema uses <code class="font-mono text-xs" style="color:var(--accent)">allOf</code> for composition, check the generated type against the full schema by hand — merging the branches yourself (usually with an <code class="font-mono text-xs" style="color:var(--accent)">&amp;</code> intersection type) is usually a small, mechanical fix once you know it's needed, which is exactly why the tool flags it instead of guessing.</p>
+        </section>
+      </div>
+    </details>
+
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

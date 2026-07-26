@@ -1,0 +1,87 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import DockerRunToCompose from '../components/DockerRunToCompose';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('docker-run-to-docker-compose')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'Can I convert more than one docker run command at once?', a: 'Yes — separate each docker run command with a blank line, and each becomes its own service in the generated services: block.' },
+  { q: 'What happens if a command has no --name?', a: 'A service key is derived from the image name (the last path segment, tag stripped) — for example postgres:15 becomes postgres, and ghcr.io/acme/api-server:latest becomes api-server. A comment above the compose file notes which service names were inferred this way rather than pretending --name was there.' },
+  { q: 'Does this recreate depends_on, restart policies, or a build context?', a: 'No — docker run has no equivalent to any of these, so there\'s nothing to recover. If your actual stack needs startup ordering or restart policies, you add those to the generated compose file by hand; docker run alone never carried that information in the first place.' },
+  { q: 'What flags does this tool actually read?', a: '--name, -p/--publish, -e/--env, and -v/--volume — the flags that have a direct docker-compose equivalent. Everything else (like -d, --rm, --network) is parsed and discarded rather than guessed into a compose field it doesn\'t map onto cleanly.' },
+];
+---
+<ToolLayout tool={tool}>
+  <DockerRunToCompose client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is docker run to docker-compose?</h2>
+          <p>This tool reads one or more <code class="font-mono text-xs" style="color:var(--accent)">docker run</code> invocations and generates the equivalent <code class="font-mono text-xs" style="color:var(--accent)">docker-compose.yml</code> <code class="font-mono text-xs" style="color:var(--accent)">services:</code> block — useful when a project started as a handful of ad-hoc <code class="font-mono text-xs" style="color:var(--accent)">docker run</code> commands (in a README, a shell script, your shell history) and has grown to the point where a proper compose file is worth having.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>Each <code class="font-mono text-xs" style="color:var(--accent)">docker run</code> command (commands are separated by a blank line for multi-service input) is tokenized the same way a shell would split it — respecting quoted arguments — then walked flag by flag. <code class="font-mono text-xs" style="color:var(--accent)">-p</code>/<code class="font-mono text-xs" style="color:var(--accent)">--publish</code> becomes a <code class="font-mono text-xs" style="color:var(--accent)">ports:</code> entry, <code class="font-mono text-xs" style="color:var(--accent)">-e</code>/<code class="font-mono text-xs" style="color:var(--accent)">--env</code> becomes an <code class="font-mono text-xs" style="color:var(--accent)">environment:</code> entry, and <code class="font-mono text-xs" style="color:var(--accent)">-v</code>/<code class="font-mono text-xs" style="color:var(--accent)">--volume</code> becomes a <code class="font-mono text-xs" style="color:var(--accent)">volumes:</code> entry — a direct, lossless mapping in every case, since compose's syntax for each of these is a superset of what <code class="font-mono text-xs" style="color:var(--accent)">docker run</code>'s flags can express. The image name becomes the service's <code class="font-mono text-xs" style="color:var(--accent)">image:</code> field, and any positional arguments after the image become the service's <code class="font-mono text-xs" style="color:var(--accent)">command:</code>. <code class="font-mono text-xs" style="color:var(--accent)">--name</code> becomes the service key directly if present; if it's missing, a name is derived from the image (its last path segment, with the tag stripped), and that inference is called out in a comment at the top of the generated file rather than silently presented as if <code class="font-mono text-xs" style="color:var(--accent)">--name</code> had been there all along.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Multiple <code class="font-mono text-xs" style="color:var(--accent)">docker run</code> commands in one paste, each becoming its own service</li>
+            <li><code class="font-mono text-xs" style="color:var(--accent)">-p</code>, <code class="font-mono text-xs" style="color:var(--accent)">-e</code>, and <code class="font-mono text-xs" style="color:var(--accent)">-v</code> mapped directly to their compose equivalents</li>
+            <li>Container command (anything after the image) preserved as <code class="font-mono text-xs" style="color:var(--accent)">command:</code></li>
+            <li>Missing <code class="font-mono text-xs" style="color:var(--accent)">--name</code> handled by inferring a service key from the image, with an explicit comment noting it</li>
+            <li>Copy or download the generated <code class="font-mono text-xs" style="color:var(--accent)">docker-compose.yml</code></li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`docker run -d --name web -p 8080:80 -e NODE_ENV=production -v ./html:/usr/share/nginx/html nginx:latest
+
+docker run -d --name db -p 5432:5432 -e POSTGRES_PASSWORD=secret -v db-data:/var/lib/postgresql/data postgres:15`}</pre>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`services:
+  web:
+    image: nginx:latest
+    ports:
+      - "8080:80"
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./html:/usr/share/nginx/html
+
+  db:
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=secret
+    volumes:
+      - db-data:/var/lib/postgresql/data`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>A <code class="font-mono text-xs" style="color:var(--accent)">docker run</code> command with no positional image argument at all — for example one where every token was consumed as a flag or its value — produces an error rather than a service with a blank <code class="font-mono text-xs" style="color:var(--accent)">image:</code> field, since a compose service with no image and no build context isn't a valid service. Two commands that don't set <code class="font-mono text-xs" style="color:var(--accent)">--name</code> and happen to use images with the same last path segment (e.g. <code class="font-mono text-xs" style="color:var(--accent)">org1/api:1.0</code> and <code class="font-mono text-xs" style="color:var(--accent)">org2/api:2.0</code>) get de-duplicated service keys (<code class="font-mono text-xs" style="color:var(--accent)">api</code>, <code class="font-mono text-xs" style="color:var(--accent)">api-2</code>) rather than one silently overwriting the other in the output.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Treat the generated file as a starting point, not a finished compose setup: it has no <code class="font-mono text-xs" style="color:var(--accent)">depends_on</code>, restart policy, health check, or network configuration, because <code class="font-mono text-xs" style="color:var(--accent)">docker run</code> commands never carried that information to begin with — there's nothing here to lose, but there's also nothing here to gain for free. Add those manually once you have the base file, and run <code class="font-mono text-xs" style="color:var(--accent)">docker compose config</code> to validate the result before relying on it.</p>
+        </section>
+      </div>
+    </details>
+
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

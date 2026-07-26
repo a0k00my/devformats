@@ -1,0 +1,79 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import CurlConverter from '../components/CurlConverter';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('curl-to-javascript')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'How is this different from the Node.js target?', a: 'The generated call is nearly identical — both use fetch with the same options object — but this one is meant to run in a browser tab, not a Node process. It uses btoa() for Basic Auth instead of Buffer (which doesn\'t exist in a browser), and the file-upload TODO points at a <input type="file"> element instead of the filesystem.' },
+  { q: 'Will this work if I paste it straight into the browser console?', a: 'Yes, for same-origin or CORS-enabled requests. If the target API doesn\'t send CORS headers permitting your origin, the browser will block the response even though the request the API sees is identical — that\'s a server-side CORS policy, not something this generator can work around.' },
+  { q: 'How is Basic Auth handled without Buffer?', a: 'Via the browser\'s built-in btoa(), which base64-encodes a string the same way Buffer.from(...).toString(\'base64\') does in Node. btoa() only handles Latin1 text, so a username or password with non-ASCII characters needs an extra encoding step this generator doesn\'t add automatically — a rare case, but worth knowing if login fails with valid-looking credentials.' },
+  { q: 'Does it support file uploads via -F?', a: 'Non-file fields are appended to a FormData instance directly. File fields are stubbed with a TODO, since there\'s no filesystem to read from in a browser — the real value has to come from a file input or drag-and-drop event.' },
+];
+---
+<ToolLayout tool={tool}>
+  <CurlConverter lang="javascript" client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is curl-to-JavaScript?</h2>
+          <p>This tool converts a curl command into a browser-ready JavaScript snippet using the standard <code class="font-mono text-xs" style="color:var(--accent)">fetch</code> API — the kind of code you'd paste into a <code class="font-mono text-xs" style="color:var(--accent)">&lt;script&gt;</code> tag, a frontend module, or directly into DevTools. It's a separate target from cURL to Node.js because the two environments don't share every global: a browser has no <code class="font-mono text-xs" style="color:var(--accent)">Buffer</code> and no filesystem, so the generated code for Basic Auth and file uploads takes a different path in each.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>The same curl parser used across every cURL converter on this site extracts method, URL, headers, body, form fields, and auth from the command. Method, headers, and body map directly onto fetch's options object, with the body passed through as a raw string rather than re-parsed and re-serialized as JSON — so the exact bytes curl would have sent are what fetch sends too. The one browser-specific substitution is <code class="font-mono text-xs" style="color:var(--accent)">-u user:pass</code>: instead of Node's <code class="font-mono text-xs" style="color:var(--accent)">Buffer.from(...).toString('base64')</code>, the generator emits <code class="font-mono text-xs" style="color:var(--accent)">btoa('user:pass')</code>, the browser-native base64 encoder, and builds the <code class="font-mono text-xs" style="color:var(--accent)">Authorization</code> header from that at runtime rather than hardcoding a precomputed value.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Uses the standard, cross-browser <code class="font-mono text-xs" style="color:var(--accent)">fetch</code> API — no framework, no bundler required</li>
+            <li>Body passed through as a raw string, not re-encoded</li>
+            <li><code class="font-mono text-xs" style="color:var(--accent)">-u</code> Basic Auth computed via <code class="font-mono text-xs" style="color:var(--accent)">btoa()</code> at runtime</li>
+            <li><code class="font-mono text-xs" style="color:var(--accent)">-F</code>/--form uploads become a <code class="font-mono text-xs" style="color:var(--accent)">FormData</code> instance, with file fields stubbed for a real <code class="font-mono text-xs" style="color:var(--accent)">File</code> object</li>
+            <li>Uses top-level <code class="font-mono text-xs" style="color:var(--accent)">await</code>, ready to paste into a <code class="font-mono text-xs" style="color:var(--accent)">&lt;script type="module"&gt;</code> or the console</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input: <code class="font-mono text-xs" style="color:var(--accent)">{`curl -X POST https://api.example.com/v1/login -H "Content-Type: application/json" -u admin:s3cret -d '{"username":"admin","remember":true}'`}</code></p>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`const credentials = btoa('admin:s3cret');
+
+const response = await fetch('https://api.example.com/v1/login', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': \`Basic \${credentials}\`,
+  },
+  body: '{"username":"admin","remember":true}',
+});
+
+const data = await response.text();
+console.log(response.status, data);`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>A request to a different origin than the page running this script will hit the browser's CORS policy — if the target server doesn't send an <code class="font-mono text-xs" style="color:var(--accent)">Access-Control-Allow-Origin</code> header permitting your origin, the browser blocks reading the response even though the request itself went through. That's not something this generator can fix, since CORS is enforced by the server's response headers, not the request. Top-level <code class="font-mono text-xs" style="color:var(--accent)">await</code> also requires a module context — plain inline <code class="font-mono text-xs" style="color:var(--accent)">&lt;script&gt;</code> tags need <code class="font-mono text-xs" style="color:var(--accent)">type="module"</code>, or you'll need to wrap the code in an async function.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Check <code class="font-mono text-xs" style="color:var(--accent)">response.ok</code> before trusting the body — fetch only rejects on network failure, never on a 4xx/5xx status. Never hardcode real credentials into client-side JavaScript that ships to users' browsers; the <code class="font-mono text-xs" style="color:var(--accent)">-u</code> flow shown here is meant for testing against your own APIs, not for shipping a secret to production frontend code where anyone can read it from DevTools.</p>
+        </section>
+      </div>
+    </details>
+
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>
