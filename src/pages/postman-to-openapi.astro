@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import PostmanToOpenApi from '../components/PostmanToOpenApi';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('postman-to-openapi')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'Does this handle folders inside the collection?', a: 'Yes — Postman collections can nest requests inside folders for organization; this tool walks the whole tree recursively and flattens every request into the OpenAPI spec\'s paths, regardless of how deeply it was nested in folders.' },
+  { q: 'How are Postman path variables (:id) converted?', a: 'To OpenAPI\'s {id} curly-brace syntax, with a matching path parameter (in: path, required: true) added automatically to the operation.' },
+  { q: 'How is the request body schema generated?', a: 'From the raw JSON body sample in the Postman request — each field\'s inferred type (string/number/boolean/object/array) becomes the corresponding OpenAPI schema type. This is inferred from one example, not a formal contract, so double-check the generated schema against your API\'s actual constraints (required fields, enums, etc.).' },
+  { q: 'What happens to {{variables}} like {{baseUrl}}?', a: 'Postman environment variables in the URL host are stripped out, since OpenAPI represents the base URL via a separate servers field rather than inline in each path. Variables used elsewhere (e.g. in headers) are passed through as literal example values.' },
+];
+---
+<ToolLayout tool={tool}>
+  <PostmanToOpenApi client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

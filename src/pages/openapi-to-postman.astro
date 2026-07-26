@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import OpenApiToPostman from '../components/OpenApiToPostman';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('openapi-to-postman')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'Does this accept YAML or JSON specs?', a: 'Both — most OpenAPI specs in the wild are written as YAML, so the input is parsed as JSON first and falls back to YAML if that fails, meaning you can paste either format directly.' },
+  { q: 'How are OpenAPI path parameters ({id}) converted?', a: 'To Postman\'s :id colon-prefix path variable syntax inside the URL, matching how Postman itself represents path variables in a request.' },
+  { q: 'Where does the request body come from?', a: 'Generated from the operation\'s requestBody.content[\'application/json\'].schema — each property\'s example value is used if present, otherwise a placeholder (0, true, "string") based on its declared type, so you get a valid, editable JSON body ready to send.' },
+  { q: 'Does the output include a base URL?', a: 'Requests use {{baseUrl}} as a Postman environment variable placeholder rather than a hardcoded host, since OpenAPI\'s servers list and Postman\'s environment variables serve the same purpose differently — set {{baseUrl}} in a Postman environment after importing.' },
+];
+---
+<ToolLayout tool={tool}>
+  <OpenApiToPostman client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

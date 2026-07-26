@@ -1,0 +1,93 @@
+---
+title: "Converting Between Postman Collections and OpenAPI Specs"
+description: "What actually happens when you convert a Postman collection to OpenAPI (or back) — path variables, request bodies, query params, and the one thing neither direction can fully automate: a real API contract."
+pubDate: 2026-07-26
+tags: ["api", "openapi", "postman"]
+relatedTools: ["postman-to-openapi", "openapi-to-postman", "curl-to-python"]
+---
+
+Postman collections and OpenAPI specs describe the same thing — API requests — but for different purposes. A collection is built for *running* requests interactively; a spec is built for *documenting* a contract (and generating docs, client SDKs, mock servers from it). Converting between them is common when a team documents in one and tests in the other. Here's what actually happens in each direction.
+
+## Postman → OpenAPI
+
+```json
+{
+  "info": { "name": "Sample API" },
+  "item": [
+    {
+      "name": "Get user",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/users/:id", "path": ["users", ":id"] }
+      }
+    }
+  ]
+}
+```
+
+becomes:
+
+```yaml
+openapi: 3.0.3
+info:
+  title: Sample API
+  version: 1.0.0
+paths:
+  /users/{id}:
+    get:
+      summary: Get user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+```
+
+Two conversions happening here worth naming explicitly:
+
+- **Path variables**: Postman's `:id` colon syntax becomes OpenAPI's `{id}` curly-brace syntax, with a matching `in: path` parameter added automatically.
+- **`{{baseUrl}}` disappears**: Postman environment variables in the host aren't carried into the path — OpenAPI represents the base URL separately via a top-level `servers` list, which isn't something a single request can express, so it's dropped rather than baked incorrectly into every path.
+
+A request body gets its schema **inferred from the raw JSON sample** — each field's type becomes the OpenAPI schema type for that field. This is inference from one example, not a formal contract: if your actual API sometimes omits a field or returns a different shape, the generated schema won't know that. Treat it as a starting point to tighten up (required fields, enums, string formats), not a final contract.
+
+## OpenAPI → Postman
+
+Going the other way, the same information flows back:
+
+```yaml
+paths:
+  /users:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string, example: Alice }
+```
+
+becomes a Postman request with the body pre-filled from the schema's `example` values:
+
+```json
+{
+  "mode": "raw",
+  "raw": "{\n  \"name\": \"Alice\"\n}",
+  "options": { "raw": { "language": "json" } }
+}
+```
+
+If a property has no `example` in the schema, a placeholder is generated instead — `"string"` for strings, `0` for numbers, `true` for booleans — so the request body is always valid, editable JSON even when the spec itself is sparse. `{id}` path parameters become `:id` again, and every request uses `{{baseUrl}}` as an environment variable placeholder — set it once in a Postman environment after importing rather than hardcoding a host per request.
+
+## What neither direction fully automates
+
+Both conversions handle the mechanical parts — paths, methods, parameters, a body schema — but two things are deliberately left as a starting point rather than a finished artifact:
+
+- **Response schemas.** Both tools generate a bare `'200': { description: 'OK' }` — Postman collections typically don't carry saved example responses in a form that maps cleanly to OpenAPI's response schema structure, so this is left for you to fill in with your API's actual response shapes.
+- **Auth schemes.** Postman's collection-level or folder-level auth configuration (Bearer tokens, OAuth2 flows, API keys) isn't OpenAPI's `securitySchemes` — they're different enough models that a header like `Authorization: Bearer {{token}}` on an individual request converts as a literal example header, not a proper OpenAPI security scheme definition.
+
+Both tools handle nested folders (flattening every request regardless of how deep it's organized) and both accept the format you'd realistically have on hand — [OpenAPI to Postman](/openapi-to-postman) reads either YAML or JSON, matching however your spec is actually written. Everything runs client-side; nothing you paste is uploaded anywhere.
