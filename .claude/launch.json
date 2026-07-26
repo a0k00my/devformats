@@ -4,7 +4,7 @@
     {
       "name": "devformats-dev",
       "runtimeExecutable": "/Users/bablirajpoot/.nvm/versions/node/v22.23.1/bin/node",
-      "runtimeArgs": ["/Users/bablirajpoot/.nvm/versions/node/v22.23.1/bin/npx", "astro", "dev"],
+      "runtimeArgs": ["/Users/bablirajpoot/Downloads/site-web/devformats/node_modules/.bin/astro", "dev"],
       "port": 4321
     }
   ]

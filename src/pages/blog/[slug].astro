@@ -1,0 +1,114 @@
+---
+import { getCollection, render } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import Breadcrumb from '../../components/Breadcrumb.astro';
+import RelatedTools from '../../components/RelatedTools.astro';
+import { getToolsOrThrow } from '../../data/tools';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => !data.draft);
+  return posts.map(post => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const relatedTools = getToolsOrThrow(post.data.relatedTools);
+
+const dateFmt = (d: Date) => d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: post.data.title,
+  description: post.data.description,
+  datePublished: post.data.pubDate.toISOString(),
+  ...(post.data.updatedDate ? { dateModified: post.data.updatedDate.toISOString() } : {}),
+  author: { '@type': 'Person', name: 'DevFormats' },
+};
+---
+<Layout
+  title={`${post.data.title} | DevFormats Blog`}
+  description={post.data.description}
+  canonical={`https://devformats.com/blog/${post.id}`}
+  ogImage={`https://devformats.com/og/blog/${post.id}.png`}
+  schema={schema}
+>
+  <article class="mx-auto max-w-[720px] px-4 py-12">
+    <Breadcrumb items={[{ name: 'Blog', href: '/blog' }, { name: post.data.title }]} />
+
+    <header class="mb-8 mt-6">
+      <h1 class="mb-3 text-3xl font-bold tracking-tight" style="color:var(--fg)">{post.data.title}</h1>
+      <div class="flex flex-wrap items-center gap-2 text-xs" style="color:var(--fg-muted)">
+        <time datetime={post.data.pubDate.toISOString()}>{dateFmt(post.data.pubDate)}</time>
+        {post.data.tags.map(tag => (
+          <span class="rounded-full px-2 py-0.5" style="background:var(--accent-bg);color:var(--accent)">{tag}</span>
+        ))}
+      </div>
+    </header>
+
+    <div class="prose-blog" style="color:var(--fg)">
+      <Content />
+    </div>
+
+    {relatedTools.length > 0 && (
+      <div class="mt-14">
+        <RelatedTools tools={relatedTools} title="Try It Yourself" />
+      </div>
+    )}
+  </article>
+</Layout>
+
+<style is:global>
+  .prose-blog {
+    font-size: 15px;
+    line-height: 1.75;
+  }
+  .prose-blog h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin: 2.2em 0 0.7em;
+    color: var(--fg);
+  }
+  .prose-blog h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 1.8em 0 0.6em;
+    color: var(--fg);
+  }
+  .prose-blog p { margin: 1em 0; }
+  .prose-blog ul, .prose-blog ol { margin: 1em 0; padding-left: 1.4em; }
+  .prose-blog li { margin: 0.35em 0; }
+  .prose-blog a { color: var(--accent); text-underline-offset: 2px; }
+  .prose-blog code {
+    font-family: ui-monospace, 'Geist Mono', SFMono-Regular, Menlo, monospace;
+    font-size: 0.85em;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.1em 0.4em;
+  }
+  .prose-blog pre {
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1em;
+    overflow-x: auto;
+    margin: 1.2em 0;
+  }
+  .prose-blog pre code {
+    background: none;
+    border: none;
+    padding: 0;
+  }
+  .prose-blog blockquote {
+    border-left: 3px solid var(--accent);
+    padding-left: 1em;
+    margin: 1.2em 0;
+    color: var(--fg-muted);
+  }
+  .prose-blog hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 2em 0;
+  }
+</style>

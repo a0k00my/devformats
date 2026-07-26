@@ -1,4 +1,5 @@
 import { OGImageRoute } from 'astro-og-canvas';
+import { getCollection } from 'astro:content';
 import { tools } from '../../data/tools';
 
 type PageMeta = { name: string; description: string };
@@ -8,6 +9,11 @@ pages['home'] = {
   name: 'DevFormats',
   description: 'Fast, private developer tools for formatting, validating, converting and generating structured data.',
 };
+
+const posts = await getCollection('blog', ({ data }) => !data.draft);
+for (const post of posts) {
+  pages[`blog/${post.id}`] = { name: post.data.title, description: post.data.description };
+}
 
 export const { getStaticPaths, GET } = await OGImageRoute({
   pages,

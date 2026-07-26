@@ -1,15 +1,39 @@
 ---
+import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import Breadcrumb from '../../components/Breadcrumb.astro';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const dateFmt = (d: Date) => d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 ---
 <Layout
   title="Blog | DevFormats"
   description="Deep dives on JSON, YAML, XML, and the developer tools built at DevFormats."
   canonical="https://devformats.com/blog"
 >
-  <div class="mx-auto max-w-[860px] px-4 py-16 text-center">
+  <div class="mx-auto max-w-[860px] px-4 py-16">
     <Breadcrumb items={[{ name: 'Blog' }]} />
     <h1 class="mb-3 mt-6 text-2xl font-bold tracking-tight" style="color:var(--fg)">Blog</h1>
-    <p class="text-sm" style="color:var(--fg-muted)">Nothing published yet — check back soon.</p>
+
+    {posts.length === 0 ? (
+      <p class="text-sm" style="color:var(--fg-muted)">Nothing published yet — check back soon.</p>
+    ) : (
+      <div class="mt-8 flex flex-col gap-6">
+        {posts.map(post => (
+          <a href={`/blog/${post.id}`} class="df-card group block rounded-xl p-5 no-underline">
+            <div class="flex flex-wrap items-center gap-2 text-xs" style="color:var(--fg-muted)">
+              <time datetime={post.data.pubDate.toISOString()}>{dateFmt(post.data.pubDate)}</time>
+              {post.data.tags.map(tag => (
+                <span class="rounded-full px-2 py-0.5" style="background:var(--accent-bg);color:var(--accent)">{tag}</span>
+              ))}
+            </div>
+            <h2 class="mt-2 text-lg font-semibold tracking-tight transition-colors" style="color:var(--fg)">{post.data.title}</h2>
+            <p class="mt-1.5 text-sm" style="color:var(--fg-muted)">{post.data.description}</p>
+          </a>
+        ))}
+      </div>
+    )}
   </div>
 </Layout>

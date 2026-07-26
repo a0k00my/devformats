@@ -1,0 +1,73 @@
+---
+title: "JSON.parse Errors Explained: How to Actually Fix Them"
+description: "A field guide to every common JSON.parse() error message — what it means, exactly where to look, and how to fix it fast."
+pubDate: 2026-07-26
+tags: ["json", "debugging"]
+relatedTools: ["json-formatter", "json-validator", "json-parser"]
+---
+
+If you've ever hit `Unexpected token in JSON at position 47` and stared blankly at a wall of minified text, this post is for you. `JSON.parse()` errors are notoriously unhelpful on their own — they tell you *that* something is wrong, rarely *what*. Below is every error you'll actually run into, decoded.
+
+## Why JSON.parse errors are so cryptic
+
+JSON.parse is a strict, single-pass parser. The moment it hits a character it doesn't expect, it throws immediately — it doesn't try to recover, and it doesn't know what you *meant* to write. The error message just describes the parser's internal state at the moment it gave up, which is why messages like "Unexpected token }" are common even when the real problem is somewhere else entirely (usually one character earlier).
+
+The fastest way out of this is to stop reading the raw string and instead paste it into a formatter that shows line numbers — our [JSON Formatter](/json-formatter) and [JSON Validator](/json-validator) both highlight the exact failing line instead of making you count characters.
+
+## "Unexpected token , in JSON"
+
+Almost always a **trailing comma**:
+
+```json
+{
+  "name": "Alice",
+  "role": "admin",
+}
+```
+
+That comma after `"admin"` is invalid in JSON (unlike JavaScript object literals, which allow it). Delete the trailing comma before the closing `}` or `]`.
+
+## "Unexpected token ' in JSON" (or similar, pointing at a quote)
+
+JSON requires **double quotes** for strings and keys — single quotes are not valid JSON, even though they're fine in JavaScript:
+
+```json
+{ 'name': 'Alice' }   // invalid
+{ "name": "Alice" }   // valid
+```
+
+This is the single most common error when someone copies an object literal straight out of JavaScript source code and expects it to parse as JSON.
+
+## "Unexpected end of JSON input"
+
+The string ended before the parser expected it to — almost always a **missing closing brace or bracket**. Common causes:
+
+- You truncated a response while copying (e.g. copied from a terminal that wrapped/cut off output)
+- An unclosed string somewhere upstream ate the rest of the document as its content
+- A `fetch()` response body was empty (`""`) and you called `.json()` on it directly
+
+Count your `{`/`}` and `[`/`]` pairs — a formatter that indents nested structures makes mismatches visually obvious in a way flat text never does.
+
+## "Unexpected non-whitespace character after JSON at position N"
+
+You have **valid JSON followed by extra content** — usually two JSON documents concatenated together, or a trailing newline plus stray text (common with server logs or JSONL files where each line is its own JSON object, not one JSON array).
+
+## "Unexpected token u in JSON" / "Unexpected token N"
+
+Usually **`undefined` or `NaN`** leaked into the payload. Both are valid JavaScript values but neither is valid JSON — JSON only has `null`, numbers, strings, booleans, objects, and arrays. If you're generating the JSON yourself with `JSON.stringify()`, check for object properties whose value is `undefined`; `JSON.stringify` normally drops those silently, but if you're building the string manually (e.g. via template literals) they'll show up as the literal text `undefined`.
+
+## Keys or values that look fine but aren't
+
+A few silent gotchas that don't throw during parsing but bite later:
+
+- **Duplicate keys** — `{"a": 1, "a": 2}` parses fine; the second `a` silently wins. If a field is missing, check for an earlier duplicate.
+- **Numbers with leading zeros** — `{"code": 007}` is invalid JSON (leading zeros aren't allowed on numbers). Quote it as a string instead: `"007"`.
+- **Comments** — JSON has no comment syntax at all. `// this is a comment` or `/* ... */` inside a `.json` file will fail to parse, even though many editors don't flag it.
+
+## The fast workflow
+
+1. Paste the raw text into the [JSON Formatter](/json-formatter) — it'll either pretty-print it (confirming it's valid) or show you the exact line the parser choked on.
+2. If it's valid but the *data* looks wrong, run it through [JSON Validator](/json-validator) against a schema to catch type mismatches, missing required fields, or unexpected duplicate keys.
+3. For deeply nested structures where you just need to confirm shape, [JSON Parser](/json-parser) gives you a collapsible tree view instead of a flat wall of text.
+
+All three run entirely in your browser — nothing you paste is uploaded anywhere.
