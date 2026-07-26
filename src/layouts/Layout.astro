@@ -109,6 +109,30 @@ const {
       }
       document.addEventListener('astro:page-load', initReveal);
     </script>
+
+    <!-- Tilt cards: pointer-driven 3D rotation on .tilt-card elements
+         (tool/category/feature cards). Re-bound after every View
+         Transition swap since new card elements replace the old ones. -->
+    <script is:inline>
+      function initTilt() {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        document.querySelectorAll('.tilt-card:not([data-tilt-bound])').forEach(function (card) {
+          card.setAttribute('data-tilt-bound', 'true');
+          card.addEventListener('mousemove', function (e) {
+            var rect = card.getBoundingClientRect();
+            var px = (e.clientX - rect.left) / rect.width - 0.5;
+            var py = (e.clientY - rect.top) / rect.height - 0.5;
+            card.style.setProperty('--rx', (px * 10) + 'deg');
+            card.style.setProperty('--ry', (-py * 10) + 'deg');
+          });
+          card.addEventListener('mouseleave', function () {
+            card.style.setProperty('--rx', '0deg');
+            card.style.setProperty('--ry', '0deg');
+          });
+        });
+      }
+      document.addEventListener('astro:page-load', initTilt);
+    </script>
   </head>
   <body class="flex min-h-screen flex-col" style="background:var(--jfo-bg);color:var(--jfo-text-1)">
     <NavBar />

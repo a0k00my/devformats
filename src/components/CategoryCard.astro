@@ -17,13 +17,13 @@ const variant = VARIANTS[hash % VARIANTS.length];
 ---
 <a
   href={`/${category}`}
-  class={`df-card ${variant} group flex flex-col gap-4 rounded-xl border p-6 transition-all duration-200 ease-out hover:-translate-y-1`}
+  class={`df-card tilt-card ${variant} group flex flex-col gap-4 rounded-xl border p-6 transition-all duration-200 ease-out hover:-translate-y-1`}
   style="border-color:var(--border)"
   onmouseover="this.style.boxShadow='var(--shadow-md)'"
   onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='var(--shadow-sm)'"
 >
   <div class="flex items-center justify-between">
-    <span class="df-card-icon flex h-12 w-12 items-center justify-center rounded-lg transition-transform duration-200 ease-out group-hover:scale-110">
+    <span class="df-card-icon icon-float flex h-12 w-12 items-center justify-center rounded-lg transition-transform duration-200 ease-out group-hover:scale-110">
       <Icon size={22} />
     </span>
     <span class="rounded-full px-2.5 py-1 font-mono text-[11px] font-medium" style="background:var(--bg-muted);color:var(--fg-subtle)">{count} {count === 1 ? 'tool' : 'tools'}</span>

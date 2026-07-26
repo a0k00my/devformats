@@ -280,6 +280,57 @@ html.light {
   color: var(--fg);
 }
 
+/* ── Futuristic hero: a receding perspective grid "floor" plus a
+   scanline sweep, both pure CSS so they cost nothing to ship. ── */
+.grid-floor {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 70%;
+  background-image:
+    linear-gradient(var(--border-strong) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-strong) 1px, transparent 1px);
+  background-size: 44px 44px;
+  transform: perspective(400px) rotateX(62deg) scale(1.6);
+  transform-origin: bottom;
+  mask-image: linear-gradient(to top, black, transparent 85%);
+  -webkit-mask-image: linear-gradient(to top, black, transparent 85%);
+  opacity: 0.35;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .grid-floor { animation: grid-drift 14s linear infinite; }
+  @keyframes grid-drift {
+    from { background-position: 0 0, 0 0; }
+    to   { background-position: 0 44px, 44px 0; }
+  }
+}
+
+/* ── Tilt cards: pointer-driven 3D rotation + a glow that leans toward
+   the cursor. JS sets --rx/--ry/--mx/--my per element on mousemove. ── */
+.tilt-card {
+  transform-style: preserve-3d;
+  transform: perspective(900px) rotateX(var(--ry, 0deg)) rotateY(var(--rx, 0deg)) translateZ(0);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease-out, border-color 0.3s ease-out;
+}
+.tilt-card:hover {
+  box-shadow:
+    0 0 0 1px var(--card-accent-border, var(--accent-border)),
+    0 22px 44px -18px var(--card-accent, var(--accent)),
+    var(--shadow-md);
+}
+.tilt-card .df-card-icon {
+  transform: translateZ(28px);
+}
+
+/* ── Slow vertical float for card icons — reads as tiny floating
+   hologram chips rather than flat emoji. ── */
+@media (prefers-reduced-motion: no-preference) {
+  .icon-float { animation: icon-float 3.6s ease-in-out infinite; }
+  @keyframes icon-float {
+    0%, 100% { transform: translateZ(28px) translateY(0); }
+    50%      { transform: translateZ(28px) translateY(-4px); }
+  }
+}
+
 /* ── Copy-success pop: brief scale-bounce on the button when a copy
    succeeds, instead of just a static color swap. ── */
 @media (prefers-reduced-motion: no-preference) {

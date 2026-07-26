@@ -41,6 +41,7 @@ const schema = {
 >
   <!-- Hero -->
   <section class="relative overflow-hidden border-b px-4 py-24 text-center sm:py-32" style="border-color:var(--border)">
+    <div class="grid-floor pointer-events-none" aria-hidden="true"></div>
     <div
       class="hero-glow pointer-events-none absolute left-1/2 top-0 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/3 rounded-full blur-3xl"
       style="background:var(--accent);opacity:0.09"
@@ -108,35 +109,35 @@ const schema = {
     <div class="mx-auto max-w-[1300px]">
       <h2 class="reveal mb-6 font-mono text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Why DevFormats</h2>
       <div class="reveal-stagger grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="df-card card-teal group rounded-xl border p-6 transition-all duration-200 ease-out hover:-translate-y-1"
+        <div class="df-card tilt-card card-teal group rounded-xl border p-6 transition-all duration-200 ease-out hover:-translate-y-1"
           style="border-color:var(--border)"
           onmouseover="this.style.boxShadow='var(--shadow-md)'"
           onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='var(--shadow-sm)'">
-          <div class="df-card-icon mb-4 flex h-12 w-12 items-center justify-center rounded-lg text-xl transition-transform duration-200 ease-out group-hover:scale-110">⚡</div>
+          <div class="df-card-icon icon-float mb-4 flex h-12 w-12 items-center justify-center rounded-lg text-xl transition-transform duration-200 ease-out group-hover:scale-110">⚡</div>
           <div class="mb-1.5 text-base font-semibold" style="color:var(--fg)">Fast</div>
           <p class="text-sm leading-relaxed" style="color:var(--fg-muted)">Runs instantly, no upload, no queue.</p>
         </div>
-        <div class="df-card card-blue group rounded-xl border p-6 transition-all duration-200 ease-out hover:-translate-y-1"
+        <div class="df-card tilt-card card-blue group rounded-xl border p-6 transition-all duration-200 ease-out hover:-translate-y-1"
           style="border-color:var(--border)"
           onmouseover="this.style.boxShadow='var(--shadow-md)'"
           onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='var(--shadow-sm)'">
-          <div class="df-card-icon mb-4 flex h-12 w-12 items-center justify-center rounded-lg text-xl transition-transform duration-200 ease-out group-hover:scale-110">🔒</div>
+          <div class="df-card-icon icon-float mb-4 flex h-12 w-12 items-center justify-center rounded-lg text-xl transition-transform duration-200 ease-out group-hover:scale-110">🔒</div>
           <div class="mb-1.5 text-base font-semibold" style="color:var(--fg)">Privacy First</div>
           <p class="text-sm leading-relaxed" style="color:var(--fg-muted)">Everything stays in your browser. Nothing is uploaded, ever.</p>
         </div>
-        <div class="df-card card-purple group rounded-xl border p-6 transition-all duration-200 ease-out hover:-translate-y-1"
+        <div class="df-card tilt-card card-purple group rounded-xl border p-6 transition-all duration-200 ease-out hover:-translate-y-1"
           style="border-color:var(--border)"
           onmouseover="this.style.boxShadow='var(--shadow-md)'"
           onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='var(--shadow-sm)'">
-          <div class="df-card-icon mb-4 flex h-12 w-12 items-center justify-center rounded-lg text-xl transition-transform duration-200 ease-out group-hover:scale-110">🌍</div>
+          <div class="df-card-icon icon-float mb-4 flex h-12 w-12 items-center justify-center rounded-lg text-xl transition-transform duration-200 ease-out group-hover:scale-110">🌍</div>
           <div class="mb-1.5 text-base font-semibold" style="color:var(--fg)">Free</div>
           <p class="text-sm leading-relaxed" style="color:var(--fg-muted)">Unlimited usage. No signup, no limits, no watermarks.</p>
         </div>
-        <div class="df-card card-amber group rounded-xl border p-6 transition-all duration-200 ease-out hover:-translate-y-1"
+        <div class="df-card tilt-card card-amber group rounded-xl border p-6 transition-all duration-200 ease-out hover:-translate-y-1"
           style="border-color:var(--border)"
           onmouseover="this.style.boxShadow='var(--shadow-md)'"
           onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='var(--shadow-sm)'">
-          <div class="df-card-icon mb-4 flex h-12 w-12 items-center justify-center rounded-lg text-xl transition-transform duration-200 ease-out group-hover:scale-110">💻</div>
+          <div class="df-card-icon icon-float mb-4 flex h-12 w-12 items-center justify-center rounded-lg text-xl transition-transform duration-200 ease-out group-hover:scale-110">💻</div>
           <div class="mb-1.5 text-base font-semibold" style="color:var(--fg)">Built for Developers</div>
           <p class="text-sm leading-relaxed" style="color:var(--fg-muted)">Keyboard shortcuts, dark mode, responsive on any device.</p>
         </div>

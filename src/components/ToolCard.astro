@@ -15,13 +15,13 @@ const variant = VARIANTS[hash % VARIANTS.length];
 <a
   href={tool.status === 'live' ? `/${tool.slug}` : '#'}
   aria-disabled={tool.status !== 'live'}
-  class={`df-card ${variant} group flex flex-col gap-2.5 rounded-xl border p-5 transition-all duration-200 ease-out hover:-translate-y-1`}
+  class={`df-card tilt-card ${variant} group flex flex-col gap-2.5 rounded-xl border p-5 transition-all duration-200 ease-out hover:-translate-y-1`}
   style={`border-color:var(--border);${tool.status !== 'live' ? 'opacity:0.55;pointer-events:none;cursor:default' : ''}`}
   onmouseover="this.style.boxShadow='var(--shadow-md)'"
   onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='var(--shadow-sm)'"
 >
   <div class="flex items-center gap-3">
-    <span class="df-card-icon flex h-11 w-11 shrink-0 items-center justify-center rounded-lg transition-transform duration-200 ease-out group-hover:scale-110">
+    <span class="df-card-icon icon-float flex h-11 w-11 shrink-0 items-center justify-center rounded-lg transition-transform duration-200 ease-out group-hover:scale-110">
       <Icon size={20} />
     </span>
     <span class="text-base font-semibold" style="color:var(--fg)">{tool.name}</span>
