@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLang } from '../hooks/useLang';
-import { useSplitter, SplitDivider, useIsMobile } from './SplitPanel';
+import {useSplitter, SplitDivider, useIsMobile, useFullscreen, FullscreenButton, toolContainerStyle} from './SplitPanel';
 import { LineNumberedTextarea } from './LineNumberedTextarea';
 import { describeJsonError } from '../lib/jsonError';
+import { highlightCode } from '../lib/codeHighlight';
 
 const MONO = { fontFamily: "ui-monospace, 'Geist Mono', SFMono-Regular, Menlo, monospace" };
 const fmt = (b: number) => b < 1024 ? b+' B' : (b/1024).toFixed(1)+' KB';
@@ -80,8 +81,16 @@ export default function JsonMinifier() {
     r.readAsText(f); e.target.value = '';
   };
 
+  const [isLight, setIsLight] = useState(false);
+  useEffect(() => {
+    const check = () => setIsLight(document.documentElement.classList.contains('light'));
+    check();
+    window.addEventListener('jfo-theme-change', check);
+    return () => window.removeEventListener('jfo-theme-change', check);
+  }, []);
+  const { isFullscreen, toggleFullscreen } = useFullscreen();
   return (
-    <div className="tool-height flex flex-col" style={{ height: 'clamp(480px, calc(100vh - 200px), 1100px)' }}>
+    <div className="tool-height flex flex-col" style={{ ...toolContainerStyle(isFullscreen) }}>
       <div className="toolbar-scroll flex flex-wrap items-center gap-1.5 border-b px-3 py-2"
         style={{ background: 'var(--jfo-toolbar)', borderColor: 'var(--jfo-border)' }}>
 
@@ -105,6 +114,7 @@ export default function JsonMinifier() {
             <span className="rounded px-2 py-0.5" style={{ background: 'var(--jfo-accent-bg)', color: 'var(--jfo-accent)' }}>-{stats.pct}%</span>
           </div>
         )}
+        <FullscreenButton isFullscreen={isFullscreen} onToggle={toggleFullscreen} />
       </div>
 
       {error && (
@@ -133,7 +143,7 @@ export default function JsonMinifier() {
           </div>
           <div className="flex-1 overflow-auto p-4" style={{ background: 'var(--jfo-editor)' }}>
             {output
-              ? <pre style={{ ...MONO, fontSize: '13px', lineHeight: '1.65', whiteSpace: 'pre-wrap', wordBreak: 'break-all', color: 'var(--jfo-code)' }}>{output}</pre>
+              ? <pre style={{ ...MONO, fontSize: '13px', lineHeight: '1.65', whiteSpace: 'pre-wrap', wordBreak: 'break-all', color: 'var(--jfo-code)' }} dangerouslySetInnerHTML={{ __html: highlightCode(output, 'json', isLight) }} />
               : <div className="flex h-full items-center justify-center text-xs" style={{ ...MONO, color: 'var(--jfo-placeholder)' }}>{tr('clickMinify')}</div>
             }
           </div>

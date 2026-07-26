@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { useSplitter, SplitDivider, useIsMobile, useToolShortcuts } from './SplitPanel';
+import {useSplitter, SplitDivider, useIsMobile, useToolShortcuts, useFullscreen, FullscreenButton, toolContainerStyle} from './SplitPanel';
 import { LineNumberedTextarea } from './LineNumberedTextarea';
+import { highlightCode } from '../lib/codeHighlight';
 
 // Browser DOMParser error text isn't standardized, but both Chromium and
 // Firefox mention "line N" somewhere in the message — pull it out if present.
@@ -168,8 +169,16 @@ export default function XmlFormatter() {
     localStorage.removeItem(LS_INPUT);
   };
 
+  const [isLight, setIsLight] = useState(false);
+  useEffect(() => {
+    const check = () => setIsLight(document.documentElement.classList.contains('light'));
+    check();
+    window.addEventListener('jfo-theme-change', check);
+    return () => window.removeEventListener('jfo-theme-change', check);
+  }, []);
+  const { isFullscreen, toggleFullscreen } = useFullscreen();
   return (
-    <div className="tool-height flex flex-col border-y" style={{ height: 'clamp(480px, calc(100vh - 200px), 1100px)', borderColor: 'var(--jfo-border)' }}>
+    <div className="tool-height flex flex-col border-y" style={{ ...toolContainerStyle(isFullscreen), borderColor: 'var(--jfo-border)' }}>
       <div className="toolbar-scroll flex flex-wrap items-center gap-1.5 border-b px-3 py-2" style={{ background: 'var(--jfo-toolbar)', borderColor: 'var(--jfo-border)' }}>
         <div className="flex items-center rounded border p-0.5" style={{ borderColor: 'var(--jfo-border)', background: 'var(--jfo-editor)' }}>
           {[2, 4].map(size => (
@@ -199,6 +208,7 @@ export default function XmlFormatter() {
             <span>{stats.lines} lines</span><span style={{ color: 'var(--jfo-border)' }}>·</span><span>{stats.size}</span>
           </div>
         )}
+        <FullscreenButton isFullscreen={isFullscreen} onToggle={toggleFullscreen} />
       </div>
 
       {error && (
@@ -231,7 +241,7 @@ export default function XmlFormatter() {
           </div>
           <div className="flex-1 overflow-auto p-4" style={{ background: 'var(--jfo-editor)' }}>
             {output ? (
-              <pre style={{ ...MONO, lineHeight: '1.65', fontSize: '13px', whiteSpace: 'pre-wrap', wordBreak: 'break-all', color: 'var(--jfo-code)' }}>{output}</pre>
+              <pre style={{ ...MONO, lineHeight: '1.65', fontSize: '13px', whiteSpace: 'pre-wrap', wordBreak: 'break-all', color: 'var(--jfo-code)' }} dangerouslySetInnerHTML={{ __html: highlightCode(output, 'xml', isLight) }} />
             ) : (
               <div className="flex h-full items-center justify-center text-xs" style={{ ...MONO, color: 'var(--jfo-placeholder)' }}>
                 {error ? '← fix the error' : 'paste XML and click Format'}

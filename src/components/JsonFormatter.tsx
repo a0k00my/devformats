@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { Braces, AlertCircle } from 'lucide-react';
 import { useLang } from '../hooks/useLang';
 import { JsonTree } from './JsonTree';
-import { useSplitter, SplitDivider, useIsMobile } from './SplitPanel';
+import {useSplitter, SplitDivider, useIsMobile, useFullscreen, FullscreenButton, toolContainerStyle} from './SplitPanel';
 import { LineNumberedTextarea } from './LineNumberedTextarea';
 import { describeJsonError } from '../lib/jsonError';
 
@@ -221,8 +221,9 @@ export default function JsonFormatter() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [input, indentMode, isLight, sortKeys, doFormat]);
 
+  const { isFullscreen, toggleFullscreen } = useFullscreen();
   return (
-    <div className="tool-height flex flex-col border-y" style={{ height: 'clamp(480px, calc(100vh - 200px), 1100px)', borderColor: 'var(--jfo-border)' }}>
+    <div className="tool-height flex flex-col border-y" style={{ ...toolContainerStyle(isFullscreen), borderColor: 'var(--jfo-border)' }}>
       {/* ── Toolbar ── */}
       <div className="toolbar-scroll flex flex-wrap items-center gap-1.5 border-b px-3 py-2"
         style={{ background: 'var(--jfo-toolbar)', borderColor: 'var(--jfo-border)' }}>
@@ -282,6 +283,7 @@ export default function JsonFormatter() {
             <span>{stats.size}</span>
           </div>
         )}
+        <FullscreenButton isFullscreen={isFullscreen} onToggle={toggleFullscreen} />
       </div>
 
       {/* ── Error bar ── */}

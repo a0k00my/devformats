@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
-import { useToolShortcuts, useSplitter, SplitDivider, useIsMobile } from './SplitPanel';
+import {useToolShortcuts, useSplitter, SplitDivider, useIsMobile, useFullscreen, FullscreenButton, toolContainerStyle} from './SplitPanel';
 import { postmanToInsomnia, insomniaToPostman } from '../lib/postmanInsomnia';
+import { highlightCode } from '../lib/codeHighlight';
 
 const POSTMAN_SAMPLE = JSON.stringify({
   info: { name: 'Sample API', schema: 'https://schema.getpostman.com/json/collection/v2.1.0/collection.json' },
@@ -92,14 +93,23 @@ export default function PostmanInsomniaConverter({ direction }: { direction: Dir
   const isMobile = useIsMobile();
   const { splitPct, containerRef, onMouseDown, onTouchStart } = useSplitter(lsSplit, 50);
 
+  const [isLight, setIsLight] = useState(false);
+  useEffect(() => {
+    const check = () => setIsLight(document.documentElement.classList.contains('light'));
+    check();
+    window.addEventListener('jfo-theme-change', check);
+    return () => window.removeEventListener('jfo-theme-change', check);
+  }, []);
+  const { isFullscreen, toggleFullscreen } = useFullscreen();
   return (
-    <div className="tool-height flex flex-col border-y" style={{ height: 'clamp(480px, calc(100vh - 200px), 1100px)', borderColor: 'var(--jfo-border)' }}>
+    <div className="tool-height flex flex-col border-y" style={{ ...toolContainerStyle(isFullscreen), borderColor: 'var(--jfo-border)' }}>
       <div className="toolbar-scroll flex flex-wrap items-center gap-1.5 border-b px-3 py-2" style={{ background: 'var(--jfo-toolbar)', borderColor: 'var(--jfo-border)' }}>
         <button onClick={doGenerate} className="tb-btn-primary" title="Cmd/Ctrl+Enter">⚡ Convert</button>
         <button onClick={doCopy} className={`tb-btn${copied ? ' tb-copy-pop' : ''}`} style={copied ? { background: 'var(--jfo-accent-bg)', borderColor: 'var(--jfo-accent-border)', color: 'var(--jfo-accent)' } : {}}>{copied ? '✓ Copied' : 'Copy'}</button>
         <button onClick={doDownload} className="tb-btn-ghost">↓ Download</button>
         <button onClick={doSampleData} className="tb-btn-ghost">Sample Data</button>
         <button onClick={doClear} className="tb-btn-ghost">Clear</button>
+        <FullscreenButton isFullscreen={isFullscreen} onToggle={toggleFullscreen} />
       </div>
 
       {error && (
@@ -132,7 +142,7 @@ export default function PostmanInsomniaConverter({ direction }: { direction: Dir
           </div>
           <div className="flex-1 overflow-auto p-4" style={{ background: 'var(--jfo-editor)' }}>
             {output ? (
-              <pre style={{ ...MONO, lineHeight: '1.65', fontSize: '13px', whiteSpace: 'pre-wrap', wordBreak: 'break-all', color: 'var(--jfo-code)' }}>{output}</pre>
+              <pre style={{ ...MONO, lineHeight: '1.65', fontSize: '13px', whiteSpace: 'pre-wrap', wordBreak: 'break-all', color: 'var(--jfo-code)' }} dangerouslySetInnerHTML={{ __html: highlightCode(output, 'json', isLight) }} />
             ) : (
               <div className="flex h-full items-center justify-center text-xs" style={{ ...MONO, color: 'var(--jfo-placeholder)' }}>
                 {error ? '← fix the error' : 'Converted output appears here'}

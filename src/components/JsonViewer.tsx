@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { JsonTree } from './JsonTree';
 import { LineNumberedTextarea } from './LineNumberedTextarea';
 import { describeJsonError } from '../lib/jsonError';
-import { useSplitter, SplitDivider, useIsMobile } from './SplitPanel';
+import {useSplitter, SplitDivider, useIsMobile, useFullscreen, FullscreenButton, toolContainerStyle} from './SplitPanel';
 
 const SAMPLE = `{
   "name": "DevFormats",
@@ -69,8 +69,9 @@ export default function JsonViewer() {
   const isMobile = useIsMobile();
   const { splitPct, containerRef, onMouseDown, onTouchStart } = useSplitter(LS_SPLIT, 50);
 
+  const { isFullscreen, toggleFullscreen } = useFullscreen();
   return (
-    <div className="flex flex-col border-y" style={{ minHeight: 'clamp(480px, calc(100vh - 200px), 1100px)', borderColor: 'var(--jfo-border)' }}>
+    <div className="flex flex-col border-y" style={{ ...toolContainerStyle(isFullscreen), borderColor: 'var(--jfo-border)' }}>
       <div className="toolbar-scroll flex flex-wrap items-center gap-1.5 border-b px-3 py-2" style={{ background: 'var(--jfo-toolbar)', borderColor: 'var(--jfo-border)' }}>
         <input
           value={search}
@@ -89,6 +90,7 @@ export default function JsonViewer() {
             ✓ Copied {copiedPath}
           </div>
         )}
+        <FullscreenButton isFullscreen={isFullscreen} onToggle={toggleFullscreen} />
       </div>
 
       {error && (

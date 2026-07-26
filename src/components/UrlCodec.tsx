@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
-import { useToolShortcuts } from './SplitPanel';
+import {useToolShortcuts, useFullscreen, FullscreenButton, toolContainerStyle} from './SplitPanel';
 import { LineNumberedTextarea } from './LineNumberedTextarea';
+import { highlightCode } from '../lib/codeHighlight';
 
 const LS_INPUT_ENCODE = 'df-input-url-encode';
 const LS_INPUT_DECODE = 'df-input-url-decode';
@@ -35,12 +36,21 @@ export default function UrlCodec({ mode }: Props) {
   const doCopy = async () => { if (!output) return; await navigator.clipboard.writeText(output); setCopied(true); setTimeout(() => setCopied(false), 2000); };
   const doClear = () => { setInput(''); setOutput(''); setError(''); localStorage.removeItem(lsKey); };
 
+  const [isLight, setIsLight] = useState(false);
+  useEffect(() => {
+    const check = () => setIsLight(document.documentElement.classList.contains('light'));
+    check();
+    window.addEventListener('jfo-theme-change', check);
+    return () => window.removeEventListener('jfo-theme-change', check);
+  }, []);
+  const { isFullscreen, toggleFullscreen } = useFullscreen();
   return (
-    <div className="flex flex-col border-y" style={{ minHeight: 'clamp(480px, calc(100vh - 200px), 1100px)', borderColor: 'var(--jfo-border)' }}>
+    <div className="flex flex-col border-y" style={{ ...toolContainerStyle(isFullscreen), borderColor: 'var(--jfo-border)' }}>
       <div className="toolbar-scroll flex flex-wrap items-center gap-1.5 border-b px-3 py-2" style={{ background: 'var(--jfo-toolbar)', borderColor: 'var(--jfo-border)' }}>
         <button onClick={doRun} className="tb-btn-primary" title="Cmd/Ctrl+Enter">⚡ {mode === 'encode' ? 'Encode' : 'Decode'}</button>
         <button onClick={doCopy} className={`tb-btn${copied ? ' tb-copy-pop' : ''}`} style={copied ? { background: "var(--jfo-accent-bg)", borderColor: "var(--jfo-accent-border)", color: "var(--jfo-accent)" } : {}}>{copied ? '✓ Copied' : 'Copy'}</button>
         <button onClick={doClear} className="tb-btn-ghost">Clear</button>
+        <FullscreenButton isFullscreen={isFullscreen} onToggle={toggleFullscreen} />
       </div>
 
       {error && (
@@ -63,7 +73,7 @@ export default function UrlCodec({ mode }: Props) {
           </div>
           <div className="flex-1 overflow-auto p-4" style={{ background: 'var(--jfo-editor)' }}>
             {output ? (
-              <pre style={{ ...MONO, lineHeight: '1.65', fontSize: '13px', whiteSpace: 'pre-wrap', wordBreak: 'break-all', color: 'var(--jfo-code)' }}>{output}</pre>
+              <pre style={{ ...MONO, lineHeight: '1.65', fontSize: '13px', whiteSpace: 'pre-wrap', wordBreak: 'break-all', color: 'var(--jfo-code)' }} dangerouslySetInnerHTML={{ __html: highlightCode(output, 'plain', isLight) }} />
             ) : (
               <div className="flex h-full items-center justify-center text-xs" style={{ ...MONO, color: 'var(--jfo-placeholder)' }}>output appears here</div>
             )}

@@ -1,5 +1,53 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 
+/** Toggles a tool's edit area between inline and a fixed full-viewport overlay. */
+export function useFullscreen() {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    if (!isFullscreen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') setIsFullscreen(false); };
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isFullscreen]);
+
+  const toggleFullscreen = useCallback(() => setIsFullscreen(f => !f), []);
+  return { isFullscreen, toggleFullscreen };
+}
+
+/** Icon button that toggles fullscreen — drop into any tool's toolbar. */
+export function FullscreenButton({ isFullscreen, onToggle }: { isFullscreen: boolean; onToggle: () => void }) {
+  return (
+    <button
+      onClick={onToggle}
+      className="tb-btn-ghost ml-auto shrink-0 inline-flex items-center whitespace-nowrap"
+      style={{ gap: 4 }}
+      title={isFullscreen ? 'Exit full screen (Esc)' : 'Full screen'}
+      aria-label={isFullscreen ? 'Exit full screen' : 'Full screen'}
+    >
+      {isFullscreen ? (
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M8 3v3a2 2 0 0 1-2 2H3M21 8h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 1 2 2v3M16 21v-3a2 2 0 0 1 2-2h3" /></svg>
+      ) : (
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M3 16v3a2 2 0 0 0 2 2h3" /></svg>
+      )}
+      <span>{isFullscreen ? 'Exit' : 'Full Screen'}</span>
+    </button>
+  );
+}
+
+/** Style object for a tool's outer container div, given the fullscreen state. */
+export function toolContainerStyle(isFullscreen: boolean, heightExpr = 'clamp(480px, calc(100vh - 200px), 1100px)'): React.CSSProperties {
+  if (isFullscreen) {
+    return { position: 'fixed', inset: 0, zIndex: 100, height: '100vh', background: 'var(--jfo-bg)' };
+  }
+  return { height: heightExpr };
+}
+
 /** Cmd/Ctrl+Enter = run, Esc = clear focus — shared across every tool page. */
 export function useToolShortcuts(run: () => void) {
   useEffect(() => {

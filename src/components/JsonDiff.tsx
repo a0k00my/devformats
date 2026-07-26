@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLang } from '../hooks/useLang';
+import { useFullscreen, FullscreenButton, toolContainerStyle } from './SplitPanel';
 import { LineNumberedTextarea } from './LineNumberedTextarea';
 import { describeJsonError } from '../lib/jsonError';
 
@@ -104,8 +105,10 @@ export default function JsonDiff() {
   const removed = diffs?.filter(d => d.type === 'removed').length ?? 0;
   const changed = diffs?.filter(d => d.type === 'changed').length ?? 0;
 
+  const { isFullscreen, toggleFullscreen } = useFullscreen();
+
   return (
-    <div className="flex flex-col" style={{ minHeight: 'clamp(480px, calc(100vh - 200px), 1100px)', background: 'var(--jfo-editor)' }}>
+    <div className="flex flex-col" style={{ ...toolContainerStyle(isFullscreen, 'clamp(480px, calc(100vh - 200px), 1100px)'), background: 'var(--jfo-editor)' }}>
       <div className="toolbar-scroll flex flex-wrap items-center gap-1.5 border-b px-3 py-2"
         style={{ background: 'var(--jfo-toolbar)', borderColor: 'var(--jfo-border)' }}>
 
@@ -113,7 +116,7 @@ export default function JsonDiff() {
         <button onClick={() => { setLeft(''); setRight(''); setDiffs(null); setError(''); setErrorSide(null); setErrorLine(null); localStorage.removeItem(LS_LEFT); localStorage.removeItem(LS_RIGHT); localStorage.removeItem(LS_DIFFS); }} className="tb-btn-ghost">{tr('clear')}</button>
 
         {diffs !== null && (
-          <div className="ml-auto flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5">
             {added > 0   && <span className="rounded px-2 py-0.5 text-[11px] font-medium" style={{ background: 'rgba(74,222,128,0.1)',  color: '#4ade80' }}>+{added} {tr('diffAdded')}</span>}
             {removed > 0 && <span className="rounded px-2 py-0.5 text-[11px] font-medium" style={{ background: 'rgba(248,113,113,0.1)', color: '#f87171' }}>-{removed} {tr('diffRemoved')}</span>}
             {changed > 0 && <span className="rounded px-2 py-0.5 text-[11px] font-medium" style={{ background: 'rgba(251,191,36,0.1)',  color: '#fbbf24' }}>~{changed} {tr('diffChanged')}</span>}
@@ -122,6 +125,7 @@ export default function JsonDiff() {
             )}
           </div>
         )}
+        <FullscreenButton isFullscreen={isFullscreen} onToggle={toggleFullscreen} />
       </div>
 
       {error && (

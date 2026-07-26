@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { JsonTree } from './JsonTree';
-import { useToolShortcuts, useSplitter, SplitDivider, useIsMobile } from './SplitPanel';
+import {useToolShortcuts, useSplitter, SplitDivider, useIsMobile, useFullscreen, FullscreenButton, toolContainerStyle} from './SplitPanel';
 import { LineNumberedTextarea } from './LineNumberedTextarea';
 
 const SAMPLE = `{
@@ -82,14 +82,16 @@ export default function JsonParser() {
   const isMobile = useIsMobile();
   const { splitPct, containerRef, onMouseDown, onTouchStart } = useSplitter(LS_SPLIT, 50);
 
+  const { isFullscreen, toggleFullscreen } = useFullscreen();
   return (
-    <div className="flex flex-col border-y" style={{ minHeight: 'clamp(480px, calc(100vh - 200px), 1100px)', borderColor: 'var(--jfo-border)' }}>
+    <div className="flex flex-col border-y" style={{ ...toolContainerStyle(isFullscreen), borderColor: 'var(--jfo-border)' }}>
       <div className="toolbar-scroll flex flex-wrap items-center gap-1.5 border-b px-3 py-2" style={{ background: 'var(--jfo-toolbar)', borderColor: 'var(--jfo-border)' }}>
         <button onClick={handleParse} className="tb-btn-primary" title="Cmd/Ctrl+Enter">⚡ Parse</button>
         <button onClick={() => fileRef.current?.click()} className="tb-btn-ghost">↑ Load File</button>
         <input ref={fileRef} type="file" accept=".json,text/plain" className="hidden" onChange={doLoadFile} />
         <button onClick={doSampleData} className="tb-btn-ghost">Sample Data</button>
         <button onClick={doClear} className="tb-btn-ghost">Clear</button>
+        <FullscreenButton isFullscreen={isFullscreen} onToggle={toggleFullscreen} />
       </div>
 
       <div ref={containerRef} className="flex flex-col md:flex-row flex-1 overflow-hidden" style={{ position: 'relative' }}>

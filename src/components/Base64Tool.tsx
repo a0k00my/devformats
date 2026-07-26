@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { useToolShortcuts } from './SplitPanel';
+import {useToolShortcuts, useFullscreen, FullscreenButton, toolContainerStyle} from './SplitPanel';
 import { LineNumberedTextarea } from './LineNumberedTextarea';
+import { highlightCode } from '../lib/codeHighlight';
 
 type Mode = 'encode' | 'decode';
 const LS_INPUT = 'df-input-base64';
@@ -92,8 +93,16 @@ export default function Base64Tool() {
 
   const doClear = () => { setInput(''); setOutput(''); setError(''); setFileBytes(null); localStorage.removeItem(LS_INPUT); };
 
+  const [isLight, setIsLight] = useState(false);
+  useEffect(() => {
+    const check = () => setIsLight(document.documentElement.classList.contains('light'));
+    check();
+    window.addEventListener('jfo-theme-change', check);
+    return () => window.removeEventListener('jfo-theme-change', check);
+  }, []);
+  const { isFullscreen, toggleFullscreen } = useFullscreen();
   return (
-    <div className="flex flex-col border-y" style={{ minHeight: 'clamp(480px, calc(100vh - 200px), 1100px)', borderColor: 'var(--jfo-border)' }}>
+    <div className="flex flex-col border-y" style={{ ...toolContainerStyle(isFullscreen), borderColor: 'var(--jfo-border)' }}>
       <div className="toolbar-scroll flex flex-wrap items-center gap-1.5 border-b px-3 py-2" style={{ background: 'var(--jfo-toolbar)', borderColor: 'var(--jfo-border)' }}>
         <div className="flex items-center rounded border p-0.5" style={{ borderColor: 'var(--jfo-border)', background: 'var(--jfo-editor)' }}>
           {(['encode', 'decode'] as Mode[]).map(m => (
@@ -114,6 +123,7 @@ export default function Base64Tool() {
         <button onClick={() => fileRef.current?.click()} className="tb-btn-ghost">↑ Load File</button>
         <input ref={fileRef} type="file" className="hidden" onChange={doLoadFile} />
         <button onClick={doClear} className="tb-btn-ghost">Clear</button>
+        <FullscreenButton isFullscreen={isFullscreen} onToggle={toggleFullscreen} />
       </div>
 
       {error && (
@@ -141,7 +151,7 @@ export default function Base64Tool() {
           </div>
           <div className="flex-1 overflow-auto p-4" style={{ background: 'var(--jfo-editor)' }}>
             {output ? (
-              <pre style={{ ...MONO, lineHeight: '1.65', fontSize: '13px', whiteSpace: 'pre-wrap', wordBreak: 'break-all', color: 'var(--jfo-code)' }}>{output}</pre>
+              <pre style={{ ...MONO, lineHeight: '1.65', fontSize: '13px', whiteSpace: 'pre-wrap', wordBreak: 'break-all', color: 'var(--jfo-code)' }} dangerouslySetInnerHTML={{ __html: highlightCode(output, 'plain', isLight) }} />
             ) : (
               <div className="flex h-full items-center justify-center text-xs" style={{ ...MONO, color: 'var(--jfo-placeholder)' }}>output appears here</div>
             )}

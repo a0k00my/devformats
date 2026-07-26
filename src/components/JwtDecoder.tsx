@@ -1,5 +1,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { jwtVerify, importSPKI, type JWTVerifyResult } from 'jose';
+import { useFullscreen, FullscreenButton, toolContainerStyle } from './SplitPanel';
+import { highlightCode } from '../lib/codeHighlight';
 
 const SAMPLE = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNzE2MjM5MDIyLCJleHAiOjIwMzE4MTUwMjJ9.dQw4w9WgXcQ_wpF0wnZWK4Cs2WM_7fBSC5J2GLzTiXQ';
 
@@ -46,8 +48,15 @@ export default function JwtDecoder() {
   const [secret, setSecret] = useState('');
   const [verifyResult, setVerifyResult] = useState<'idle' | 'valid' | 'invalid' | 'checking'>('idle');
   const [copied, setCopied] = useState<string | null>(null);
+  const [isLight, setIsLight] = useState(false);
 
   useEffect(() => { localStorage.setItem(LS_INPUT, input); }, [input]);
+  useEffect(() => {
+    const check = () => setIsLight(document.documentElement.classList.contains('light'));
+    check();
+    window.addEventListener('jfo-theme-change', check);
+    return () => window.removeEventListener('jfo-theme-change', check);
+  }, []);
 
   const doDecode = useCallback((token: string) => {
     if (!token.trim()) { setDecoded(null); setError(''); return; }
@@ -103,11 +112,14 @@ export default function JwtDecoder() {
     return { exp: e, iat, nbf, rest };
   }, [decoded]);
 
+  const { isFullscreen, toggleFullscreen } = useFullscreen();
+
   return (
-    <div className="flex flex-col" style={{ minHeight: 'clamp(480px, calc(100vh - 200px), 1100px)' }}>
+    <div className="flex flex-col" style={{ ...toolContainerStyle(isFullscreen, 'clamp(480px, calc(100vh - 200px), 1100px)') }}>
       <div className="toolbar-scroll flex flex-wrap items-center gap-1.5 border-b border-y px-3 py-2" style={{ background: 'var(--jfo-toolbar)', borderColor: 'var(--jfo-border)' }}>
         <button onClick={doSampleData} className="tb-btn-ghost">Sample Data</button>
         <button onClick={doClear} className="tb-btn-ghost">Clear</button>
+        <FullscreenButton isFullscreen={isFullscreen} onToggle={toggleFullscreen} />
       </div>
 
       <div className="border-b p-4" style={{ borderColor: 'var(--jfo-border)', background: 'var(--jfo-editor)' }}>
@@ -140,7 +152,7 @@ export default function JwtDecoder() {
               <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-accent)' }}>Header</span>
               <button onClick={() => doCopy(JSON.stringify(decoded.header, null, 2), 'header')} className="tb-btn-ghost !py-0 !px-1.5 text-[10px]">{copied === 'header' ? '✓' : 'Copy'}</button>
             </div>
-            <pre style={{ ...MONO, fontSize: '12px', color: 'var(--jfo-code)' }}>{JSON.stringify(decoded.header, null, 2)}</pre>
+            <pre style={{ ...MONO, fontSize: '12px', color: 'var(--jfo-code)' }} dangerouslySetInnerHTML={{ __html: highlightCode(JSON.stringify(decoded.header, null, 2), 'json', isLight) }} />
             {isNoneAlg && (
               <div className="mt-2 rounded px-2 py-1 text-[11px]" style={{ background: 'var(--jfo-err-bg)', color: 'var(--jfo-err-text)' }}>
                 ⚠ alg:"none" — this token has no signature and should never be trusted.
@@ -154,7 +166,7 @@ export default function JwtDecoder() {
               <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-accent)' }}>Payload</span>
               <button onClick={() => doCopy(JSON.stringify(decoded.payload, null, 2), 'payload')} className="tb-btn-ghost !py-0 !px-1.5 text-[10px]">{copied === 'payload' ? '✓' : 'Copy'}</button>
             </div>
-            <pre style={{ ...MONO, fontSize: '12px', color: 'var(--jfo-code)' }}>{JSON.stringify(decoded.payload, null, 2)}</pre>
+            <pre style={{ ...MONO, fontSize: '12px', color: 'var(--jfo-code)' }} dangerouslySetInnerHTML={{ __html: highlightCode(JSON.stringify(decoded.payload, null, 2), 'json', isLight) }} />
             {typeof exp === 'number' && (
               <div className="mt-2 rounded px-2 py-1 text-[11px]" style={isExpired ? { background: 'var(--jfo-err-bg)', color: 'var(--jfo-err-text)' } : { background: 'var(--jfo-accent-bg)', color: 'var(--jfo-accent)' }}>
                 {isExpired ? '⚠ Expired' : '✓ Expires'} {relativeTime(exp)}

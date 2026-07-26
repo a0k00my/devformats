@@ -37,6 +37,7 @@
         document.documentElement.classList.add(next);
         localStorage.setItem('jfo-theme', next);
         syncIcon();
+        window.dispatchEvent(new Event('jfo-theme-change'));
       };
       // Reuses the same view-transition fade already defined for page
       // navigation, so a theme flip cross-fades instead of hard-snapping.

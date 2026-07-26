@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import Ajv, { type ErrorObject } from 'ajv';
-import { useToolShortcuts } from './SplitPanel';
+import {useToolShortcuts, useFullscreen, FullscreenButton, toolContainerStyle} from './SplitPanel';
 import { LineNumberedTextarea } from './LineNumberedTextarea';
 import { describeJsonError } from '../lib/jsonError';
 
@@ -66,12 +66,14 @@ export default function JsonSchemaValidator() {
   const doSampleData = () => { setSchemaText(SAMPLE_SCHEMA); setDataText(SAMPLE_DATA); };
   const doClear = () => { setSchemaText(''); setDataText(''); setErrors(null); setValid(null); setParseError(''); setErrorField(null); setErrorLine(null); localStorage.removeItem(LS_SCHEMA); localStorage.removeItem(LS_DATA); };
 
+  const { isFullscreen, toggleFullscreen } = useFullscreen();
   return (
-    <div className="flex flex-col border-y" style={{ minHeight: 'clamp(480px, calc(100vh - 200px), 1100px)', borderColor: 'var(--jfo-border)' }}>
+    <div className="flex flex-col border-y" style={{ ...toolContainerStyle(isFullscreen), borderColor: 'var(--jfo-border)' }}>
       <div className="toolbar-scroll flex flex-wrap items-center gap-1.5 border-b px-3 py-2" style={{ background: 'var(--jfo-toolbar)', borderColor: 'var(--jfo-border)' }}>
         <button onClick={doValidate} className="tb-btn-primary" title="Cmd/Ctrl+Enter">✓ Validate</button>
         <button onClick={doSampleData} className="tb-btn-ghost">Sample Data</button>
         <button onClick={doClear} className="tb-btn-ghost">Clear</button>
+        <FullscreenButton isFullscreen={isFullscreen} onToggle={toggleFullscreen} />
       </div>
 
       <div className="flex flex-col md:flex-row" style={{ minHeight: 280 }}>

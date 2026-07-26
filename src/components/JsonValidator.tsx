@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLang } from '../hooks/useLang';
-import { useSplitter, SplitDivider, useIsMobile } from './SplitPanel';
+import {useSplitter, SplitDivider, useIsMobile, useFullscreen, FullscreenButton, toolContainerStyle} from './SplitPanel';
 import { LineNumberedTextarea } from './LineNumberedTextarea';
 
 const MONO = { fontFamily: "ui-monospace, 'Geist Mono', SFMono-Regular, Menlo, monospace" };
@@ -94,8 +94,9 @@ export default function JsonValidator() {
 
   const errorLine = result && !result.valid ? (result.errors[0]?.line ?? null) : null;
 
+  const { isFullscreen, toggleFullscreen } = useFullscreen();
   return (
-    <div className="tool-height flex flex-col" style={{ height: 'clamp(480px, calc(100vh - 200px), 1100px)' }}>
+    <div className="tool-height flex flex-col" style={{ ...toolContainerStyle(isFullscreen) }}>
       <div className="toolbar-scroll flex flex-wrap items-center gap-1.5 border-b px-3 py-2"
         style={{ background: 'var(--jfo-toolbar)', borderColor: 'var(--jfo-border)' }}>
 
@@ -109,6 +110,7 @@ export default function JsonValidator() {
         <button onClick={() => fileRef.current?.click()} className="tb-btn-ghost">{tr('loadFile')}</button>
         <input ref={fileRef} type="file" accept=".json,text/plain" className="hidden" onChange={doLoadFile} />
         <button onClick={() => { setInput(''); setResult(null); localStorage.removeItem(LS_INPUT); localStorage.removeItem(LS_RESULT); }} className="tb-btn-ghost">{tr('clear')}</button>
+        <FullscreenButton isFullscreen={isFullscreen} onToggle={toggleFullscreen} />
       </div>
 
       <div ref={containerRef} className="flex flex-col md:flex-row flex-1 overflow-hidden" style={{ position: 'relative' }}>

@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { JSONPath } from 'jsonpath-plus';
-import { useToolShortcuts, useSplitter, SplitDivider, useIsMobile } from './SplitPanel';
+import {useToolShortcuts, useSplitter, SplitDivider, useIsMobile, useFullscreen, FullscreenButton, toolContainerStyle} from './SplitPanel';
 import { LineNumberedTextarea } from './LineNumberedTextarea';
 import { describeJsonError } from '../lib/jsonError';
 
@@ -60,8 +60,9 @@ export default function JsonPathTester() {
   const isMobile = useIsMobile();
   const { splitPct, containerRef, onMouseDown, onTouchStart } = useSplitter(LS_SPLIT, 50);
 
+  const { isFullscreen, toggleFullscreen } = useFullscreen();
   return (
-    <div className="flex flex-col border-y" style={{ minHeight: 'clamp(480px, calc(100vh - 200px), 1100px)', borderColor: 'var(--jfo-border)' }}>
+    <div className="flex flex-col border-y" style={{ ...toolContainerStyle(isFullscreen), borderColor: 'var(--jfo-border)' }}>
       <div className="border-b p-3" style={{ background: 'var(--jfo-toolbar)', borderColor: 'var(--jfo-border)' }}>
         <div className="flex flex-wrap items-center gap-2">
           <span style={{ ...MONO, fontSize: '11px', color: 'var(--jfo-text-3)' }}>Query:</span>
@@ -75,6 +76,7 @@ export default function JsonPathTester() {
           <button onClick={doRun} className="tb-btn-primary" title="Cmd/Ctrl+Enter">⚡ Run</button>
           <button onClick={doSampleData} className="tb-btn-ghost">Sample Data</button>
           <button onClick={doClear} className="tb-btn-ghost">Clear</button>
+          <FullscreenButton isFullscreen={isFullscreen} onToggle={toggleFullscreen} />
         </div>
       </div>
 
