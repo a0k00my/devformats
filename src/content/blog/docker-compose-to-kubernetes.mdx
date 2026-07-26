@@ -1,0 +1,107 @@
+---
+title: "What Actually Happens When You Convert docker-compose to Kubernetes"
+description: "Turning a docker-compose.yml into Deployment, Service, and PersistentVolumeClaim manifests — and the three things Kubernetes has no direct equivalent for: build contexts, bind mounts, and depends_on."
+pubDate: 2026-07-26
+tags: ["kubernetes", "docker"]
+relatedTools: ["docker-compose-to-kubernetes", "env-to-k8s-secret", "env-to-docker-compose"]
+---
+
+docker-compose and Kubernetes both run containers, but compose describes a single machine's setup while Kubernetes describes a distributed system — that gap is exactly where a mechanical conversion needs to be honest about what it can't do, rather than papering over it with something that looks right but silently doesn't work the same way.
+
+```yaml
+services:
+  web:
+    image: nginx:latest
+    ports:
+      - "8080:80"
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./html:/usr/share/nginx/html
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_PASSWORD: secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+```
+
+## The straightforward part: Deployment + Service
+
+Each service becomes a `Deployment` (running the container) and a `Service` (exposing its ports to other pods and, if needed, outside the cluster):
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db
+  template:
+    metadata:
+      labels:
+        app: db
+    spec:
+      containers:
+        - name: db
+          image: postgres:15
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          env:
+            - name: POSTGRES_PASSWORD
+              value: secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+spec:
+  selector:
+    app: db
+  ports:
+    - port: 5432
+      targetPort: 5432
+      protocol: TCP
+```
+
+Environment variables, port mappings, and `deploy.replicas` all translate directly — this part of the conversion is genuinely mechanical and safe to trust.
+
+## Named volumes get a real PersistentVolumeClaim
+
+A named volume (`db-data:/var/lib/postgresql/data`) generates its own `PersistentVolumeClaim` alongside the Deployment:
+
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: db-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+```
+
+The `1Gi` is a placeholder — resize it to what the volume actually needs. This is the portable, cluster-friendly equivalent of a compose named volume, and it's the one storage conversion here that's safe to use as-is beyond local testing.
+
+## Three things that don't have a direct equivalent
+
+**Bind mounts** (`./html:/usr/share/nginx/html`) become a `hostPath` volume — but `hostPath` only works if that exact path exists on whichever node the pod happens to land on. On a single-node setup (minikube, a local kind cluster) that's fine. On any real multi-node cluster, it silently breaks the moment the scheduler picks a different node. The generated output flags this with a comment rather than pretending `hostPath` is a safe general-purpose answer — if you need this beyond local testing, that data belongs in a PersistentVolumeClaim instead.
+
+**Build contexts.** A service with `build: ./app` and no `image` gets skipped entirely, with a comment explaining why: Kubernetes only runs pre-built images pulled from a registry — it has no mechanism to build an image from a Dockerfile the way `docker-compose up --build` does. You need a separate build-and-push step (a CI pipeline, `docker build` + `docker push`) before that service can have a real manifest at all.
+
+**`depends_on`.** Compose uses this to control startup order; Kubernetes has no direct equivalent; Deployments start independently of each other with no ordering guarantee. The generated output leaves a comment naming the dependency rather than fabricating an `initContainer` block that might not actually implement the wait condition you need — the real fix is a readiness probe on the dependency and/or an `initContainer` that polls for it, both of which require knowing specifically what "ready" means for that service (a TCP port open? a health endpoint returning 200?), which the compose file doesn't say.
+
+## The pattern
+
+Everything with a direct, unambiguous Kubernetes equivalent (ports, env vars, replicas, named-volume storage) converts automatically. Everything without one — build steps, host-specific paths, startup ordering — gets a comment naming the gap instead of a manifest that looks complete but quietly doesn't do what compose did. Runs entirely in your browser; nothing you paste is uploaded anywhere.

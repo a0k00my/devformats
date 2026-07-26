@@ -718,6 +718,19 @@ export const tools: Tool[] = [
     status: 'live',
     addedAt: '2026-07-26',
   },
+  {
+    slug: 'docker-compose-to-kubernetes',
+    name: 'docker-compose to Kubernetes',
+    category: 'devops',
+    description: 'Convert a docker-compose.yml into Kubernetes Deployment and Service manifests.',
+    metaTitle: 'docker-compose to Kubernetes Converter | DevFormats',
+    metaDescription: 'Convert a docker-compose.yml into Kubernetes Deployment, Service, and PVC manifests, all in your browser. No data leaves your device.',
+    keywords: ['docker-compose to kubernetes', 'compose to k8s', 'convert docker-compose to k8s manifests'],
+    icon: 'Server',
+    related: ['env-to-k8s-secret', 'env-to-docker-compose', 'yaml-formatter'],
+    status: 'live',
+    addedAt: '2026-07-26',
+  },
 ];
 
 export function getTool(slug: string): Tool | undefined {

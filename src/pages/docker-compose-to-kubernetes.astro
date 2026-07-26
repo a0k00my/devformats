@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import ComposeToK8s from '../components/ComposeToK8s';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('docker-compose-to-kubernetes')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'What happens to a service that only has a "build" section, no "image"?', a: 'Kubernetes can\'t build a container image itself — it only runs images that already exist in a registry. A build-only service is skipped with a comment explaining you need to build and push that image first, rather than generating a Deployment that references an image that doesn\'t exist anywhere.' },
+  { q: 'How are bind-mount volumes (./data:/path) handled?', a: 'Converted to hostPath volumes, with a comment flagging the real limitation: hostPath only works if that exact path exists on the specific node the pod happens to land on, which breaks the moment you have more than one node. For anything beyond local single-node testing (e.g. minikube), use a PersistentVolumeClaim instead — named volumes already get one generated automatically.' },
+  { q: 'Does depends_on control startup order in the output?', a: 'No — Kubernetes doesn\'t have a direct equivalent to depends_on, so it\'s surfaced as a comment rather than faked with something that wouldn\'t actually enforce the ordering. If strict startup order matters, add a readiness probe to the dependency and/or an initContainer that waits for it.' },
+  { q: 'Are named volumes and bind mounts treated differently?', a: 'Yes — a named volume (e.g. db-data:/var/lib/postgresql/data) gets its own PersistentVolumeClaim generated (default 1Gi, meant to be resized to what you actually need), since that\'s the portable, cluster-friendly equivalent. A bind mount (a real host path) becomes hostPath instead, since a PVC would silently change the semantics of "this specific directory on my machine."' },
+];
+---
+<ToolLayout tool={tool}>
+  <ComposeToK8s client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>
