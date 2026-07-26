@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import SqlDdlToOrm from '../components/SqlDdlToOrm';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('sql-to-typeorm')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'Why @PrimaryGeneratedColumn vs @PrimaryColumn?', a: 'A primary key that\'s also SERIAL/AUTO_INCREMENT becomes @PrimaryGeneratedColumn() (TypeORM\'s auto-incrementing key). A primary key without auto-increment (e.g. a UUID or manually-assigned ID) becomes @PrimaryColumn() instead, since TypeORM treats those as two distinct decorators.' },
+  { q: 'Does it generate @ManyToOne / @OneToMany relations for foreign keys?', a: 'No — a foreign key column becomes a plain @Column() with a comment noting the reference. Real TypeORM relations need you to import the related entity class and decide the relation\'s name and cardinality, which isn\'t something the DDL alone determines unambiguously.' },
+  { q: 'Are column lengths and nullability preserved?', a: 'Yes — VARCHAR(255) becomes @Column({ type: \'varchar\', length: 255 }), and a nullable SQL column adds nullable: true plus a TypeScript optional (?) marker on the field.' },
+  { q: 'What TypeScript type does DECIMAL map to?', a: 'number — TypeORM\'s decimal column type still round-trips through a JS number at the property level (with the DB-side precision/scale handled by the column type), matching how TypeORM\'s own generated entities behave.' },
+];
+---
+<ToolLayout tool={tool}>
+  <SqlDdlToOrm lang="typeorm" client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

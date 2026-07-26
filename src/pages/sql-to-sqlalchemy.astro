@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import SqlDdlToOrm from '../components/SqlDdlToOrm';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('sql-to-sqlalchemy')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'Are foreign keys generated with ForeignKey()?', a: 'Yes — unlike the JS/TS ORM generators in this cluster, SQLAlchemy\'s ForeignKey(\'table.column\') is a plain column argument rather than a separate relation object, so it\'s included directly: Column(Integer, ForeignKey(\'users.id\')). You\'ll still want to add relationship() calls yourself for the ORM-level convenience accessors.' },
+  { q: 'Does this use the newer SQLAlchemy 2.0 declarative style (Mapped / mapped_column)?', a: 'No — it generates the classic declarative_base() + Column(...) style, since it\'s still the most widely deployed pattern across existing SQLAlchemy 1.x codebases. If your project is on 2.0\'s typed style, the column definitions translate directly — swap Column(...) for mapped_column(...) and add type hints.' },
+  { q: 'How is DEFAULT CURRENT_TIMESTAMP handled?', a: 'As default=datetime.utcnow (a Python callable SQLAlchemy invokes per-insert), with the needed from datetime import datetime added automatically. Other SQL default expressions aren\'t guessed at — only literal values and this common case are translated.' },
+  { q: 'What Python type backs a DECIMAL(10,2) column?', a: 'Numeric(10, 2), preserving both the precision and scale from the original SQL type rather than collapsing to a generic Float, since Numeric maps to Python\'s Decimal and avoids floating-point rounding issues for currency-like data.' },
+];
+---
+<ToolLayout tool={tool}>
+  <SqlDdlToOrm lang="sqlalchemy" client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

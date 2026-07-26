@@ -2,7 +2,7 @@
 // cards, category pages, search index, sitemap, and related-tools sections
 // all read from this file — never hardcode a tool list anywhere else.
 
-export type Category = 'json' | 'yaml' | 'xml' | 'converters' | 'generators' | 'encoding' | 'jwt' | 'api' | 'devops';
+export type Category = 'json' | 'yaml' | 'xml' | 'converters' | 'generators' | 'encoding' | 'jwt' | 'api' | 'devops' | 'database';
 
 export type Tool = {
   slug: string;
@@ -63,6 +63,11 @@ export const CATEGORY_META: Record<Category, { name: string; description: string
     name: 'DevOps',
     description: 'Convert .env files into docker-compose, Kubernetes, and GitHub Actions secrets.',
     icon: 'Server',
+  },
+  database: {
+    name: 'Database',
+    description: 'Generate ORM models — Prisma, Drizzle, TypeORM, SQLAlchemy — from a SQL CREATE TABLE statement.',
+    icon: 'Database',
   },
 };
 
@@ -632,6 +637,58 @@ export const tools: Tool[] = [
     keywords: ['csv to sql', 'csv to sql insert', 'convert csv to sql statements'],
     icon: 'Database',
     related: ['csv-to-json', 'json-to-csv', 'json-formatter'],
+    status: 'live',
+    addedAt: '2026-07-26',
+  },
+  {
+    slug: 'sql-to-prisma',
+    name: 'SQL to Prisma Schema',
+    category: 'database',
+    description: 'Generate a Prisma schema model from a SQL CREATE TABLE statement.',
+    metaTitle: 'SQL to Prisma Schema Generator | DevFormats',
+    metaDescription: 'Generate a Prisma schema model from a SQL CREATE TABLE statement, all in your browser. No data leaves your device.',
+    keywords: ['sql to prisma', 'sql ddl to prisma schema', 'generate prisma model from sql'],
+    icon: 'Database',
+    related: ['sql-to-drizzle', 'sql-to-typeorm', 'sql-to-sqlalchemy'],
+    status: 'live',
+    addedAt: '2026-07-26',
+  },
+  {
+    slug: 'sql-to-drizzle',
+    name: 'SQL to Drizzle Schema',
+    category: 'database',
+    description: 'Generate a Drizzle ORM schema from a SQL CREATE TABLE statement.',
+    metaTitle: 'SQL to Drizzle Schema Generator | DevFormats',
+    metaDescription: 'Generate a Drizzle ORM (pg-core) schema from a SQL CREATE TABLE statement, all in your browser. No data leaves your device.',
+    keywords: ['sql to drizzle', 'sql ddl to drizzle orm', 'generate drizzle schema from sql'],
+    icon: 'Database',
+    related: ['sql-to-prisma', 'sql-to-typeorm', 'sql-to-sqlalchemy'],
+    status: 'live',
+    addedAt: '2026-07-26',
+  },
+  {
+    slug: 'sql-to-typeorm',
+    name: 'SQL to TypeORM Entity',
+    category: 'database',
+    description: 'Generate a TypeORM entity class from a SQL CREATE TABLE statement.',
+    metaTitle: 'SQL to TypeORM Entity Generator | DevFormats',
+    metaDescription: 'Generate a TypeORM @Entity class from a SQL CREATE TABLE statement, all in your browser. No data leaves your device.',
+    keywords: ['sql to typeorm', 'sql ddl to typeorm entity', 'generate typeorm entity from sql'],
+    icon: 'Database',
+    related: ['sql-to-prisma', 'sql-to-drizzle', 'sql-to-sqlalchemy'],
+    status: 'live',
+    addedAt: '2026-07-26',
+  },
+  {
+    slug: 'sql-to-sqlalchemy',
+    name: 'SQL to SQLAlchemy Model',
+    category: 'database',
+    description: 'Generate a SQLAlchemy declarative model from a SQL CREATE TABLE statement.',
+    metaTitle: 'SQL to SQLAlchemy Model Generator | DevFormats',
+    metaDescription: 'Generate a SQLAlchemy declarative Base model from a SQL CREATE TABLE statement, all in your browser. No data leaves your device.',
+    keywords: ['sql to sqlalchemy', 'sql ddl to sqlalchemy model', 'generate sqlalchemy model from sql'],
+    icon: 'Database',
+    related: ['sql-to-prisma', 'sql-to-drizzle', 'sql-to-typeorm'],
     status: 'live',
     addedAt: '2026-07-26',
   },

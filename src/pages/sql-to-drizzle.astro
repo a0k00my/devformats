@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import SqlDdlToOrm from '../components/SqlDdlToOrm';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('sql-to-drizzle')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'Why pg-core specifically?', a: 'Postgres is the most common target for new Drizzle projects, so the generated import comes from drizzle-orm/pg-core. If you\'re on MySQL or SQLite, swap the import and a few column builder names (e.g. varchar stays similar, but some types differ) — the column options (notNull, unique, default) carry over conceptually.' },
+  { q: 'Are foreign keys wired up with .references()?', a: 'Not automatically — a foreign key column gets a plain column definition plus a comment noting the target table/column. Drizzle\'s .references() needs a direct reference to the other table\'s exported column object, which requires both schema files to exist together; wiring that up is left for you to connect.' },
+  { q: 'How does it decide between integer, bigint, and smallint?', a: 'Directly from the SQL type: INT/INTEGER/SERIAL become integer(), BIGINT/BIGSERIAL become bigint() with mode: \'number\', and SMALLINT/SMALLSERIAL become smallint() — matching Postgres\'s own type hierarchy.' },
+  { q: 'What about VARCHAR length or DECIMAL precision?', a: 'Both are preserved — VARCHAR(255) becomes varchar(\'col\', { length: 255 }) and DECIMAL(10,2) becomes numeric(\'col\', { precision: 10, scale: 2 }).' },
+];
+---
+<ToolLayout tool={tool}>
+  <SqlDdlToOrm lang="drizzle" client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

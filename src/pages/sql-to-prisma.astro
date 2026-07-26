@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import SqlDdlToOrm from '../components/SqlDdlToOrm';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('sql-to-prisma')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'Does this generate the relation fields on both sides?', a: 'No — a foreign key column becomes a scalar field with a comment noting what it references (e.g. // FK -> users.id), not a full Prisma @relation on both models. Wiring the actual relation requires deciding field/array names and cardinality that aren\'t fully determined by the DDL alone, so that\'s left for you to add.' },
+  { q: 'How are SERIAL / AUTO_INCREMENT columns handled?', a: 'Mapped to Int @id @default(autoincrement()) — Prisma\'s standard auto-incrementing primary key pattern.' },
+  { q: 'What happens to a DEFAULT CURRENT_TIMESTAMP column?', a: 'It becomes @default(now()), Prisma\'s equivalent. Other SQL default expressions (functions, computed values) aren\'t translated — only literal defaults (numbers, strings, booleans) and CURRENT_TIMESTAMP/NOW() are recognized, since guessing at an arbitrary SQL function\'s Prisma equivalent risks being silently wrong.' },
+  { q: 'Does it support multiple CREATE TABLE statements at once?', a: 'Yes — paste a whole schema dump and each table becomes its own model in the output.' },
+];
+---
+<ToolLayout tool={tool}>
+  <SqlDdlToOrm lang="prisma" client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

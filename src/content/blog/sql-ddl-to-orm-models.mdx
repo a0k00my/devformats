@@ -1,0 +1,137 @@
+---
+title: "From CREATE TABLE to ORM Model: Prisma, Drizzle, TypeORM, and SQLAlchemy"
+description: "Turn a SQL CREATE TABLE statement into a Prisma schema, Drizzle schema, TypeORM entity, or SQLAlchemy model — and what none of them can safely guess for you: relations and non-literal defaults."
+pubDate: 2026-07-26
+tags: ["sql", "orm"]
+relatedTools: ["sql-to-prisma", "sql-to-drizzle", "sql-to-typeorm", "sql-to-sqlalchemy"]
+---
+
+Hand-translating a SQL schema into an ORM's model syntax is one of those tasks that's simple in principle and easy to get subtly wrong in practice — a missed `NOT NULL`, a mistyped column length, a `SERIAL` that becomes a plain integer instead of an auto-incrementing one. Here's the same two-table schema turned into four different ORMs' native syntax, and — just as importantly — what each generator deliberately *doesn't* guess at.
+
+```sql
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE posts (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  title VARCHAR(255) NOT NULL,
+  body TEXT
+);
+```
+
+## [Prisma](/sql-to-prisma)
+
+```prisma
+model User {
+  id  Int  @id @default(autoincrement())
+  name  String
+  email  String  @unique
+  isActive  Boolean?  @default(true)
+  createdAt  DateTime?  @default(now())
+}
+
+model Post {
+  id  Int  @id @default(autoincrement())
+  userId  Int  // FK -> users.id
+  title  String
+  body  String?
+}
+```
+
+Table and column names get converted to Prisma's conventions automatically — `users` becomes the singular `User` model, `user_id` becomes camelCase `userId`. Note `isActive` is `Boolean?` (nullable) even though it has a default: in SQL, `DEFAULT` doesn't imply `NOT NULL` — a column is only non-nullable if you declared it that way explicitly, and the generator respects that distinction rather than assuming a default means required.
+
+## [Drizzle](/sql-to-drizzle)
+
+```ts
+import { sql } from 'drizzle-orm';
+import { boolean, pgTable, serial, text, timestamp, varchar, integer } from 'drizzle-orm/pg-core';
+
+export const users = pgTable('users', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 255 }).notNull(),
+  email: varchar('email', { length: 255 }).notNull().unique(),
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').default(sql`now()`),
+});
+
+export const posts = pgTable('posts', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull(), // FK -> users.id
+  title: varchar('title', { length: 255 }).notNull(),
+  body: text('body'),
+});
+```
+
+Worth calling out: `SERIAL` becomes Drizzle's `serial()` column builder specifically, not `integer()` — in Postgres, a serial column's auto-increment behavior comes from the column type itself (a sequence-backed default), so `serial()` is the correct 1:1 mapping, not `integer()` plus some separate "auto-increment" flag that doesn't exist in Drizzle's pg-core API.
+
+## [TypeORM](/sql-to-typeorm)
+
+```ts
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+
+@Entity('users')
+export class User {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ type: 'varchar', length: 255 })
+  name: string;
+
+  @Column({ type: 'varchar', length: 255, unique: true })
+  email: string;
+
+  @Column({ type: 'boolean', nullable: true, default: true })
+  isActive?: boolean;
+
+  @Column({ type: 'timestamp', nullable: true, default: () => 'CURRENT_TIMESTAMP' })
+  createdAt?: Date;
+}
+```
+
+`@PrimaryGeneratedColumn()` vs `@PrimaryColumn()` is decided by whether the column is auto-incrementing — a `SERIAL`/`AUTO_INCREMENT` primary key gets the former; a manually-assigned key (a UUID, say) gets the latter. `DEFAULT CURRENT_TIMESTAMP` becomes TypeORM's `default: () => 'CURRENT_TIMESTAMP'` syntax — a function that tells TypeORM to treat the string as a raw SQL expression rather than a literal value.
+
+## [SQLAlchemy](/sql-to-sqlalchemy)
+
+```python
+from sqlalchemy import Column, Boolean, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy.ext.declarative import declarative_base
+from datetime import datetime
+
+Base = declarative_base()
+
+
+class User(Base):
+    __tablename__ = 'users'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(255), nullable=False)
+    email = Column(String(255), nullable=False, unique=True)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class Post(Base):
+    __tablename__ = 'posts'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    title = Column(String(255), nullable=False)
+    body = Column(Text)
+```
+
+SQLAlchemy is the one ORM here where the foreign key is a plain column argument (`ForeignKey('users.id')`) rather than a separate relation object — so this is the only one of the four where the generator can wire up the FK completely inline, without leaving a comment for you to act on.
+
+## What none of these guess at
+
+Two things are deliberately left for you to fill in, rather than fabricated:
+
+- **The other side of a relation.** A foreign key column becomes a scalar field with a comment noting what it references (`// FK -> users.id`) in Prisma, Drizzle, and TypeORM — not a full `@relation`/`.references()`/`@ManyToOne`. Naming the relation, deciding its cardinality, and wiring the reverse side all require judgment calls the DDL alone doesn't answer.
+- **Non-literal SQL defaults.** Only literal values (numbers, strings, booleans) and the common `CURRENT_TIMESTAMP`/`NOW()` pattern get translated into each ORM's native default syntax. A `DEFAULT uuid_generate_v4()` or any other SQL function gets flagged with `// SQL default not translated: ...` instead of a guessed equivalent — a wrong fabricated default (like translating an unfamiliar function into the wrong Postgres extension call) is worse than a visible TODO.
+
+All four generators run entirely in your browser, and support pasting multiple `CREATE TABLE` statements at once — each becomes its own model in the output.
