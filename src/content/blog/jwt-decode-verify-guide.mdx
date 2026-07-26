@@ -1,0 +1,57 @@
+---
+title: "How to Decode and Verify a JWT (and What Auth0, Clerk, and WorkOS Actually Change)"
+description: "What's actually inside a JWT, how to decode one safely, why verification is a separate step from decoding, and how the big auth providers differ."
+pubDate: 2026-07-26
+tags: ["jwt", "auth"]
+relatedTools: ["jwt-decoder", "base64", "json-formatter"]
+---
+
+A JSON Web Token looks like gibberish — three base64url-encoded segments joined by dots — but it's just JSON underneath. Understanding what's actually inside one, and the difference between *decoding* it and *verifying* it, matters more than most tutorials let on.
+
+## What a JWT actually is
+
+A JWT is three parts separated by `.`:
+
+```
+eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0IiwibmFtZSI6IkFsaWNlIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U
+```
+
+- **Header** — algorithm and token type, e.g. `{"alg":"HS256","typ":"JWT"}`
+- **Payload** — the actual claims: user ID, expiry, roles, whatever the issuer put there
+- **Signature** — a cryptographic signature over the header+payload, proving the token wasn't tampered with
+
+Header and payload are just base64url-encoded JSON — paste either segment into our [Base64](/base64) decoder and you'll get readable JSON back. That's why you should **never put secrets in a JWT payload**: anyone holding the token can read it instantly, signature or not.
+
+## Decoding vs. verifying — these are not the same step
+
+This trips up almost everyone the first time:
+
+- **Decoding** just base64-decodes the header and payload so you can read the claims. It requires no key and proves nothing about authenticity.
+- **Verifying** recomputes the signature using the issuer's public key (or shared secret, for `HS256`) and confirms it matches. This is the only step that proves the token is genuine and unmodified.
+
+Our [JWT Decoder](/jwt-decoder) shows you the decoded header and payload instantly, entirely client-side — useful for debugging what's in a token during development. It is **not** a substitute for signature verification in your backend, which must happen server-side against the actual signing key.
+
+## Claims worth checking every time
+
+- `exp` (expiry) — a Unix timestamp; if it's in the past, the token is dead regardless of signature validity
+- `iat` (issued at) and `nbf` (not before) — clock-skew bugs between services often show up here
+- `iss` (issuer) and `aud` (audience) — verify these match what you expect, not just that the signature is valid; a validly-signed token from the wrong issuer or meant for a different audience should still be rejected
+
+## How Auth0, Clerk, and WorkOS differ in practice
+
+All three issue standard JWTs — the token format itself isn't the differentiator. Where they actually diverge:
+
+**Auth0** — the most mature, most configurable option. Rules/Actions let you customize the token payload extensively. Best fit if you need fine-grained control over claims, multiple identity providers, or enterprise SSO (SAML) alongside modern OAuth. The tradeoff is a steeper dashboard and more moving parts to configure correctly.
+
+**Clerk** — built specifically for modern frontend frameworks (Next.js, Remix). Ships pre-built React components for sign-in/sign-up UI, which is the fastest path if you're starting from zero and don't want to hand-roll auth screens. Session tokens are short-lived JWTs by design, refreshed automatically by their SDK.
+
+**WorkOS** — aimed squarely at B2B SaaS: SSO, SCIM directory sync, and audit logs are first-class, not add-ons. If your product sells to companies that require "log in with our Okta/Azure AD," WorkOS's SSO API is built for exactly that handshake without you implementing SAML yourself.
+
+The short version: Clerk for fastest time-to-ship on a consumer/prosumer app, Auth0 for maximum flexibility, WorkOS if enterprise SSO is a sales requirement from day one.
+
+## A quick safety checklist
+
+1. Never decode a JWT in a browser and trust its claims for an authorization decision — that check belongs server-side, post-verification.
+2. Always check `exp` even after signature verification — a valid signature on an expired token is still a rejected token.
+3. Pin the expected `alg` — don't accept `alg: none` or let an attacker downgrade the algorithm; this was a real, exploited class of vulnerability in early JWT libraries.
+4. Keep payload data non-sensitive; anyone can read it via the [JWT Decoder](/jwt-decoder) or the [Base64](/base64) tool without any key at all.

@@ -1,0 +1,60 @@
+---
+title: "How to Pretty-Print JSON in Python (json.dumps, and When to Skip the Code Entirely)"
+description: "Three ways to format JSON in Python — json.dumps with indent, the built-in json.tool CLI, and pandas — plus when a browser tool is just faster."
+pubDate: 2026-07-26
+tags: ["json", "python"]
+relatedTools: ["json-formatter", "json-validator", "python-dataclass-generator"]
+---
+
+If you're staring at a minified JSON blob in a Python REPL or a log file, here are the actual ways to format it — from fastest to most involved.
+
+## Option 1: `json.dumps` with `indent`
+
+The standard library handles this with no extra dependencies:
+
+```python
+import json
+
+data = json.loads(raw_json_string)
+print(json.dumps(data, indent=2))
+```
+
+`indent=2` (or `4`, to taste) is what triggers pretty-printing — omit it and `dumps` produces the same compact single-line output as the input. Two options worth knowing:
+
+- `sort_keys=True` — alphabetizes object keys, useful for diffing two JSON documents that should be structurally identical but were generated in different key order
+- `ensure_ascii=False` — by default, `json.dumps` escapes all non-ASCII characters as `\uXXXX` sequences; setting this to `False` keeps Unicode characters (names, emoji, non-English text) readable in the output instead of escaped
+
+## Option 2: the `json.tool` CLI — no Python code at all
+
+For a file or piped input, you don't need to write a script:
+
+```bash
+python -m json.tool input.json
+python -m json.tool input.json output.json   # write to a file instead of stdout
+cat data.json | python -m json.tool
+```
+
+This is the fastest option when you're already in a terminal and just need to eyeball a file's structure — no editor, no script, one command.
+
+## Option 3: pandas, if you're already working with tabular JSON
+
+If the JSON is an array of flat-ish records (the common API-response shape), `pandas.json_normalize` flattens nested structures into a DataFrame, which is often more useful than pretty-printed text when you actually need to *inspect* the data rather than just read it:
+
+```python
+import pandas as pd
+df = pd.json_normalize(data)
+print(df)
+```
+
+This is overkill for a one-off formatting task, but the right tool if you're about to analyze the data anyway (filtering, aggregating, exporting to CSV).
+
+## When writing code is the wrong move
+
+If you just need to *read* a blob of JSON right now — no script, no terminal, no import — paste it into the [JSON Formatter](/json-formatter) instead. It formats instantly, runs entirely client-side (nothing you paste is uploaded), and if the JSON is actually malformed it'll point at the exact line and explain what's wrong — which `json.dumps` won't do for you; a malformed string just throws `json.decoder.JSONDecodeError` with a position offset you'd have to count characters to locate.
+
+Two related jumps from there:
+
+- If you need to confirm structure or types rather than just formatting, [JSON Validator](/json-validator) checks against a schema and flags what's actually wrong, not just that it failed to parse.
+- If the end goal is a typed Python class instead of a plain dict, [Python Dataclass Generator](/python-dataclass-generator) turns a JSON sample straight into a `@dataclass` definition, so you're not hand-writing field names and guessing at types.
+
+The short rule of thumb: reach for `json.dumps(..., indent=2)` when formatting is one step in a larger script you're already writing; reach for a browser tool when formatting *is* the whole task.

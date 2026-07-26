@@ -1,0 +1,39 @@
+---
+title: "Base64 Encoding Explained: When (and When Not) to Use It"
+description: "What Base64 actually does, why it makes data 33% larger, and the difference between encoding and encryption that trips up a lot of developers."
+pubDate: 2026-07-26
+tags: ["encoding", "base64"]
+relatedTools: ["base64", "jwt-decoder", "url-encode"]
+---
+
+Base64 shows up everywhere — email attachments, data URIs, JWT segments, Basic Auth headers — but it's one of the most commonly misunderstood pieces of everyday encoding. Here's what it's actually for.
+
+## What Base64 does
+
+Base64 converts arbitrary binary data into a string using only 64 printable ASCII characters (`A–Z`, `a–z`, `0–9`, `+`, `/`, with `=` for padding). It exists because a lot of transport systems — email (SMTP), URLs, JSON, XML — were designed to safely carry text, not arbitrary bytes. Bytes with values that collide with control characters, or that aren't valid in a given text encoding, would corrupt or truncate the data in transit. Base64 sidesteps that entirely by only ever emitting safe, printable characters.
+
+Run any string or file through our [Base64](/base64) tool to see the transform directly — it's fully reversible and entirely local to your browser.
+
+## It is not compression, and it's not encryption
+
+Two misconceptions come up constantly:
+
+**It doesn't shrink data — it grows it.** Base64 encodes 3 bytes of input as 4 characters of output, so encoded data is roughly **33% larger** than the original. If you're embedding a 2MB image as a Base64 data URI, you're shipping ~2.7MB. This matters for anyone tempted to inline large assets to save an HTTP request — the byte-size cost is real and often outweighs the request-count savings.
+
+**It provides zero confidentiality.** Base64 is an encoding, not a cipher — there's no key, and decoding is just running the reverse transform, something any tool (including ours) does instantly with no secret involved. Basic Auth headers (`Authorization: Basic <base64>`) are a classic example: the base64 blob is just `username:password` encoded, trivially reversible by anyone who intercepts it. Basic Auth is only safe over HTTPS, where TLS — not the base64 layer — is doing the actual protection. If you see "we encode it in Base64" offered as a security measure anywhere, that's a red flag, not a safeguard.
+
+## Where it's actually the right tool
+
+- **Data URIs** — embedding small images/fonts directly in CSS or HTML (`data:image/png;base64,...`) to avoid an extra network round-trip, when the size tradeoff favors it (small icons, not large photos)
+- **JWTs** — the header and payload segments are base64url-encoded JSON (see our [JWT Decoder](/jwt-decoder) breakdown) — again, for safe transport in a URL/header context, not for secrecy
+- **Email attachments (MIME)** — SMTP is a 7-bit text protocol at its core; attachments are base64-encoded so binary files survive the trip
+- **Embedding binary in JSON/XML** — since JSON strings can't contain raw binary safely, binary payloads (small images, encrypted blobs, signatures) are often base64-encoded as a string field
+
+## Base64 vs URL encoding — a common mix-up
+
+These solve different problems and are often confused because both "encode" text into a safe form:
+
+- **Base64** handles arbitrary binary → safe-for-text-protocols. Output uses `+`, `/`, `=`, which are *not* URL-safe as-is (there's a separate "base64url" variant that swaps those characters for `-` and `_` to fix this).
+- **[URL Encoding](/url-encode)** (percent-encoding) handles text → safe-for-URLs specifically, escaping characters like spaces, `&`, `?`, and `#` that have special meaning in a URL.
+
+If you're putting a base64 string into a query parameter, you generally want the base64url variant rather than layering standard percent-encoding on top of standard Base64's `+`/`/` characters — it avoids double-escaping headaches and keeps the result shorter.

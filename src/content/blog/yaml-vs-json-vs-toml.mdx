@@ -1,0 +1,72 @@
+---
+title: "YAML vs JSON vs TOML: Which Config Format Should You Actually Use?"
+description: "A practical comparison of YAML, JSON, and TOML — where each one shines, where each one bites you, and which to reach for in a new project."
+pubDate: 2026-07-26
+tags: ["yaml", "json", "config"]
+relatedTools: ["yaml-formatter", "json-formatter", "json-to-yaml", "yaml-to-json"]
+---
+
+Every new project eventually asks: what format do the config files go in? All three of these can represent the same data — the difference is entirely in ergonomics, tooling, and how easy it is to shoot yourself in the foot.
+
+## The same data, three ways
+
+```json
+{
+  "name": "devformats",
+  "port": 8080,
+  "features": ["formatter", "validator", "diff"]
+}
+```
+
+```yaml
+name: devformats
+port: 8080
+features:
+  - formatter
+  - validator
+  - diff
+```
+
+```toml
+name = "devformats"
+port = 8080
+features = ["formatter", "validator", "diff"]
+```
+
+Structurally identical. The differences that matter show up as the config grows.
+
+## JSON: the strict, unambiguous baseline
+
+JSON has no comments, no trailing commas, and exactly one way to write anything — which is precisely why it's the universal interchange format. Every language parses it identically; there's no whitespace sensitivity, no implicit type coercion. The cost is verbosity (`{`, `}`, `"` everywhere) and the total lack of comments, which makes hand-edited JSON config files annoying to maintain — you can't leave a note explaining *why* a value is set the way it is.
+
+**Use it for**: API payloads, data interchange between services, anything machine-generated that a human rarely hand-edits.
+
+## YAML: readable, but full of sharp edges
+
+YAML strips the punctuation and uses indentation instead, which makes well-formed YAML genuinely pleasant to read. It also supports comments (`#`), multi-line strings, and anchors/references for de-duplicating repeated blocks — all things JSON can't do.
+
+The sharp edges are real, though:
+
+- **The Norway problem**: unquoted `no` parses as the boolean `false` in YAML 1.1 (the version most parsers implement), not the string `"no"`. Same for `yes`/`on`/`off`. This has broken real production configs where a country code or a string value collided with YAML's boolean keywords.
+- **Whitespace sensitivity**: mixing tabs and spaces, or getting indentation off by one space, silently changes structure rather than throwing a clear syntax error in many cases.
+- **Ambiguous number parsing**: `1.20` might parse as a float and drop the trailing zero when re-serialized, which matters for version strings.
+
+Run anything suspicious through [YAML Formatter](/yaml-formatter) or [YAML to JSON](/yaml-to-json) before trusting it — seeing the parsed JSON output immediately reveals whether a value was coerced to a type you didn't intend.
+
+**Use it for**: CI/CD pipelines (GitHub Actions, GitLab CI), Kubernetes manifests, Docker Compose, Ansible — anywhere the ecosystem has already standardized on YAML and you need comments in the config.
+
+## TOML: boring on purpose, and that's the point
+
+TOML was designed explicitly to be "obvious," trading YAML's flexibility for a smaller, less ambiguous grammar. Every value has an explicit, unambiguous type — no Norway problem, no indentation-as-syntax. It reads like an INI file with real data types and native support for nested tables and arrays.
+
+The tradeoff is TOML doesn't scale as gracefully to deeply nested structures — representing YAML's easy anchors/references or JSON's arbitrary nesting gets more verbose in TOML's table syntax. It's also younger and has narrower tooling support outside its home ecosystems.
+
+**Use it for**: `Cargo.toml` (Rust), `pyproject.toml` (Python) — its home turf — and any config where you want minimal ambiguity and don't need deep nesting.
+
+## The practical decision
+
+- **Data going over the wire between programs** → JSON. Always. No exceptions worth making.
+- **Human-edited config with comments, in an ecosystem that already uses it** (CI, Kubernetes) → YAML, but validate it — don't trust hand-edited YAML blind.
+- **Human-edited config for a tool that defines its own format** (Rust, Python packaging) → TOML, and just follow that ecosystem's convention.
+
+If you're moving data between the three, [JSON to YAML](/json-to-yaml) and [YAML to JSON](/yaml-to-json) handle the conversion — and running the result through [JSON Formatter](/json-formatter) is the fastest way to confirm a YAML file parsed the way you expected, type coercion included.
