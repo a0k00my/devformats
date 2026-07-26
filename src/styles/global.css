@@ -196,11 +196,13 @@ html.light {
   .reveal-stagger.is-visible > *:nth-child(5) { transition-delay: 240ms; }
   .reveal-stagger.is-visible > *:nth-child(n+6) { transition-delay: 280ms; }
 
-  /* Slow, subtle hero glow pulse — never distracting */
+  /* Slow, subtle hero glow pulse — never distracting. Only scale is
+     animated; opacity is left to the element's own inline style so the
+     base intensity set per-blob isn't clobbered by the keyframe. */
   .hero-glow { animation: hero-glow-pulse 6s ease-in-out infinite; }
   @keyframes hero-glow-pulse {
-    0%, 100% { opacity: 0.5; transform: scale(1); }
-    50% { opacity: 0.8; transform: scale(1.08); }
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
   }
 }
 
@@ -227,8 +229,55 @@ html.light {
 
 .df-card-icon {
   position: relative;
-  background: linear-gradient(135deg, var(--accent-bg), var(--accent-border));
-  box-shadow: 0 0 0 3px var(--accent-bg);
+  background: linear-gradient(135deg, var(--card-accent-bg, var(--accent-bg)), var(--card-accent-border, var(--accent-border)));
+  box-shadow: 0 0 0 3px var(--card-accent-bg, var(--accent-bg));
+  color: var(--card-accent, var(--accent)) !important;
+}
+.df-card::before {
+  background: linear-gradient(90deg, var(--card-accent, var(--accent)), transparent 85%);
+}
+.df-card:hover {
+  border-color: var(--card-accent-border, var(--accent-border)) !important;
+}
+
+/* ── Card color themes — cycled per card so tool/category grids read as
+   a lively, varied set rather than one repeated accent. Values are tuned
+   to hold up on both light and dark surfaces. ── */
+.card-teal   { --card-accent: #2dd4bf; --card-accent-bg: rgba(45,212,191,0.14); --card-accent-border: rgba(45,212,191,0.35); }
+.card-blue   { --card-accent: #60a5fa; --card-accent-bg: rgba(96,165,250,0.14); --card-accent-border: rgba(96,165,250,0.35); }
+.card-purple { --card-accent: #a78bfa; --card-accent-bg: rgba(167,139,250,0.14); --card-accent-border: rgba(167,139,250,0.35); }
+.card-amber  { --card-accent: #fbbf24; --card-accent-bg: rgba(251,191,36,0.14); --card-accent-border: rgba(251,191,36,0.35); }
+.card-rose   { --card-accent: #fb7185; --card-accent-bg: rgba(251,113,133,0.14); --card-accent-border: rgba(251,113,133,0.35); }
+.card-emerald{ --card-accent: #34d399; --card-accent-bg: rgba(52,211,153,0.14); --card-accent-border: rgba(52,211,153,0.35); }
+
+/* ── Big feature/stat surfaces for the homepage hero area ── */
+.gradient-text {
+  background: linear-gradient(120deg, var(--accent), #60a5fa 55%, #a78bfa);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  border: 1px solid var(--accent-border);
+  background: var(--accent-bg);
+  color: var(--accent);
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.stat-item {
+  text-align: center;
+}
+.stat-num {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-weight: 700;
+  font-size: 1.9rem;
+  letter-spacing: -0.02em;
+  color: var(--fg);
 }
 
 /* ── Copy-success pop: brief scale-bounce on the button when a copy

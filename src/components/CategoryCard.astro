@@ -10,22 +10,26 @@ const { category } = Astro.props;
 const meta = CATEGORY_META[category];
 const count = getToolsByCategory(category).length;
 const Icon = (icons as any)[meta.icon] ?? icons.Folder;
+
+const VARIANTS = ['card-blue', 'card-purple', 'card-teal', 'card-rose', 'card-amber', 'card-emerald'];
+const hash = category.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+const variant = VARIANTS[hash % VARIANTS.length];
 ---
 <a
   href={`/${category}`}
-  class="df-card group flex flex-col gap-3 rounded-lg border p-5 transition-all duration-200 ease-out hover:-translate-y-0.5"
+  class={`df-card ${variant} group flex flex-col gap-4 rounded-xl border p-6 transition-all duration-200 ease-out hover:-translate-y-1`}
   style="border-color:var(--border)"
-  onmouseover="this.style.borderColor='var(--accent-border)';this.style.boxShadow='var(--shadow-md)'"
+  onmouseover="this.style.boxShadow='var(--shadow-md)'"
   onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='var(--shadow-sm)'"
 >
   <div class="flex items-center justify-between">
-    <span class="df-card-icon flex h-10 w-10 items-center justify-center rounded-lg transition-transform duration-200 ease-out group-hover:scale-110" style="color:var(--accent)">
-      <Icon size={20} />
+    <span class="df-card-icon flex h-12 w-12 items-center justify-center rounded-lg transition-transform duration-200 ease-out group-hover:scale-110">
+      <Icon size={22} />
     </span>
-    <span class="font-mono text-[11px]" style="color:var(--fg-subtle)">{count} {count === 1 ? 'tool' : 'tools'}</span>
+    <span class="rounded-full px-2.5 py-1 font-mono text-[11px] font-medium" style="background:var(--bg-muted);color:var(--fg-subtle)">{count} {count === 1 ? 'tool' : 'tools'}</span>
   </div>
   <div>
-    <div class="text-sm font-semibold" style="color:var(--fg)">{meta.name}</div>
-    <p class="mt-1 text-xs leading-relaxed" style="color:var(--fg-muted)">{meta.description}</p>
+    <div class="text-base font-semibold" style="color:var(--fg)">{meta.name}</div>
+    <p class="mt-1.5 text-sm leading-relaxed" style="color:var(--fg-muted)">{meta.description}</p>
   </div>
 </a>

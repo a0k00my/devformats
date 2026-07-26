@@ -7,22 +7,26 @@ interface Props {
 }
 const { tool } = Astro.props;
 const Icon = (icons as any)[tool.icon] ?? icons.FileQuestion;
+
+const VARIANTS = ['card-teal', 'card-blue', 'card-purple', 'card-amber', 'card-rose', 'card-emerald'];
+const hash = tool.slug.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+const variant = VARIANTS[hash % VARIANTS.length];
 ---
 <a
   href={tool.status === 'live' ? `/${tool.slug}` : '#'}
   aria-disabled={tool.status !== 'live'}
-  class="df-card group flex flex-col gap-2 rounded-lg border p-4 transition-all duration-200 ease-out hover:-translate-y-0.5"
+  class={`df-card ${variant} group flex flex-col gap-2.5 rounded-xl border p-5 transition-all duration-200 ease-out hover:-translate-y-1`}
   style={`border-color:var(--border);${tool.status !== 'live' ? 'opacity:0.55;pointer-events:none;cursor:default' : ''}`}
-  onmouseover="this.style.borderColor='var(--accent-border)';this.style.boxShadow='var(--shadow-md)'"
+  onmouseover="this.style.boxShadow='var(--shadow-md)'"
   onmouseout="this.style.borderColor='var(--border)';this.style.boxShadow='var(--shadow-sm)'"
 >
-  <div class="flex items-center gap-2.5">
-    <span class="df-card-icon flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition-transform duration-200 ease-out group-hover:scale-110" style="color:var(--accent)">
-      <Icon size={16} />
+  <div class="flex items-center gap-3">
+    <span class="df-card-icon flex h-11 w-11 shrink-0 items-center justify-center rounded-lg transition-transform duration-200 ease-out group-hover:scale-110">
+      <Icon size={20} />
     </span>
-    <span class="text-sm font-semibold" style="color:var(--fg)">{tool.name}</span>
+    <span class="text-base font-semibold" style="color:var(--fg)">{tool.name}</span>
   </div>
-  <p class="text-xs leading-relaxed" style="color:var(--fg-muted)">{tool.description}</p>
+  <p class="text-sm leading-relaxed" style="color:var(--fg-muted)">{tool.description}</p>
   {tool.status === 'planned' && (
     <span class="mt-1 w-fit rounded-full px-2 py-0.5 font-mono text-[10px]" style="background:var(--bg-muted);color:var(--fg-subtle)">Coming soon</span>
   )}
