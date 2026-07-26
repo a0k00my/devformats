@@ -15,53 +15,75 @@ const legal = [
   { href: '/terms', label: 'Terms' },
 ];
 ---
-<footer class="border-t" style="border-color:var(--border);background:var(--bg)">
-  <div class="mx-auto max-w-[1200px] px-4 py-10">
-    <div class="mb-8 flex items-center gap-2">
-      <img src="/favicon-96x96.png" alt="DevFormats" class="h-6 w-6 rounded" />
-      <span class="text-sm font-semibold" style="color:var(--fg)">DevFormats</span>
-    </div>
-    <div class="mb-8 max-w-sm rounded-lg border px-3 py-2 text-xs" style="border-color:var(--accent-border);background:var(--accent-bg);color:var(--accent)">
-      All processing happens in your browser — nothing is ever uploaded to a server.
+<footer class="relative border-t" style="border-color:var(--border);background:var(--bg-subtle)">
+  <div class="pointer-events-none absolute inset-x-0 top-0 h-px" style="background:linear-gradient(90deg, transparent, var(--accent), transparent)"></div>
+
+  <div class="mx-auto max-w-[1200px] px-4 py-12">
+    <div class="mb-8 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <img src="/favicon-96x96.png" alt="DevFormats" class="h-7 w-7 rounded-md shadow-sm" />
+        <span class="text-sm font-semibold tracking-tight" style="color:var(--fg)">DevFormats</span>
+      </div>
+      <div class="flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs" style="border-color:var(--accent-border);background:var(--accent-bg);color:var(--accent)">
+        <span class="relative flex h-1.5 w-1.5">
+          <span class="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style="background:var(--accent)"></span>
+          <span class="relative inline-flex h-1.5 w-1.5 rounded-full" style="background:var(--accent)"></span>
+        </span>
+        All processing happens in your browser — nothing is ever uploaded
+      </div>
     </div>
 
     <div class="grid grid-cols-2 gap-8 sm:grid-cols-4">
       <div>
-        <div class="mb-3 font-mono text-[10px] uppercase tracking-wider" style="color:var(--fg-subtle)">Categories</div>
-        <ul class="space-y-1.5">
+        <div class="mb-3 font-mono text-[10px] font-semibold uppercase tracking-wider" style="color:var(--fg-subtle)">Categories</div>
+        <ul class="space-y-2">
           {categories.map(c => (
-            <li><a href={`/${c}`} class="text-xs transition-colors" style="color:var(--fg-muted)">{CATEGORY_META[c].name}</a></li>
+            <li><a href={`/${c}`} class="footer-link text-xs" style="color:var(--fg-muted)">{CATEGORY_META[c].name}</a></li>
           ))}
         </ul>
       </div>
       <div>
-        <div class="mb-3 font-mono text-[10px] uppercase tracking-wider" style="color:var(--fg-subtle)">Popular Tools</div>
-        <ul class="space-y-1.5">
+        <div class="mb-3 font-mono text-[10px] font-semibold uppercase tracking-wider" style="color:var(--fg-subtle)">Popular Tools</div>
+        <ul class="space-y-2">
           {popularTools.map(t => (
-            <li><a href={`/${t.slug}`} class="text-xs transition-colors" style="color:var(--fg-muted)">{t.name}</a></li>
+            <li><a href={`/${t.slug}`} class="footer-link text-xs" style="color:var(--fg-muted)">{t.name}</a></li>
           ))}
         </ul>
       </div>
       <div>
-        <div class="mb-3 font-mono text-[10px] uppercase tracking-wider" style="color:var(--fg-subtle)">Resources</div>
-        <ul class="space-y-1.5">
+        <div class="mb-3 font-mono text-[10px] font-semibold uppercase tracking-wider" style="color:var(--fg-subtle)">Resources</div>
+        <ul class="space-y-2">
           {resources.map(r => (
-            <li><a href={r.href} class="text-xs transition-colors" style="color:var(--fg-muted)">{r.label}</a></li>
+            <li><a href={r.href} class="footer-link text-xs" style="color:var(--fg-muted)">{r.label}</a></li>
           ))}
         </ul>
       </div>
       <div>
-        <div class="mb-3 font-mono text-[10px] uppercase tracking-wider" style="color:var(--fg-subtle)">Legal</div>
-        <ul class="space-y-1.5">
+        <div class="mb-3 font-mono text-[10px] font-semibold uppercase tracking-wider" style="color:var(--fg-subtle)">Legal</div>
+        <ul class="space-y-2">
           {legal.map(l => (
-            <li><a href={l.href} class="text-xs transition-colors" style="color:var(--fg-muted)">{l.label}</a></li>
+            <li><a href={l.href} class="footer-link text-xs" style="color:var(--fg-muted)">{l.label}</a></li>
           ))}
         </ul>
       </div>
     </div>
 
-    <div class="mt-8 border-t pt-4 text-[10px]" style="border-color:var(--border);color:var(--fg-subtle)">
-      © {new Date().getFullYear()} devformats.com · All processing is done locally in your browser.
+    <div class="mt-10 flex flex-col-reverse items-center justify-between gap-3 border-t pt-5 sm:flex-row" style="border-color:var(--border)">
+      <p class="text-[10px]" style="color:var(--fg-subtle)">© {new Date().getFullYear()} devformats.com · All processing is done locally in your browser.</p>
+      <p class="flex items-center gap-1.5 text-[10px]" style="color:var(--fg-subtle)">
+        Built with <span style="color:var(--accent)">♥</span> for developers
+      </p>
     </div>
   </div>
 </footer>
+
+<style>
+  .footer-link {
+    display: inline-block;
+    transition: color 0.15s ease, transform 0.15s ease;
+  }
+  .footer-link:hover {
+    color: var(--accent);
+    transform: translateX(2px);
+  }
+</style>
