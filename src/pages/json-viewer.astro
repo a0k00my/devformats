@@ -23,6 +23,58 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is JSON Viewer?</h2>
+          <p>JSON Viewer renders parsed JSON as a collapsible, syntax-highlighted tree instead of a flat wall of text — each object and array can be expanded or collapsed, and every value's path is one click away from your clipboard. It's built for exploring a large or unfamiliar payload rather than just formatting one.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>Your input is parsed with <code class="font-mono text-xs" style="color:var(--accent)">JSON.parse()</code> on every keystroke; a successful parse is handed to the <code class="font-mono text-xs" style="color:var(--accent)">JsonTree</code> component, which walks the resulting object graph and renders each key/value pair as an expandable node. A failed parse is run through a helper that converts <code class="font-mono text-xs" style="color:var(--accent)">JSON.parse</code>'s error position into a line number, which is shown both in the error bar and as a highlighted line in the input editor. Clicking a key builds its dot/bracket path (e.g. <code class="font-mono text-xs" style="color:var(--accent)">{`$.tools[0].slug`}</code>) and copies it via the Clipboard API — that's the same path syntax the JSONPath Tester consumes. The search box filters by matching your term against every key and value in the tree and highlighting hits, without collapsing or altering the rest of the structure.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Collapsible tree view with click-to-copy dot-notation paths</li>
+            <li>Live search that highlights matching keys and values</li>
+            <li>Line-accurate syntax error reporting on invalid JSON</li>
+            <li>Resizable split panel between raw input and tree, saved across visits</li>
+            <li>Load a .json file directly or start from built-in sample data</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`{
+  "name": "DevFormats",
+  "version": "2.0",
+  "tools": [
+    { "slug": "json-formatter", "category": "json" },
+    { "slug": "yaml-formatter", "category": "yaml" }
+  ],
+  "meta": { "free": true, "clientSide": true }
+}`}</pre>
+          <p>Clicking the first tool's <code class="font-mono text-xs" style="color:var(--accent)">slug</code> node in the tree copies its path:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`$.tools[0].slug`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>Any invalid JSON — a trailing comma, single-quoted strings, an unquoted key, or an unclosed bracket — stops the tree from rendering and shows a SyntaxError with the line and column where <code class="font-mono text-xs" style="color:var(--accent)">JSON.parse</code> gave up, mirrored as a highlighted line in the editor gutter. Since the tree only ever reflects successfully parsed input, there's no partial or best-effort tree for broken JSON — fix the reported line first.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Use the copied path directly as a starting point in the JSONPath Tester when you need to extract the same value programmatically across many similar documents. For very large payloads, search first to jump straight to the field you care about rather than expanding branches by hand.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Spec</h2>
+          <p><a href="https://www.rfc-editor.org/rfc/rfc8259" target="_blank" rel="noopener" class="underline" style="color:var(--accent)">RFC 8259</a> — The JSON Data Interchange Format</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

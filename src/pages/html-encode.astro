@@ -22,6 +22,48 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is HTML Encode?</h2>
+          <p>HTML Encode escapes the characters that have special meaning in HTML markup — so text containing them renders as literal text instead of being interpreted as tags or attribute boundaries. It's the standard defense against a stray <code class="font-mono text-xs" style="color:var(--accent)">{`<`}</code> or <code class="font-mono text-xs" style="color:var(--accent)">{`&`}</code> in user-supplied content breaking the page.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>The encoder runs a single regex replace, <code class="font-mono text-xs" style="color:var(--accent)">{`s.replace(/[&<>"']/g, ...)`}</code>, swapping each of five characters for its named entity: <code class="font-mono text-xs" style="color:var(--accent)">&</code> to <code class="font-mono text-xs" style="color:var(--accent)">&amp;amp;</code>, <code class="font-mono text-xs" style="color:var(--accent)">{`<`}</code> to <code class="font-mono text-xs" style="color:var(--accent)">&amp;lt;</code>, <code class="font-mono text-xs" style="color:var(--accent)">{`>`}</code> to <code class="font-mono text-xs" style="color:var(--accent)">&amp;gt;</code>, <code class="font-mono text-xs" style="color:var(--accent)">"</code> to <code class="font-mono text-xs" style="color:var(--accent)">&amp;quot;</code>, and <code class="font-mono text-xs" style="color:var(--accent)">'</code> to <code class="font-mono text-xs" style="color:var(--accent)">&amp;#39;</code>. Everything else — including non-ASCII text and emoji — passes through untouched, since only those five characters are structurally meaningful to an HTML parser.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Escapes all five HTML-significant characters: & &lt; &gt; " '</li>
+            <li>Leaves all other Unicode text untouched</li>
+            <li>Runs on keystroke or Cmd/Ctrl+Enter, entirely client-side</li>
+            <li>Copy the escaped output directly into markup or an attribute value</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input: <code class="font-mono text-xs" style="color:var(--accent)">{`<div class="tools">Fast & private</div>`}</code></p>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`&lt;div class=&quot;tools&quot;&gt;Fast &amp; private&lt;/div&gt;`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Edge cases</h2>
+          <p>Encoding text that's already entity-encoded ("double encoding") turns a literal <code class="font-mono text-xs" style="color:var(--accent)">&amp;amp;</code> into <code class="font-mono text-xs" style="color:var(--accent)">&amp;amp;amp;</code>, which then displays wrong — only encode raw, un-escaped text. Encoding is also not a substitute for a proper HTML sanitizer: it protects text nodes and attribute values from breaking markup, but it doesn't understand HTML structure, so it's the wrong tool for cleaning already-formed but untrusted HTML.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Encode at the point where dynamic text is inserted into HTML output, not earlier — encoding data before it's stored mixes presentation with content and makes the same value wrong to display anywhere that isn't HTML (a JSON API, a log file, a plain-text email). Most templating engines (JSX, Vue, Angular, Django templates) already auto-escape interpolated text, so this tool is most useful for one-off snippets, static site content, or debugging what a server actually sent.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Spec</h2>
+          <p><a href="https://html.spec.whatwg.org/multipage/named-characters.html" target="_blank" rel="noopener" class="underline" style="color:var(--accent)">WHATWG HTML — Named character references</a></p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

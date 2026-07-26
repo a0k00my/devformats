@@ -23,6 +23,59 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is YAML to JSON?</h2>
+          <p>YAML to JSON converts a YAML document into an equivalent, syntax-highlighted JSON text output — unlike YAML Parser's inspection-only tree, this produces an actual JSON file you can copy, download, or paste into another tool.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>The input is parsed with <code class="font-mono text-xs" style="color:var(--accent)">js-yaml</code>'s <code class="font-mono text-xs" style="color:var(--accent)">load()</code> and the resulting value is serialized with <code class="font-mono text-xs" style="color:var(--accent)">JSON.stringify(data, null, 2)</code>. Because YAML is a strict superset of JSON's data model — maps, sequences, and scalars all have direct JSON equivalents — this conversion is lossless for anything js-yaml's default schema supports, though YAML-only features like anchors/aliases are resolved to their expanded values (JSON has no alias concept) and comments are dropped entirely, since JSON has no comment syntax. On a parse failure, the thrown <code class="font-mono text-xs" style="color:var(--accent)">YAMLException</code>'s <code class="font-mono text-xs" style="color:var(--accent)">mark</code> gives an exact line and column, shown in the error bar and highlighted in the input gutter; a "dirty" indicator dot appears on the Convert button whenever you've edited the input since the last successful conversion.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Full js-yaml default schema support: nested maps/sequences, anchors/aliases, multi-line strings</li>
+            <li>Precise line/column error reporting</li>
+            <li>Dirty-state indicator when input has changed since the last conversion</li>
+            <li>Syntax-highlighted JSON output panel</li>
+            <li>Copy, download as .json, or load a .yaml/.yml file directly</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`name: DevFormats
+features:
+  - format
+  - validate
+  - minify
+free: true`}</pre>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`{
+  "name": "DevFormats",
+  "features": [
+    "format",
+    "validate",
+    "minify"
+  ],
+  "free": true
+}`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>Mixed tabs and spaces, a missing colon after a key, or an unquoted value YAML interprets as a different type than intended (e.g. a version string like <code class="font-mono text-xs" style="color:var(--accent)">2.10</code> parsed as a number, dropping the trailing zero) are the most frequent issues. The first shows up as a YAMLException with a precise line/col; the type-coercion case doesn't error at all — it just produces JSON with a value you didn't expect, so quote ambiguous scalars in the source YAML.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Quote scalar values that could be misread as booleans, numbers, or null (version strings, IDs, the literal words yes/no/on/off) before converting, since YAML's implicit typing runs before this tool ever sees the value. To go the other direction, use the JSON to YAML tool.</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

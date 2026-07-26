@@ -24,6 +24,51 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is Base64?</h2>
+          <p>Base64 turns arbitrary binary bytes into a string built only from letters, digits, <code class="font-mono text-xs" style="color:var(--accent)">+</code>, <code class="font-mono text-xs" style="color:var(--accent)">/</code>, and a trailing <code class="font-mono text-xs" style="color:var(--accent)">=</code> padding — safe to embed in JSON, XML, email bodies, or data URIs that can't carry raw bytes. This tool converts text or files to and from that representation entirely in your browser.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>Encoding first runs your text through <code class="font-mono text-xs" style="color:var(--accent)">TextEncoder</code> to get UTF-8 bytes, then groups them into chunks and calls the browser's native <code class="font-mono text-xs" style="color:var(--accent)">btoa()</code> — chunked so large inputs don't blow the call stack. Decoding reverses this with <code class="font-mono text-xs" style="color:var(--accent)">atob()</code> and <code class="font-mono text-xs" style="color:var(--accent)">TextDecoder('utf-8')</code>. Going through <code class="font-mono text-xs" style="color:var(--accent)">TextEncoder</code> first is what makes this Unicode-safe — calling <code class="font-mono text-xs" style="color:var(--accent)">btoa()</code> directly on a string throws on any character outside Latin1, so emoji or accented text would break it. The URL-safe toggle swaps <code class="font-mono text-xs" style="color:var(--accent)">+</code>/<code class="font-mono text-xs" style="color:var(--accent)">/</code> for <code class="font-mono text-xs" style="color:var(--accent)">-</code>/<code class="font-mono text-xs" style="color:var(--accent)">_</code> and strips the <code class="font-mono text-xs" style="color:var(--accent)">=</code> padding on encode, then restores both before decoding.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Encode and decode text, Unicode-safe via TextEncoder/TextDecoder</li>
+            <li>URL-safe variant (- and _ instead of + and /, no padding)</li>
+            <li>Load any file and encode its raw bytes</li>
+            <li>Download decoded output as a binary file</li>
+            <li>Clear invalid-input error instead of silent garbage</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input: <code class="font-mono text-xs" style="color:var(--accent)">{`DevFormats: JSON & Tools ✓`}</code></p>
+          <p>Output (standard Base64):</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`RGV2Rm9ybWF0czogSlNPTiAmIFRvb2xzIOKckw==`}</pre>
+          <p>Output (URL-safe, no padding):</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`RGV2Rm9ybWF0czogSlNPTiAmIFRvb2xzIOKckw`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Edge cases</h2>
+          <p>Base64 length must be a multiple of 4 once padding is included — pasting a truncated string (missing its trailing <code class="font-mono text-xs" style="color:var(--accent)">=</code> characters) makes <code class="font-mono text-xs" style="color:var(--accent)">atob()</code> throw, which this tool surfaces as "Invalid Base64 input" rather than returning corrupted text. Standard Base64 containing <code class="font-mono text-xs" style="color:var(--accent)">+</code> or <code class="font-mono text-xs" style="color:var(--accent)">/</code> will also fail to decode if you leave URL-safe mode on, since those characters aren't in the URL-safe alphabet — match the mode to how the string was produced. Encoding already-encoded output ("double encoding") is a common mistake that inflates size and produces a string that needs decoding twice to recover the original.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Use the URL-safe variant for anything going into a URL path, query string, or filename; use standard Base64 for JSON payloads, email (MIME), and data URIs where padding and <code class="font-mono text-xs" style="color:var(--accent)">+</code>/<code class="font-mono text-xs" style="color:var(--accent)">/</code> are harmless. Base64 is an encoding, not encryption — never rely on it to protect sensitive data, since decoding requires no key at all.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Spec</h2>
+          <p><a href="https://www.rfc-editor.org/rfc/rfc4648" target="_blank" rel="noopener" class="underline" style="color:var(--accent)">RFC 4648</a> — The Base16, Base32, and Base64 Data Encodings</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

@@ -23,6 +23,67 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is curl-to-PHP?</h2>
+          <p>This tool turns a curl command into a PHP script built on the <code class="font-mono text-xs" style="color:var(--accent)">curl</code> extension — <code class="font-mono text-xs" style="color:var(--accent)">curl_init</code>, <code class="font-mono text-xs" style="color:var(--accent)">curl_setopt</code>, <code class="font-mono text-xs" style="color:var(--accent)">curl_exec</code> — which ships with virtually every PHP install, so the output runs without Composer or Guzzle.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>Parsing walks the curl flags (<code class="font-mono text-xs" style="color:var(--accent)">-X</code>, <code class="font-mono text-xs" style="color:var(--accent)">-H</code>, <code class="font-mono text-xs" style="color:var(--accent)">-d</code>/--data, <code class="font-mono text-xs" style="color:var(--accent)">-F</code>/--form, <code class="font-mono text-xs" style="color:var(--accent)">-u</code>/--user, <code class="font-mono text-xs" style="color:var(--accent)">-k</code>/--insecure) into a request description, and the PHP emitter turns each field into one <code class="font-mono text-xs" style="color:var(--accent)">curl_setopt</code> call: <code class="font-mono text-xs" style="color:var(--accent)">CURLOPT_URL</code>, <code class="font-mono text-xs" style="color:var(--accent)">CURLOPT_CUSTOMREQUEST</code> for the method, <code class="font-mono text-xs" style="color:var(--accent)">CURLOPT_POSTFIELDS</code> for the body, <code class="font-mono text-xs" style="color:var(--accent)">CURLOPT_HTTPHEADER</code> for headers, and <code class="font-mono text-xs" style="color:var(--accent)">CURLOPT_USERPWD</code> for Basic Auth. The request body from <code class="font-mono text-xs" style="color:var(--accent)">-d</code> is dropped into <code class="font-mono text-xs" style="color:var(--accent)">CURLOPT_POSTFIELDS</code> as a raw PHP string literal, exactly as curl would send it over the wire — it's never parsed and rebuilt as a PHP array, so nested JSON, unusual key ordering, or numeric formatting all survive untouched.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Uses PHP's built-in curl extension — no Guzzle or Composer dependency</li>
+            <li>Body passed through as a raw string via <code class="font-mono text-xs" style="color:var(--accent)">CURLOPT_POSTFIELDS</code></li>
+            <li><code class="font-mono text-xs" style="color:var(--accent)">-F</code> file fields (values starting with @) become <code class="font-mono text-xs" style="color:var(--accent)">CURLFile</code> objects</li>
+            <li><code class="font-mono text-xs" style="color:var(--accent)">-u</code> Basic Auth mapped to <code class="font-mono text-xs" style="color:var(--accent)">CURLOPT_USERPWD</code></li>
+            <li><code class="font-mono text-xs" style="color:var(--accent)">-k</code>/--insecure mapped to <code class="font-mono text-xs" style="color:var(--accent)">CURLOPT_SSL_VERIFYPEER</code> and <code class="font-mono text-xs" style="color:var(--accent)">CURLOPT_SSL_VERIFYHOST</code> both set false</li>
+            <li>Minimal <code class="font-mono text-xs" style="color:var(--accent)">curl_error()</code> check on failure</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input: <code class="font-mono text-xs" style="color:var(--accent)">{`curl -X POST https://api.example.com/v1/users -H "Content-Type: application/json" -H "X-Api-Key: abc123" -d '{"name":"Ada Lovelace","role":"admin"}'`}</code></p>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`<?php
+
+$ch = curl_init();
+
+curl_setopt($ch, CURLOPT_URL, 'https://api.example.com/v1/users');
+curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+curl_setopt($ch, CURLOPT_POSTFIELDS, '{"name":"Ada Lovelace","role":"admin"}');
+
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    'Content-Type: application/json',
+    'X-Api-Key: abc123',
+]);
+
+$response = curl_exec($ch);
+if ($response === false) {
+    echo curl_error($ch);
+}
+curl_close($ch);
+
+echo $response;`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>The generated script only checks the transport-level failure (<code class="font-mono text-xs" style="color:var(--accent)">curl_exec</code> returning <code class="font-mono text-xs" style="color:var(--accent)">false</code>) — it does not check the HTTP status code, so a 404 or 500 response still prints as "success" from curl's point of view. Add <code class="font-mono text-xs" style="color:var(--accent)">curl_getinfo($ch, CURLINFO_HTTP_CODE)</code> yourself if you need to branch on status. A body that's an array-like <code class="font-mono text-xs" style="color:var(--accent)">key=value&key2=value2</code> string (from multiple <code class="font-mono text-xs" style="color:var(--accent)">-d</code> flags) is still passed as one raw string, not an associative array, which changes the Content-Type curl sends by default unless you set it explicitly with <code class="font-mono text-xs" style="color:var(--accent)">-H</code>.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Always check the HTTP status alongside <code class="font-mono text-xs" style="color:var(--accent)">curl_error()</code> before trusting the response body. Never ship <code class="font-mono text-xs" style="color:var(--accent)">CURLOPT_SSL_VERIFYPEER</code> set to <code class="font-mono text-xs" style="color:var(--accent)">false</code> to production — it's only appropriate for local development against a self-signed certificate you control.</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

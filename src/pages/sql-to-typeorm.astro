@@ -23,6 +23,88 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is SQL to TypeORM?</h2>
+          <p>SQL to TypeORM converts <code class="font-mono text-xs" style="color:var(--accent)">CREATE TABLE</code> statements into TypeORM decorator-based entity classes — <code class="font-mono text-xs" style="color:var(--accent)">@Entity('table')</code> on the class, <code class="font-mono text-xs" style="color:var(--accent)">@Column({`{ ... }`})</code> on each property, with TypeScript types alongside the database column options.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>Each column gets both a database column type (for the <code class="font-mono text-xs" style="color:var(--accent)">type:</code> option — e.g. <code class="font-mono text-xs" style="color:var(--accent)">'varchar'</code>, <code class="font-mono text-xs" style="color:var(--accent)">'timestamp'</code>, <code class="font-mono text-xs" style="color:var(--accent)">'uuid'</code>) and a separate TypeScript type for the class property (<code class="font-mono text-xs" style="color:var(--accent)">string</code>, <code class="font-mono text-xs" style="color:var(--accent)">Date</code>, <code class="font-mono text-xs" style="color:var(--accent)">number</code>). A primary key that's also <code class="font-mono text-xs" style="color:var(--accent)">SERIAL</code>/<code class="font-mono text-xs" style="color:var(--accent)">AUTO_INCREMENT</code> becomes <code class="font-mono text-xs" style="color:var(--accent)">@PrimaryGeneratedColumn()</code>; a primary key without auto-increment (a UUID or manually-assigned ID) becomes <code class="font-mono text-xs" style="color:var(--accent)">@PrimaryColumn()</code> instead — TypeORM treats those as genuinely different decorators, and the generator picks correctly based on the parsed <code class="font-mono text-xs" style="color:var(--accent)">autoIncrement</code> flag. Regular columns get <code class="font-mono text-xs" style="color:var(--accent)">length</code>, <code class="font-mono text-xs" style="color:var(--accent)">nullable</code>, and <code class="font-mono text-xs" style="color:var(--accent)">unique</code> options from the parsed constraints, plus a TypeScript <code class="font-mono text-xs" style="color:var(--accent)">?</code> marker when nullable. As elsewhere in this cluster, only literal defaults and <code class="font-mono text-xs" style="color:var(--accent)">CURRENT_TIMESTAMP</code>/<code class="font-mono text-xs" style="color:var(--accent)">NOW()</code> (→ <code class="font-mono text-xs" style="color:var(--accent)">{`default: () => 'CURRENT_TIMESTAMP'`}</code>) are translated into a <code class="font-mono text-xs" style="color:var(--accent)">default:</code> option.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>One <code class="font-mono text-xs" style="color:var(--accent)">@Entity</code> class per table, fields renamed to camelCase</li>
+            <li>Correct choice between <code class="font-mono text-xs" style="color:var(--accent)">@PrimaryGeneratedColumn()</code> and <code class="font-mono text-xs" style="color:var(--accent)">@PrimaryColumn()</code> based on auto-increment</li>
+            <li>Column <code class="font-mono text-xs" style="color:var(--accent)">length</code>, <code class="font-mono text-xs" style="color:var(--accent)">nullable</code>, and <code class="font-mono text-xs" style="color:var(--accent)">unique</code> options preserved from the SQL constraints</li>
+            <li>Literal and <code class="font-mono text-xs" style="color:var(--accent)">CURRENT_TIMESTAMP</code> defaults translated; everything else left as a comment</li>
+            <li>Copy or download the generated <code class="font-mono text-xs" style="color:var(--accent)">.ts</code> entity file</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  external_id UUID DEFAULT uuid_generate_v4(),
+  name VARCHAR(255) NOT NULL,
+  is_active BOOLEAN DEFAULT true
+);
+
+CREATE TABLE posts (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  title VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);`}</pre>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+
+@Entity('users')
+export class User {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ type: 'uuid', nullable: true })
+  externalId?: string; // SQL default not translated: uuid_generate_v4()
+
+  @Column({ type: 'varchar', length: 255 })
+  name: string;
+
+  @Column({ type: 'boolean', nullable: true, default: true })
+  isActive?: boolean;
+}
+
+@Entity('posts')
+export class Post {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ type: 'int' })
+  userId: number; // FK -> users.id
+
+  @Column({ type: 'varchar', length: 255 })
+  title: string;
+
+  @Column({ type: 'timestamp', nullable: true, default: () => 'CURRENT_TIMESTAMP' })
+  createdAt?: Date;
+}`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>An unmapped <code class="font-mono text-xs" style="color:var(--accent)">DEFAULT</code> such as <code class="font-mono text-xs" style="color:var(--accent)">uuid_generate_v4()</code> is surfaced as <code class="font-mono text-xs" style="color:var(--accent)">// SQL default not translated: uuid_generate_v4()</code> rather than fabricated into a <code class="font-mono text-xs" style="color:var(--accent)">default:</code> option — add the real value yourself, e.g. <code class="font-mono text-xs" style="color:var(--accent)">{`default: () => 'uuid_generate_v4()'`}</code> if you want the database to compute it, or generate it in application code before insert. Foreign keys show up only as <code class="font-mono text-xs" style="color:var(--accent)">// FK -&gt; table.column</code> comments on a plain <code class="font-mono text-xs" style="color:var(--accent)">@Column()</code> — TypeORM's <code class="font-mono text-xs" style="color:var(--accent)">@ManyToOne</code>/<code class="font-mono text-xs" style="color:var(--accent)">@OneToMany</code> decorators need an import of the related entity class and a decision about the relation's property name and cardinality, none of which the raw DDL determines on its own, so they're intentionally left out.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Search the generated file for <code class="font-mono text-xs" style="color:var(--accent)">not translated</code> and <code class="font-mono text-xs" style="color:var(--accent)">FK -&gt;</code> before wiring the entities into a <code class="font-mono text-xs" style="color:var(--accent)">DataSource</code>, then add the corresponding <code class="font-mono text-xs" style="color:var(--accent)">@ManyToOne</code>/<code class="font-mono text-xs" style="color:var(--accent)">@JoinColumn</code> pair for each flagged foreign key. Run <code class="font-mono text-xs" style="color:var(--accent)">typeorm-ts-node-commonjs schema:log</code> (or your migration tool) against the entities to confirm the generated schema matches the source table before syncing.</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

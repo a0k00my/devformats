@@ -24,6 +24,57 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is JSON to TypeScript?</h2>
+          <p>This tool converts a JSON sample into one or more TypeScript <code class="font-mono text-xs" style="color:var(--accent)">interface</code> declarations. Instead of hand-writing types for an API response or config file, you paste real JSON and get back the matching shape, including separate interfaces for every nested object it finds.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>The converter walks the JSON value tree once, inferring a type node for every key: strings, numbers, booleans, arrays (typed from their first element), and nested objects (each given its own PascalCase name derived from its key). It then emits one <code class="font-mono text-xs" style="color:var(--accent)">interface</code> per object node, printing child interfaces before the parents that reference them so the output reads top-down without forward references. A field whose sample value was <code class="font-mono text-xs" style="color:var(--accent)">null</code> is marked optional with <code class="font-mono text-xs" style="color:var(--accent)">?</code> and typed as <code class="font-mono text-xs" style="color:var(--accent)">unknown</code> rather than guessed at.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Nested objects become separate, named <code class="font-mono text-xs" style="color:var(--accent)">interface</code> declarations instead of one deeply-nested inline type</li>
+            <li>Arrays are typed as <code class="font-mono text-xs" style="color:var(--accent)">T[]</code> using the inferred element type</li>
+            <li>Non-identifier keys (e.g. containing spaces or dashes) are quoted automatically so the interface stays valid</li>
+            <li>Nullable sample values are typed <code class="font-mono text-xs" style="color:var(--accent)">unknown</code> and marked optional rather than forced into a guessed type</li>
+            <li>Runs entirely client-side — nothing you paste is uploaded</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input: <code class="font-mono text-xs" style="color:var(--accent)">{`{ "id": 101, "username": "alice_dev", "isActive": true, "signupBonus": null, "address": { "city": "Berlin", "zipCode": "10115" }, "tags": ["admin", "beta"] }`}</code></p>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`export interface Address {
+  city: string;
+  zipCode: string;
+}
+
+export interface Root {
+  id: number;
+  username: string;
+  isActive: boolean;
+  signupBonus?: unknown;
+  address: Address;
+  tags: string[];
+}`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>Invalid JSON (trailing commas, unquoted keys) is caught before conversion and reported with a line number. Because the tool infers types from one sample, an array whose real-world elements vary in shape won't produce a union — pass a representative element, or widen the field type by hand afterward. Empty arrays have no element to infer from and fall back to <code class="font-mono text-xs" style="color:var(--accent)">unknown[]</code>.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Prefer <code class="font-mono text-xs" style="color:var(--accent)">unknown</code> over widening to <code class="font-mono text-xs" style="color:var(--accent)">any</code> for fields the tool couldn't infer — it forces you to narrow the type before use instead of silently disabling type checking. Feed the tool a JSON sample that already includes at least one non-null value for every field so optionality and element types come out accurate, then adjust manually for fields that are truly optional versus merely null in your sample.</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

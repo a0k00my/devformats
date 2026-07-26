@@ -23,6 +23,80 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is curl-to-Postman?</h2>
+          <p>This tool converts a curl command into a Postman Collection v2.1 JSON document — the exact schema Postman's own "Import" dialog reads — so you can paste a curl snippet from API docs or browser devtools straight into a shareable, runnable Postman request.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>After parsing the curl flags into method, url, headers, body, form, and auth, the generator builds a collection object with one <code class="font-mono text-xs" style="color:var(--accent)">item</code> containing a <code class="font-mono text-xs" style="color:var(--accent)">request</code>. The URL is split into its parts using the browser's built-in <code class="font-mono text-xs" style="color:var(--accent)">URL</code> parser — protocol, host (as an array of dot-separated labels), path segments, and query parameters — wrapped in a try/catch: if the curl command's URL isn't a full absolute URL (missing a scheme, for instance), parsing throws and the generator falls back to a bare <code class="font-mono text-xs" style="color:var(--accent)">raw</code> string field instead of guessing at a split. A JSON-shaped <code class="font-mono text-xs" style="color:var(--accent)">-d</code> body becomes <code class="font-mono text-xs" style="color:var(--accent)">{`{ mode: 'raw', raw: <body>, options: { raw: { language: 'json' } } }`}</code> (detected by a leading <code class="font-mono text-xs" style="color:var(--accent)">{`{`}</code> or <code class="font-mono text-xs" style="color:var(--accent)">{`[`}</code>), while <code class="font-mono text-xs" style="color:var(--accent)">-F</code> form fields become a <code class="font-mono text-xs" style="color:var(--accent)">formdata</code> body mode. <code class="font-mono text-xs" style="color:var(--accent)">-u user:pass</code> becomes an <code class="font-mono text-xs" style="color:var(--accent)">auth: {`{ type: 'basic' }`}</code> block with the username/password already filled in.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Outputs a complete Postman Collection v2.1 JSON file, ready for Postman's Import button</li>
+            <li>URL correctly split into protocol/host/path/query when it's a full absolute URL</li>
+            <li>JSON bodies auto-tagged with <code class="font-mono text-xs" style="color:var(--accent)">language: 'json'</code> for Postman's syntax highlighting</li>
+            <li><code class="font-mono text-xs" style="color:var(--accent)">-F</code> file fields marked <code class="font-mono text-xs" style="color:var(--accent)">type: 'file'</code> so Postman prompts for the actual file on send</li>
+            <li><code class="font-mono text-xs" style="color:var(--accent)">-u</code> Basic Auth pre-filled into the collection's <code class="font-mono text-xs" style="color:var(--accent)">auth</code> block</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input: <code class="font-mono text-xs" style="color:var(--accent)">{`curl -X POST https://api.example.com/v1/login -H "Content-Type: application/json" -u admin:s3cret -d '{"username":"admin","remember":true}'`}</code></p>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`{
+  "info": {
+    "name": "POST https://api.example.com/v1/login",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "POST https://api.example.com/v1/login",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\\"username\\":\\"admin\\",\\"remember\\":true}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "auth": {
+          "type": "basic",
+          "basic": [
+            { "key": "username", "value": "admin", "type": "string" },
+            { "key": "password", "value": "s3cret", "type": "string" }
+          ]
+        },
+        "url": {
+          "raw": "https://api.example.com/v1/login",
+          "protocol": "https",
+          "host": ["api", "example", "com"],
+          "path": ["v1", "login"]
+        }
+      },
+      "response": []
+    }
+  ]
+}`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>If the curl command's URL has no scheme (e.g. it starts with just a hostname or an environment-variable placeholder), the URL parser can't split it and the collection's <code class="font-mono text-xs" style="color:var(--accent)">url</code> field falls back to a bare <code class="font-mono text-xs" style="color:var(--accent)">raw</code> string with no host/path/query breakdown — Postman still imports it, but variable substitution UI (host/path highlighting) won't kick in until you fix the URL. Query string parameters passed via <code class="font-mono text-xs" style="color:var(--accent)">-G</code> are folded into the URL before parsing, so they still show up correctly in the <code class="font-mono text-xs" style="color:var(--accent)">query</code> array.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Save the output as a <code class="font-mono text-xs" style="color:var(--accent)">.json</code> file and use Postman's File → Import rather than pasting into the request builder by hand, so the collection metadata (name, schema version) is preserved. For requests with credentials, consider replacing the hardcoded <code class="font-mono text-xs" style="color:var(--accent)">auth</code> values with a Postman environment variable after import, rather than committing secrets into a shared collection.</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

@@ -23,6 +23,62 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is curl-to-Python?</h2>
+          <p>This tool converts a curl command into a Python script using the <code class="font-mono text-xs" style="color:var(--accent)">requests</code> library — the de facto standard HTTP client for Python, whose <code class="font-mono text-xs" style="color:var(--accent)">headers</code>, <code class="font-mono text-xs" style="color:var(--accent)">data</code>, <code class="font-mono text-xs" style="color:var(--accent)">auth</code>, and <code class="font-mono text-xs" style="color:var(--accent)">files</code> parameters map almost one-to-one onto curl's own flags.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>The parser walks the curl command's tokens — respecting quoted strings — and builds a structured description of the request: method, url, headers, a raw data string, form fields split into file vs. non-file, an optional Basic Auth pair, and the insecure flag. The Python emitter turns that into a single <code class="font-mono text-xs" style="color:var(--accent)">requests.request(...)</code> call. Headers become a <code class="font-mono text-xs" style="color:var(--accent)">headers</code> dict; <code class="font-mono text-xs" style="color:var(--accent)">-u user:pass</code> becomes <code class="font-mono text-xs" style="color:var(--accent)">auth=(user, pass)</code>, which requests turns into an HTTP Basic Authorization header automatically. Critically, a <code class="font-mono text-xs" style="color:var(--accent)">-d</code>/--data body is assigned to a Python string and passed as <code class="font-mono text-xs" style="color:var(--accent)">data=data</code> rather than being <code class="font-mono text-xs" style="color:var(--accent)">json.loads</code>'d into a dict and passed as <code class="font-mono text-xs" style="color:var(--accent)">json=...</code> — that keeps the exact bytes curl would send (key order, whitespace, number formatting) instead of risking requests re-serializing the payload differently.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Targets the <code class="font-mono text-xs" style="color:var(--accent)">requests</code> library — one <code class="font-mono text-xs" style="color:var(--accent)">pip install requests</code> away from running</li>
+            <li>Body passed through as a raw string, never re-parsed as JSON</li>
+            <li><code class="font-mono text-xs" style="color:var(--accent)">-F</code>/--form fields split into a <code class="font-mono text-xs" style="color:var(--accent)">data</code> dict (text fields) and a <code class="font-mono text-xs" style="color:var(--accent)">files</code> dict using <code class="font-mono text-xs" style="color:var(--accent)">open(path, 'rb')</code> (file fields)</li>
+            <li><code class="font-mono text-xs" style="color:var(--accent)">-u</code> Basic Auth mapped to <code class="font-mono text-xs" style="color:var(--accent)">auth=(user, pass)</code></li>
+            <li><code class="font-mono text-xs" style="color:var(--accent)">-k</code>/--insecure mapped to <code class="font-mono text-xs" style="color:var(--accent)">verify=False</code></li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input: <code class="font-mono text-xs" style="color:var(--accent)">{`curl -X POST https://api.example.com/v1/users -H "Content-Type: application/json" -H "X-Api-Key: abc123" -d '{"name":"Ada Lovelace","role":"admin"}'`}</code></p>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`import requests
+
+headers = {
+    'Content-Type': 'application/json',
+    'X-Api-Key': 'abc123',
+}
+
+data = '{"name":"Ada Lovelace","role":"admin"}'
+
+response = requests.request(
+    'POST',
+    'https://api.example.com/v1/users',
+    headers=headers,
+    data=data,
+)
+
+print(response.status_code)
+print(response.text)`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>Because <code class="font-mono text-xs" style="color:var(--accent)">data</code> is a raw string, requests sends it exactly as-is but does <em>not</em> automatically set a <code class="font-mono text-xs" style="color:var(--accent)">Content-Type</code> header for you the way <code class="font-mono text-xs" style="color:var(--accent)">json=...</code> would — if the original curl command didn't include a <code class="font-mono text-xs" style="color:var(--accent)">-H "Content-Type: application/json"</code>, the server may not correctly interpret a JSON-looking body. <code class="font-mono text-xs" style="color:var(--accent)">response.status_code</code> being 200 doesn't guarantee success at the application level — check the response body for API-specific error fields.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Call <code class="font-mono text-xs" style="color:var(--accent)">response.raise_for_status()</code> if you want an exception on 4xx/5xx instead of silently printing the body. Reuse a <code class="font-mono text-xs" style="color:var(--accent)">requests.Session()</code> across multiple calls to the same host to get connection pooling and cookie persistence for free, and avoid <code class="font-mono text-xs" style="color:var(--accent)">verify=False</code> outside local development against a self-signed certificate.</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

@@ -23,6 +23,73 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is SQL to Drizzle?</h2>
+          <p>SQL to Drizzle turns <code class="font-mono text-xs" style="color:var(--accent)">CREATE TABLE</code> statements into a Drizzle ORM schema file using <code class="font-mono text-xs" style="color:var(--accent)">drizzle-orm/pg-core</code> — one <code class="font-mono text-xs" style="color:var(--accent)">pgTable()</code> call per table, built from column builder functions chained with modifiers like <code class="font-mono text-xs" style="color:var(--accent)">.primaryKey()</code> and <code class="font-mono text-xs" style="color:var(--accent)">.notNull()</code>.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>Each column's SQL type picks a pg-core builder function — <code class="font-mono text-xs" style="color:var(--accent)">INTEGER</code>/<code class="font-mono text-xs" style="color:var(--accent)">SERIAL</code> → <code class="font-mono text-xs" style="color:var(--accent)">integer()</code> (or <code class="font-mono text-xs" style="color:var(--accent)">serial()</code> when auto-incrementing), <code class="font-mono text-xs" style="color:var(--accent)">VARCHAR(n)</code> → <code class="font-mono text-xs" style="color:var(--accent)">varchar('col', {`{ length: n }`})</code>, <code class="font-mono text-xs" style="color:var(--accent)">TIMESTAMP</code> → <code class="font-mono text-xs" style="color:var(--accent)">timestamp()</code>, <code class="font-mono text-xs" style="color:var(--accent)">UUID</code> → <code class="font-mono text-xs" style="color:var(--accent)">uuid()</code>, and so on — then chains <code class="font-mono text-xs" style="color:var(--accent)">.primaryKey()</code>, <code class="font-mono text-xs" style="color:var(--accent)">.notNull()</code>, and <code class="font-mono text-xs" style="color:var(--accent)">.unique()</code> based on the parsed constraints. Postgres's <code class="font-mono text-xs" style="color:var(--accent)">SERIAL</code>/<code class="font-mono text-xs" style="color:var(--accent)">BIGSERIAL</code> auto-increment is expressed purely through the column type itself (<code class="font-mono text-xs" style="color:var(--accent)">serial()</code>/<code class="font-mono text-xs" style="color:var(--accent)">bigserial()</code>), not a separate flag, matching how Postgres actually implements it as a sequence-backed default. Only literal defaults and <code class="font-mono text-xs" style="color:var(--accent)">CURRENT_TIMESTAMP</code>/<code class="font-mono text-xs" style="color:var(--accent)">NOW()</code> (translated to <code class="font-mono text-xs" style="color:var(--accent)">{`.default(sql\`now()\`)`}</code>, importing <code class="font-mono text-xs" style="color:var(--accent)">sql</code> from <code class="font-mono text-xs" style="color:var(--accent)">drizzle-orm</code> only when needed) are converted; anything else becomes a trailing comment. The import line at the top of the file is assembled dynamically from exactly the builder functions your schema actually used.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>One <code class="font-mono text-xs" style="color:var(--accent)">pgTable()</code> export per <code class="font-mono text-xs" style="color:var(--accent)">CREATE TABLE</code>, named in camelCase</li>
+            <li>Type-aware builder selection, including <code class="font-mono text-xs" style="color:var(--accent)">varchar</code> length and <code class="font-mono text-xs" style="color:var(--accent)">numeric</code> precision/scale</li>
+            <li>Auto-generated import list scoped to only the builders actually used</li>
+            <li>Literal and <code class="font-mono text-xs" style="color:var(--accent)">now()</code> defaults translated; everything else left as a comment</li>
+            <li>Copy or download the generated <code class="font-mono text-xs" style="color:var(--accent)">.ts</code> schema file</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  external_id UUID DEFAULT uuid_generate_v4(),
+  name VARCHAR(255) NOT NULL,
+  is_active BOOLEAN DEFAULT true
+);
+
+CREATE TABLE posts (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  title VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);`}</pre>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`import { sql } from 'drizzle-orm';
+import { boolean, integer, pgTable, serial, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+
+export const users = pgTable('users', {
+  id: serial('id').primaryKey(),
+  externalId: uuid('external_id'), // SQL default not translated: uuid_generate_v4()
+  name: varchar('name', { length: 255 }).notNull(),
+  isActive: boolean('is_active').default(true),
+});
+
+export const posts = pgTable('posts', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull(), // FK -> users.id
+  title: varchar('title', { length: 255 }).notNull(),
+  createdAt: timestamp('created_at').default(sql\`now()\`),
+});`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>A <code class="font-mono text-xs" style="color:var(--accent)">DEFAULT</code> the tool can't confidently translate, like <code class="font-mono text-xs" style="color:var(--accent)">uuid_generate_v4()</code>, is never guessed at — it's left as a plain <code class="font-mono text-xs" style="color:var(--accent)">// SQL default not translated: uuid_generate_v4()</code> comment next to the column so you can add <code class="font-mono text-xs" style="color:var(--accent)">{`.default(sql\`gen_random_uuid()\`)`}</code> or the equivalent yourself. Foreign keys appear only as <code class="font-mono text-xs" style="color:var(--accent)">// FK -> table.column</code> comments — Drizzle's <code class="font-mono text-xs" style="color:var(--accent)">.references(() =&gt; otherTable.column)</code> needs a live reference to the other table's exported object, which the generator can't safely construct across separate schema files, so that wiring is left to you. If you're targeting MySQL or SQLite instead of Postgres, remember the output is pg-core-specific — some builder names and options differ between dialects.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>After pasting the output into your schema file, grep for <code class="font-mono text-xs" style="color:var(--accent)">not translated</code> and <code class="font-mono text-xs" style="color:var(--accent)">FK -&gt;</code> to find every column needing manual follow-up, then run <code class="font-mono text-xs" style="color:var(--accent)">drizzle-kit generate</code> to confirm the schema compiles and produces the migration you expect before applying it.</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

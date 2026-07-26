@@ -23,6 +23,61 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is JSON to Zod?</h2>
+          <p>This tool turns a JSON sample into a <a href="https://zod.dev" class="underline" style="color:var(--accent)">Zod</a> schema — a runtime validator plus a statically-inferred TypeScript type, generated from a single declaration. It's built for validating untrusted data (API responses, form submissions, webhook payloads) where a plain TypeScript interface can't help because interfaces vanish at runtime.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>The same type-inference pass used across DevFormats' JSON converters walks the sample and builds a tree of object, array, and primitive nodes. Each nested object becomes its own <code class="font-mono text-xs" style="color:var(--accent)">z.object({`{...}`})</code> schema bound to a <code class="font-mono text-xs" style="color:var(--accent)">const NameSchema</code>, printed before any schema that references it, plus a matching <code class="font-mono text-xs" style="color:var(--accent)">export type Name = z.infer&lt;typeof NameSchema&gt;</code>. A field whose sample value was <code class="font-mono text-xs" style="color:var(--accent)">null</code> gets <code class="font-mono text-xs" style="color:var(--accent)">.nullable()</code> appended to its base schema rather than being made optional — those are different constraints in Zod, and the tool picks the one that actually matches what you observed.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Nested objects become their own named <code class="font-mono text-xs" style="color:var(--accent)">z.object()</code> schema, referenced by name from the parent</li>
+            <li>Arrays are typed with <code class="font-mono text-xs" style="color:var(--accent)">z.array(...)</code> using the inferred element schema</li>
+            <li>Each schema exports its <code class="font-mono text-xs" style="color:var(--accent)">z.infer</code>'d TypeScript type alongside it, so you get validation and types from one source</li>
+            <li>Null sample values map to <code class="font-mono text-xs" style="color:var(--accent)">.nullable()</code>, not silently dropped or widened to <code class="font-mono text-xs" style="color:var(--accent)">any</code></li>
+            <li>Non-identifier keys are safely quoted in the generated object literal</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input: <code class="font-mono text-xs" style="color:var(--accent)">{`{ "id": 101, "username": "alice_dev", "isActive": true, "signupBonus": null, "address": { "city": "Berlin", "zipCode": "10115" }, "tags": ["admin", "beta"] }`}</code></p>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`import { z } from 'zod';
+
+export const AddressSchema = z.object({
+  city: z.string(),
+  zipCode: z.string(),
+});
+export type Address = z.infer<typeof AddressSchema>;
+
+export const RootSchema = z.object({
+  id: z.number(),
+  username: z.string(),
+  isActive: z.boolean(),
+  signupBonus: z.unknown().nullable(),
+  address: AddressSchema,
+  tags: z.array(z.string()),
+});
+export type Root = z.infer<typeof RootSchema>;`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>A field the tool couldn't classify from a single sample (or one that was <code class="font-mono text-xs" style="color:var(--accent)">null</code>) becomes <code class="font-mono text-xs" style="color:var(--accent)">z.unknown()</code> — that will pass validation for anything, so tighten it manually once you know the real type. An empty array in the sample produces <code class="font-mono text-xs" style="color:var(--accent)">z.array(z.unknown())</code> since there's no element to infer from. Remember <code class="font-mono text-xs" style="color:var(--accent)">.nullable()</code> accepts <code class="font-mono text-xs" style="color:var(--accent)">null</code> but not a missing key — use <code class="font-mono text-xs" style="color:var(--accent)">.optional()</code> as well if the field can be absent entirely.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Use <code class="font-mono text-xs" style="color:var(--accent)">z.infer</code> instead of hand-writing a parallel interface, so your runtime schema and compile-time type can never drift apart. Validate at the boundary — right where the JSON enters your app (fetch response, request handler) — and let the inferred type flow inward from there instead of re-validating deeper in your code.</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

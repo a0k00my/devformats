@@ -23,6 +23,70 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is SQL to Prisma?</h2>
+          <p>SQL to Prisma reads one or more <code class="font-mono text-xs" style="color:var(--accent)">CREATE TABLE</code> statements and generates a Prisma <code class="font-mono text-xs" style="color:var(--accent)">schema.prisma</code> model block for each table — column types, primary keys, uniqueness, and defaults translated into Prisma's declarative field syntax.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>The SQL is parsed into a structured table/column model (name, type, nullability, primary key, uniqueness, auto-increment, default expression, foreign key reference), then each column is mapped through a fixed type table — <code class="font-mono text-xs" style="color:var(--accent)">INTEGER</code>/<code class="font-mono text-xs" style="color:var(--accent)">SERIAL</code> → <code class="font-mono text-xs" style="color:var(--accent)">Int</code>, <code class="font-mono text-xs" style="color:var(--accent)">VARCHAR</code>/<code class="font-mono text-xs" style="color:var(--accent)">TEXT</code> → <code class="font-mono text-xs" style="color:var(--accent)">String</code>, <code class="font-mono text-xs" style="color:var(--accent)">TIMESTAMP</code> → <code class="font-mono text-xs" style="color:var(--accent)">DateTime</code>, <code class="font-mono text-xs" style="color:var(--accent)">UUID</code> → <code class="font-mono text-xs" style="color:var(--accent)">String</code>, and so on. A primary key becomes <code class="font-mono text-xs" style="color:var(--accent)">@id</code>; <code class="font-mono text-xs" style="color:var(--accent)">SERIAL</code>/<code class="font-mono text-xs" style="color:var(--accent)">AUTO_INCREMENT</code> becomes <code class="font-mono text-xs" style="color:var(--accent)">@default(autoincrement())</code>; a nullable, non-key column gets a trailing <code class="font-mono text-xs" style="color:var(--accent)">?</code>. Only a narrow, safe set of <code class="font-mono text-xs" style="color:var(--accent)">DEFAULT</code> expressions is translated — numeric and string literals, booleans, and <code class="font-mono text-xs" style="color:var(--accent)">CURRENT_TIMESTAMP</code>/<code class="font-mono text-xs" style="color:var(--accent)">NOW()</code> (→ <code class="font-mono text-xs" style="color:var(--accent)">@default(now())</code>). Anything else — a function call, an expression, a vendor-specific default — is emitted as a plain comment instead of a guessed Prisma attribute, and foreign keys are emitted as a comment noting the referenced table/column rather than a full <code class="font-mono text-xs" style="color:var(--accent)">@relation</code>, since the relation's field name, array side, and cardinality aren't fully determined by the DDL alone.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Multiple <code class="font-mono text-xs" style="color:var(--accent)">CREATE TABLE</code> statements in one paste, each becoming its own model</li>
+            <li>snake_case columns renamed to camelCase Prisma fields</li>
+            <li>Primary key, unique, and nullable modifiers mapped to <code class="font-mono text-xs" style="color:var(--accent)">@id</code>, <code class="font-mono text-xs" style="color:var(--accent)">@unique</code>, and <code class="font-mono text-xs" style="color:var(--accent)">?</code></li>
+            <li>Literal and <code class="font-mono text-xs" style="color:var(--accent)">now()</code> defaults translated; anything else left as an honest comment</li>
+            <li>Copy or download the generated <code class="font-mono text-xs" style="color:var(--accent)">.prisma</code> file</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  external_id UUID DEFAULT uuid_generate_v4(),
+  name VARCHAR(255) NOT NULL,
+  is_active BOOLEAN DEFAULT true
+);
+
+CREATE TABLE posts (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  title VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);`}</pre>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`model User {
+  id  Int  @id @default(autoincrement())
+  externalId  String?  // SQL default not translated: uuid_generate_v4()
+  name  String
+  isActive  Boolean?  @default(true)
+}
+
+model Post {
+  id  Int  @id @default(autoincrement())
+  userId  Int  // FK -> users.id
+  title  String
+  createdAt  DateTime?  @default(now())
+}`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>An unmapped <code class="font-mono text-xs" style="color:var(--accent)">DEFAULT</code> expression like <code class="font-mono text-xs" style="color:var(--accent)">uuid_generate_v4()</code> never gets fabricated into a Prisma attribute — it's dropped in as <code class="font-mono text-xs" style="color:var(--accent)">// SQL default not translated: uuid_generate_v4()</code> so you notice and add the equivalent (often <code class="font-mono text-xs" style="color:var(--accent)">@default(uuid())</code> or <code class="font-mono text-xs" style="color:var(--accent)">@default(dbgenerated("uuid_generate_v4()"))</code>) by hand. Foreign key columns similarly surface only as <code class="font-mono text-xs" style="color:var(--accent)">// FK -> table.column</code> comments — the schema won't compile as a real relational Prisma schema until you add the matching <code class="font-mono text-xs" style="color:var(--accent)">@relation</code> fields on both models yourself. <code class="font-mono text-xs" style="color:var(--accent)">CHECK</code> constraints, generated columns, and partitioning clauses in the source SQL aren't modeled at all and are silently skipped.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Treat the output as a first draft: run <code class="font-mono text-xs" style="color:var(--accent)">prisma format</code> and <code class="font-mono text-xs" style="color:var(--accent)">prisma validate</code> after pasting it in, then search for the two comment markers (<code class="font-mono text-xs" style="color:var(--accent)">SQL default not translated</code> and <code class="font-mono text-xs" style="color:var(--accent)">FK -&gt;</code>) to find every spot that needs manual attention before you can run <code class="font-mono text-xs" style="color:var(--accent)">prisma migrate</code> or <code class="font-mono text-xs" style="color:var(--accent)">db push</code> against it.</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

@@ -22,6 +22,48 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is HTML Decode?</h2>
+          <p>HTML Decode reverses HTML entity escaping, turning references like <code class="font-mono text-xs" style="color:var(--accent)">&amp;amp;</code> or <code class="font-mono text-xs" style="color:var(--accent)">&amp;#39;</code> back into the literal characters they represent. It's useful when you've copied text out of a page's source, an API response, or an RSS feed and it still carries its escaped form.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>Rather than re-implementing the full HTML5 named-character-reference table, the decoder creates a detached <code class="font-mono text-xs" style="color:var(--accent)">{`<textarea>`}</code> element, sets its <code class="font-mono text-xs" style="color:var(--accent)">innerHTML</code> to your input, and reads back <code class="font-mono text-xs" style="color:var(--accent)">.value</code>. A textarea's content is always treated as plain text by the browser, so setting its <code class="font-mono text-xs" style="color:var(--accent)">innerHTML</code> decodes any entities in the string without ever parsing them as executable markup — this delegates decoding to the browser's own HTML parser instead of a hand-rolled entity table, so it correctly handles named entities (<code class="font-mono text-xs" style="color:var(--accent)">&amp;amp;</code>, <code class="font-mono text-xs" style="color:var(--accent)">&amp;copy;</code>), decimal (<code class="font-mono text-xs" style="color:var(--accent)">&amp;#65;</code>), and hex (<code class="font-mono text-xs" style="color:var(--accent)">&amp;#x41;</code>) numeric references alike.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Decodes named entities (&amp;amp;, &amp;lt;, &amp;copy;, …) and numeric entities (decimal and hex)</li>
+            <li>Uses the browser's own HTML parser, so coverage matches what a real page would render</li>
+            <li>Safe on untrusted input — a textarea's content is never executed as script</li>
+            <li>Runs on keystroke or Cmd/Ctrl+Enter, entirely client-side</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input: <code class="font-mono text-xs" style="color:var(--accent)">{`&lt;div class=&quot;tools&quot;&gt;Fast &amp; private&lt;/div&gt;`}</code></p>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`<div class="tools">Fast & private</div>`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Edge cases</h2>
+          <p>An unterminated numeric reference (missing the trailing semicolon, like <code class="font-mono text-xs" style="color:var(--accent)">&amp;#65</code>) is still decoded by most browser parsers under HTML5's error-recovery rules, so output can look permissive compared to a strict XML entity decoder. Text with no entities at all simply passes through unchanged. Decoding text that was never actually encoded, or that mixes real markup with entities, can produce confusing results since the tool decodes indiscriminately rather than trying to detect intent.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Decode only when you need the literal characters for further processing or display outside HTML — if the decoded result is going straight back into an HTML page, you'll usually want to keep it escaped or re-encode it at that point to avoid reintroducing a markup-injection risk. When working with feeds or scraped content, decode once and store the plain-text form rather than repeatedly decoding on every render.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Spec</h2>
+          <p><a href="https://html.spec.whatwg.org/multipage/named-characters.html" target="_blank" rel="noopener" class="underline" style="color:var(--accent)">WHATWG HTML — Named character references</a></p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

@@ -23,6 +23,66 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is docker-compose to docker run?</h2>
+          <p>This tool takes a <code class="font-mono text-xs" style="color:var(--accent)">docker-compose.yml</code> file and converts each service into an equivalent standalone <code class="font-mono text-xs" style="color:var(--accent)">docker run</code> command. It's useful when you need to run a single service without installing Docker Compose, embed the exact startup command in a script, or understand exactly what compose is doing under the hood for a given service.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>Each service in <code class="font-mono text-xs" style="color:var(--accent)">services:</code> is parsed into its image, ports, environment variables, volumes, and command, then mapped one-to-one onto <code class="font-mono text-xs" style="color:var(--accent)">--name</code>, <code class="font-mono text-xs" style="color:var(--accent)">-p</code>, <code class="font-mono text-xs" style="color:var(--accent)">-e</code>, and <code class="font-mono text-xs" style="color:var(--accent)">-v</code> flags. The command is built as a backslash-continued multi-line <code class="font-mono text-xs" style="color:var(--accent)">docker run -d \</code> block so it stays copy-paste-able into a terminal. Any value that isn't a bare identifier (contains spaces, quotes, or shell metacharacters) is automatically single-quoted.</p>
+          <p>A subtlety worth knowing: notes about things a single <code class="font-mono text-xs" style="color:var(--accent)">docker run</code> invocation simply cannot express — like <code class="font-mono text-xs" style="color:var(--accent)">deploy.replicas</code> or <code class="font-mono text-xs" style="color:var(--accent)">depends_on</code> — are always emitted as standalone <code class="font-mono text-xs" style="color:var(--accent)">#</code> comment lines placed <em>before</em> the command block, never interleaved between its backslash-continued lines. That's deliberate: bash does not treat <code class="font-mono text-xs" style="color:var(--accent)">#</code> as a comment marker when it's the next token after a line-continuation backslash, so a comment dropped in the middle of a <code class="font-mono text-xs" style="color:var(--accent)">docker run \</code> block would be parsed as a literal (and almost certainly invalid) shell argument if someone copy-pasted the whole thing. Keeping every note above the command guarantees the generated script is always safe to paste and run as-is.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Converts ports, environment variables, volumes, and command overrides to their flag equivalents</li>
+            <li>Flags <code class="font-mono text-xs" style="color:var(--accent)">depends_on</code> and <code class="font-mono text-xs" style="color:var(--accent)">deploy.replicas</code> with explanatory comments instead of silently dropping them</li>
+            <li>Skips build-only services (no <code class="font-mono text-xs" style="color:var(--accent)">image:</code>) with a comment telling you to build and substitute the image name first</li>
+            <li>Automatically shell-quotes values containing spaces or special characters</li>
+            <li>Copy, download as a <code class="font-mono text-xs" style="color:var(--accent)">.sh</code> file, or load sample data</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`services:
+  web:
+    image: nginx:latest
+    ports:
+      - "8080:80"
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./html:/usr/share/nginx/html
+    depends_on:
+      - db`}</pre>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`# web depends_on: db — start those containers first;
+# docker run does not sequence startup order the way depends_on does.
+
+docker run -d \\
+  --name web \\
+  -p 8080:80 \\
+  -e NODE_ENV=production \\
+  -v ./html:/usr/share/nginx/html \\
+  nginx:latest`}</pre>
+          <p>If <code class="font-mono text-xs" style="color:var(--accent)">web</code> also had <code class="font-mono text-xs" style="color:var(--accent)">deploy: {'{'}replicas: 3{'}'}</code>, three comment lines explaining that <code class="font-mono text-xs" style="color:var(--accent)">docker run</code> starts exactly one container would appear directly above that same command block — not inside it.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>"No services found" means the YAML doesn't have a top-level <code class="font-mono text-xs" style="color:var(--accent)">services:</code> map — check indentation, since YAML is whitespace-sensitive. A service that resolves to no output at all almost always means it only defines <code class="font-mono text-xs" style="color:var(--accent)">build:</code> with no <code class="font-mono text-xs" style="color:var(--accent)">image:</code> — that service gets a comment instead of a command, since <code class="font-mono text-xs" style="color:var(--accent)">docker run</code> can't build images.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Read the comment lines above each command before running it — they call out exactly what compose semantics (replica counts, startup ordering) got lost in translation to a single <code class="font-mono text-xs" style="color:var(--accent)">docker run</code> call. For multi-service stacks with real startup dependencies, prefer keeping Compose (or moving to Kubernetes) over stitching together standalone <code class="font-mono text-xs" style="color:var(--accent)">docker run</code> commands by hand.</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

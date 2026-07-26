@@ -23,6 +23,111 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is SQL to Sequelize?</h2>
+          <p>SQL to Sequelize converts <code class="font-mono text-xs" style="color:var(--accent)">CREATE TABLE</code> statements into Sequelize v6 model definitions — one <code class="font-mono text-xs" style="color:var(--accent)">sequelize.define()</code> call per table, exported as a factory function, the pattern most existing Sequelize codebases already use.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>Each table becomes <code class="font-mono text-xs" style="color:var(--accent)">module.exports.define{`<Model>`} = (sequelize) =&gt; {`{ ... }`}</code>, wrapping a call to <code class="font-mono text-xs" style="color:var(--accent)">sequelize.define('ModelName', {`{ fields }`}, {`{ tableName, timestamps: false }`})</code>. Note the field keys keep the original SQL column names (snake_case), unlike the Prisma/Drizzle/TypeORM generators, which camelCase them — Sequelize's object-based config style maps more naturally onto the raw column name. Types go through a dedicated table: <code class="font-mono text-xs" style="color:var(--accent)">INTEGER</code>/<code class="font-mono text-xs" style="color:var(--accent)">SERIAL</code> → <code class="font-mono text-xs" style="color:var(--accent)">DataTypes.INTEGER</code>, <code class="font-mono text-xs" style="color:var(--accent)">VARCHAR(n)</code> → <code class="font-mono text-xs" style="color:var(--accent)">DataTypes.STRING(n)</code>, <code class="font-mono text-xs" style="color:var(--accent)">TIMESTAMP</code> → <code class="font-mono text-xs" style="color:var(--accent)">DataTypes.DATE</code>, <code class="font-mono text-xs" style="color:var(--accent)">UUID</code> → <code class="font-mono text-xs" style="color:var(--accent)">DataTypes.UUID</code>. <code class="font-mono text-xs" style="color:var(--accent)">tableName</code> is always set explicitly to the real SQL table name (Sequelize would otherwise guess a pluralized, camelCased name from the model), and <code class="font-mono text-xs" style="color:var(--accent)">timestamps: false</code> is always set so Sequelize doesn't silently expect <code class="font-mono text-xs" style="color:var(--accent)">createdAt</code>/<code class="font-mono text-xs" style="color:var(--accent)">updatedAt</code> columns your table may not have. As with the other generators, only literal defaults and <code class="font-mono text-xs" style="color:var(--accent)">CURRENT_TIMESTAMP</code> (→ <code class="font-mono text-xs" style="color:var(--accent)">defaultValue: DataTypes.NOW</code>) are translated.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>One exported <code class="font-mono text-xs" style="color:var(--accent)">define{`<Model>`}(sequelize)</code> factory function per table</li>
+            <li>Explicit <code class="font-mono text-xs" style="color:var(--accent)">tableName</code> and <code class="font-mono text-xs" style="color:var(--accent)">timestamps: false</code> so the model matches your real schema exactly</li>
+            <li>Type-aware field options: <code class="font-mono text-xs" style="color:var(--accent)">primaryKey</code>, <code class="font-mono text-xs" style="color:var(--accent)">autoIncrement</code>, <code class="font-mono text-xs" style="color:var(--accent)">allowNull</code>, <code class="font-mono text-xs" style="color:var(--accent)">unique</code></li>
+            <li>Literal and <code class="font-mono text-xs" style="color:var(--accent)">NOW</code> defaults translated; everything else left as a comment</li>
+            <li>Copy or download the generated <code class="font-mono text-xs" style="color:var(--accent)">.js</code> model file</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  external_id UUID DEFAULT uuid_generate_v4(),
+  name VARCHAR(255) NOT NULL,
+  is_active BOOLEAN DEFAULT true
+);
+
+CREATE TABLE posts (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  title VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);`}</pre>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`const { DataTypes } = require('sequelize');
+
+module.exports.defineUser = (sequelize) => {
+  const User = sequelize.define('User', {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    external_id: {
+      type: DataTypes.UUID,
+    }, // SQL default not translated: uuid_generate_v4()
+    name: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+    },
+    is_active: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+    },
+  }, {
+    tableName: 'users',
+    timestamps: false,
+  });
+
+  return User;
+};
+
+module.exports.definePost = (sequelize) => {
+  const Post = sequelize.define('Post', {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    user_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    }, // FK -> users.id
+    title: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+    },
+    created_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
+  }, {
+    tableName: 'posts',
+    timestamps: false,
+  });
+
+  return Post;
+};`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>A <code class="font-mono text-xs" style="color:var(--accent)">DEFAULT</code> the generator can't confidently translate — like <code class="font-mono text-xs" style="color:var(--accent)">uuid_generate_v4()</code> above — is never invented as a fake <code class="font-mono text-xs" style="color:var(--accent)">defaultValue</code>; it's left as <code class="font-mono text-xs" style="color:var(--accent)">// SQL default not translated: uuid_generate_v4()</code> next to the field so you add the real behavior (often <code class="font-mono text-xs" style="color:var(--accent)">defaultValue: () =&gt; crypto.randomUUID()</code> or a DB-side default) yourself. Foreign keys appear only as <code class="font-mono text-xs" style="color:var(--accent)">// FK -&gt; table.column</code> comments on a plain integer field — Sequelize associations (<code class="font-mono text-xs" style="color:var(--accent)">belongsTo</code>, <code class="font-mono text-xs" style="color:var(--accent)">hasMany</code>) are declared separately once both models are defined, and require you to decide the association alias, so they're intentionally not generated.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Call each exported <code class="font-mono text-xs" style="color:var(--accent)">define{`<Model>`}</code> function with your initialized <code class="font-mono text-xs" style="color:var(--accent)">Sequelize</code> instance during app startup, then add associations (<code class="font-mono text-xs" style="color:var(--accent)">Post.belongsTo(User, {`{ foreignKey: 'user_id' }`})</code>) right after, using the FK comments as your checklist. Search the output for both comment markers before treating it as production-ready.</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

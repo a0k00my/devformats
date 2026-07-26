@@ -23,6 +23,64 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is JSON to Rust?</h2>
+          <p>This tool converts a JSON sample into Rust structs derived for <code class="font-mono text-xs" style="color:var(--accent)">serde</code> — the de facto standard (de)serialization framework in Rust. Each generated struct derives <code class="font-mono text-xs" style="color:var(--accent)">Debug, Serialize, Deserialize</code>, so it works directly with <code class="font-mono text-xs" style="color:var(--accent)">serde_json::from_str</code> / <code class="font-mono text-xs" style="color:var(--accent)">to_string</code> with no extra glue code.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>Nested JSON objects become their own <code class="font-mono text-xs" style="color:var(--accent)">pub struct</code>, printed child-first. Field names are converted to snake_case, the Rust convention. When that conversion produces a name different from the raw JSON key — <code class="font-mono text-xs" style="color:var(--accent)">isActive</code> becoming <code class="font-mono text-xs" style="color:var(--accent)">is_active</code> — a <code class="font-mono text-xs" style="color:var(--accent)">#[serde(rename = "isActive")]</code> attribute is added above that field so serde still maps to the original wire key. A field whose sample value was <code class="font-mono text-xs" style="color:var(--accent)">null</code> is wrapped in <code class="font-mono text-xs" style="color:var(--accent)">Option&lt;T&gt;</code>. Numbers become <code class="font-mono text-xs" style="color:var(--accent)">i64</code> or <code class="font-mono text-xs" style="color:var(--accent)">f64</code> — the generator always picks the widest safe default rather than guessing a smaller type like <code class="font-mono text-xs" style="color:var(--accent)">u32</code> or <code class="font-mono text-xs" style="color:var(--accent)">f32</code>. A field name that's a Rust keyword (like <code class="font-mono text-xs" style="color:var(--accent)">type</code> or <code class="font-mono text-xs" style="color:var(--accent)">match</code>) is escaped as a raw identifier with <code class="font-mono text-xs" style="color:var(--accent)">r#</code>.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li><code class="font-mono text-xs" style="color:var(--accent)">#[derive(Debug, Serialize, Deserialize)]</code> on every generated struct, ready for <code class="font-mono text-xs" style="color:var(--accent)">serde_json</code></li>
+            <li>Automatic snake_case field renaming with a matching <code class="font-mono text-xs" style="color:var(--accent)">#[serde(rename = "...")]</code> so the JSON wire format is untouched</li>
+            <li>Nullable sample values become <code class="font-mono text-xs" style="color:var(--accent)">Option&lt;T&gt;</code>, matching how serde represents absent/null JSON</li>
+            <li>Rust keyword field names are escaped with <code class="font-mono text-xs" style="color:var(--accent)">r#</code> raw identifiers instead of producing invalid code</li>
+            <li>Struct name collisions with <code class="font-mono text-xs" style="color:var(--accent)">String</code>, <code class="font-mono text-xs" style="color:var(--accent)">Vec</code>, <code class="font-mono text-xs" style="color:var(--accent)">Option</code>, or <code class="font-mono text-xs" style="color:var(--accent)">Box</code> are renamed with a <code class="font-mono text-xs" style="color:var(--accent)">Data</code> suffix</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input: <code class="font-mono text-xs" style="color:var(--accent)">{`{ "id": 101, "username": "alice_dev", "isActive": true, "signupBonus": null, "address": { "city": "Berlin", "zipCode": "10115" }, "tags": ["admin", "beta"] }`}</code></p>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`use serde::{Serialize, Deserialize};
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Address {
+    pub city: String,
+    #[serde(rename = "zipCode")]
+    pub zip_code: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Root {
+    pub id: i64,
+    pub username: String,
+    #[serde(rename = "isActive")]
+    pub is_active: bool,
+    #[serde(rename = "signupBonus")]
+    pub signup_bonus: Option<serde_json::Value>,
+    pub address: Address,
+    pub tags: Vec<String>,
+}`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>A <code class="font-mono text-xs" style="color:var(--accent)">null</code> sample value produces <code class="font-mono text-xs" style="color:var(--accent)">Option&lt;serde_json::Value&gt;</code> — untyped, since there's nothing concrete to infer. Narrow it to a real type once you know the field's actual shape, or the compiler won't help you catch misuse. <code class="font-mono text-xs" style="color:var(--accent)">serde_json::Value</code> requires the <code class="font-mono text-xs" style="color:var(--accent)">serde_json</code> crate as a dependency even when a field's type is otherwise fully typed. An empty sample array has no element to infer from and falls back to <code class="font-mono text-xs" style="color:var(--accent)">Vec&lt;serde_json::Value&gt;</code>.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Add <code class="font-mono text-xs" style="color:var(--accent)">#[serde(rename_all = "camelCase")]</code> at the struct level instead of per-field <code class="font-mono text-xs" style="color:var(--accent)">rename</code> attributes if every field in that struct needs the same camelCase-to-snake_case mapping — it's more concise for structs with many renamed fields. Narrow the numeric types (<code class="font-mono text-xs" style="color:var(--accent)">i32</code>, <code class="font-mono text-xs" style="color:var(--accent)">u32</code>, <code class="font-mono text-xs" style="color:var(--accent)">f32</code>) once you know your actual value ranges — the generator defaults to the widest safe types, which cost more memory than necessary for large collections of structs.</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

@@ -23,6 +23,53 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is JSON to YAML?</h2>
+          <p>This tool converts JSON into YAML — the more human-readable, whitespace-driven format commonly used for config files (Docker Compose, Kubernetes manifests, CI pipelines, GitHub Actions workflows). YAML is a superset of JSON conceptually, so the conversion is lossless for any JSON value.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>The tool parses your input with <code class="font-mono text-xs" style="color:var(--accent)">JSON.parse</code> and hands the resulting JavaScript value straight to <code class="font-mono text-xs" style="color:var(--accent)">js-yaml</code>'s <code class="font-mono text-xs" style="color:var(--accent)">dump()</code> function with <code class="font-mono text-xs" style="color:var(--accent)">{`{ lineWidth: -1 }`}</code>, which disables line-wrapping so long strings and URLs stay on one line instead of being folded. <code class="font-mono text-xs" style="color:var(--accent)">JSON.parse</code> preserves the original key insertion order for string keys, and <code class="font-mono text-xs" style="color:var(--accent)">dump()</code> walks the object's own enumerable keys in that same order, so key order in the output matches the input exactly. Objects become YAML mappings (indented <code class="font-mono text-xs" style="color:var(--accent)">key: value</code> pairs), and arrays become YAML block sequences (each item on its own <code class="font-mono text-xs" style="color:var(--accent)">- </code>-prefixed line) rather than the more compact flow-style <code class="font-mono text-xs" style="color:var(--accent)">[a, b, c]</code>, since block style is the more common, more diffable convention for hand-edited config files.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Preserves the exact key order of the source JSON</li>
+            <li>Block-style mappings and sequences — the readable, git-diff-friendly YAML style</li>
+            <li>No line-wrapping, so long values stay intact on one line</li>
+            <li>Handles arbitrarily nested objects and arrays of any depth</li>
+            <li>Runs entirely client-side — nothing you paste is uploaded</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input: <code class="font-mono text-xs" style="color:var(--accent)">{`{ "name": "DevFormats", "version": 2, "beta": null, "features": ["format", "validate"], "author": { "handle": "devformats", "verified": true } }`}</code></p>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`name: DevFormats
+version: 2
+beta: null
+features:
+  - format
+  - validate
+author:
+  handle: devformats
+  verified: true`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>Invalid JSON is caught before conversion and reported with the offending line number. A common gotcha going the other direction is that plain, unquoted YAML strings like <code class="font-mono text-xs" style="color:var(--accent)">yes</code>, <code class="font-mono text-xs" style="color:var(--accent)">no</code>, <code class="font-mono text-xs" style="color:var(--accent)">on</code>, <code class="font-mono text-xs" style="color:var(--accent)">off</code>, or version-looking numbers can be parsed as booleans or numbers by some YAML parsers — this converter always emits JSON's actual boolean/string/number types explicitly, so that specific ambiguity only bites if you hand-edit the output afterward and forget to quote a string that looks like a keyword.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Keep the 2-space indentation the converter produces — most YAML tooling and linters (yamllint, Kubernetes manifests) expect consistent 2-space indents, and mixing tabs or inconsistent widths is one of the most common sources of "bad indentation" YAML parse errors. When editing the generated YAML by hand afterward, quote any string value that could be misread as a different type (numbers, booleans, dates) to keep it unambiguous across parsers.</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

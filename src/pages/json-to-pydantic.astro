@@ -23,6 +23,60 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is JSON to Pydantic?</h2>
+          <p>This tool converts a JSON sample into <a href="https://docs.pydantic.dev" class="underline" style="color:var(--accent)">Pydantic</a> <code class="font-mono text-xs" style="color:var(--accent)">BaseModel</code> classes — Python models that both describe a shape and validate real data against it at runtime, which is why they're the default choice for FastAPI request/response bodies and for parsing any untrusted JSON.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>Nested JSON objects each become their own <code class="font-mono text-xs" style="color:var(--accent)">class Name(BaseModel)</code>, printed child-first. Field names are converted from the JSON key to snake_case, matching Python convention. When that conversion changes the name — a camelCase JSON key like <code class="font-mono text-xs" style="color:var(--accent)">isActive</code> becoming <code class="font-mono text-xs" style="color:var(--accent)">is_active</code> — the generator adds <code class="font-mono text-xs" style="color:var(--accent)">Field(alias="isActive")</code> so the model still accepts and serializes the exact original wire key while your Python code reads idiomatically. A field whose sample value was <code class="font-mono text-xs" style="color:var(--accent)">null</code> becomes <code class="font-mono text-xs" style="color:var(--accent)">Optional[T]</code> with a default of <code class="font-mono text-xs" style="color:var(--accent)">None</code> — distinct from a field that's simply missing from the JSON, which can't be detected from one sample. A field name that collides with a Python keyword (like <code class="font-mono text-xs" style="color:var(--accent)">class</code> or <code class="font-mono text-xs" style="color:var(--accent)">from</code>) gets a trailing underscore.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Automatic camelCase-to-snake_case field renaming with a matching <code class="font-mono text-xs" style="color:var(--accent)">Field(alias=...)</code> so the wire format is unaffected</li>
+            <li>Nullable sample values map to <code class="font-mono text-xs" style="color:var(--accent)">Optional[T] = None</code>, not silently dropped</li>
+            <li>Nested objects and arrays (<code class="font-mono text-xs" style="color:var(--accent)">List[T]</code>) supported at any depth</li>
+            <li>Only imports <code class="font-mono text-xs" style="color:var(--accent)">Field</code> and <code class="font-mono text-xs" style="color:var(--accent)">Any</code> when the generated code actually needs them</li>
+            <li>Compatible with both Pydantic v1 and v2 — no version-specific syntax</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input: <code class="font-mono text-xs" style="color:var(--accent)">{`{ "id": 101, "username": "alice_dev", "isActive": true, "signupBonus": null, "address": { "city": "Berlin", "zipCode": "10115" }, "tags": ["admin", "beta"] }`}</code></p>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`from typing import Any, List, Optional
+from pydantic import BaseModel, Field
+
+
+class Address(BaseModel):
+    city: str
+    zip_code: str = Field(alias="zipCode")
+
+
+class Root(BaseModel):
+    id: int
+    username: str
+    is_active: bool = Field(alias="isActive")
+    signup_bonus: Optional[Any] = Field(alias="signupBonus", default=None)
+    address: Address
+    tags: List[str]`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>A <code class="font-mono text-xs" style="color:var(--accent)">null</code> sample value becomes <code class="font-mono text-xs" style="color:var(--accent)">Optional[Any]</code> — Pydantic will accept literally anything for that field until you narrow it to a real type. Remember that <code class="font-mono text-xs" style="color:var(--accent)">Field(alias=...)</code> means the model only accepts input under the alias by default; if you also need attribute-style construction using the Python name, set <code class="font-mono text-xs" style="color:var(--accent)">populate_by_name = True</code> (v2) or <code class="font-mono text-xs" style="color:var(--accent)">allow_population_by_field_name = True</code> (v1) in your model config.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Use <code class="font-mono text-xs" style="color:var(--accent)">model_config = ConfigDict(populate_by_name=True)</code> (Pydantic v2) if your codebase constructs models directly from Python kwargs as well as from JSON, so both the snake_case name and the camelCase alias work as input. Replace <code class="font-mono text-xs" style="color:var(--accent)">Optional[Any]</code> fields with a concrete union or type as soon as you know what the field can actually hold — leaving it as <code class="font-mono text-xs" style="color:var(--accent)">Any</code> defeats the point of validating the payload at all.</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

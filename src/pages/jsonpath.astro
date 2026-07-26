@@ -24,6 +24,56 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is JSONPath Tester?</h2>
+          <p>JSONPath Tester runs a JSONPath query against a JSON document and shows every matching value, so you can iterate on a selector without writing any code. JSONPath does for JSON roughly what XPath does for XML: a compact expression language for reaching into nested structures.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>The input panel is parsed with <code class="font-mono text-xs" style="color:var(--accent)">JSON.parse()</code>, and your query is passed straight to the <code class="font-mono text-xs" style="color:var(--accent)">jsonpath-plus</code> library's <code class="font-mono text-xs" style="color:var(--accent)">JSONPath()</code> function with <code class="font-mono text-xs" style="color:var(--accent)">resultType: 'all'</code>, which returns both the matched value and its normalized path for every hit — that's what powers the two-line result cards (path on top, value below). A JSON syntax error in the document is caught and reported with a line number the same way the JSON Viewer does; a bad JSONPath expression (unbalanced brackets, an invalid filter) is caught separately and reported without a line number, since it's a query error rather than a document error.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Full jsonpath-plus syntax, including filter expressions and script expressions</li>
+            <li>Shows the matched path and value for every result, not just the value</li>
+            <li>Match count in the results header (0 matches is distinguished from "no query run yet")</li>
+            <li>Resizable split panel between document and query results</li>
+            <li>Built-in sample document and query to try the syntax immediately</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Document:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`{
+  "tools": [
+    { "slug": "json-formatter", "category": "json", "status": "live" },
+    { "slug": "yaml-formatter", "category": "yaml", "status": "live" },
+    { "slug": "jsonpath", "category": "json", "status": "planned" }
+  ]
+}`}</pre>
+          <p>Query: <code class="font-mono text-xs" style="color:var(--accent)">{`$.tools[?(@.category=="json")].slug`}</code></p>
+          <p>Matches (2): <code class="font-mono text-xs" style="color:var(--accent)">{`"json-formatter"`}</code> and <code class="font-mono text-xs" style="color:var(--accent)">{`"jsonpath"`}</code> — the filter <code class="font-mono text-xs" style="color:var(--accent)">{`?(@.category=="json")`}</code> keeps only array items where the current item's (<code class="font-mono text-xs" style="color:var(--accent)">@</code>) category equals <code class="font-mono text-xs" style="color:var(--accent)">"json"</code>, and <code class="font-mono text-xs" style="color:var(--accent)">.slug</code> then projects each surviving item down to just that field.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>Forgetting the leading <code class="font-mono text-xs" style="color:var(--accent)">$</code> (every JSONPath expression must start from the root) or leaving a filter's parentheses unbalanced produces a query error rather than an empty result. A syntactically valid query that just doesn't match anything (e.g. a category that doesn't exist in the document) returns "0 matches", not an error — worth distinguishing when debugging a selector that "isn't working".</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Build a query incrementally — start with <code class="font-mono text-xs" style="color:var(--accent)">$.tools[*]</code> to confirm you're selecting the right array, then narrow with a filter, then project down to the field you need. Copy a path from the JSON Viewer's tree as a starting point when you're not sure of the exact structure you're querying.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Spec</h2>
+          <p><a href="https://www.rfc-editor.org/rfc/rfc9535" target="_blank" rel="noopener" class="underline" style="color:var(--accent)">RFC 9535</a> — JSONPath: Query Expressions for JSON (jsonpath-plus supports this syntax plus additional non-standard extensions)</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

@@ -22,6 +22,48 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is URL Decode?</h2>
+          <p>URL Decode reverses percent-encoding, turning <code class="font-mono text-xs" style="color:var(--accent)">%XX</code> hex sequences back into their original characters — so <code class="font-mono text-xs" style="color:var(--accent)">%20</code> becomes a space and <code class="font-mono text-xs" style="color:var(--accent)">%26</code> becomes <code class="font-mono text-xs" style="color:var(--accent)">&amp;</code>. It's the tool you reach for when you've copied a query string out of a browser address bar or server log and want to read the actual values.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>This tool calls the browser's native <code class="font-mono text-xs" style="color:var(--accent)">decodeURIComponent()</code>, which converts each <code class="font-mono text-xs" style="color:var(--accent)">%XX</code> sequence back to a byte and reassembles multi-byte UTF-8 sequences into the correct Unicode character. If the input contains a malformed sequence — a stray <code class="font-mono text-xs" style="color:var(--accent)">%</code> not followed by two hex digits, or a broken multi-byte UTF-8 sequence — the call throws a <code class="font-mono text-xs" style="color:var(--accent)">URIError</code>, which this tool catches and reports as "Invalid percent-encoding sequence" instead of returning corrupted text.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Matches JavaScript's decodeURIComponent exactly</li>
+            <li>Correctly reassembles multi-byte UTF-8 percent sequences into Unicode text</li>
+            <li>Reports malformed input instead of silently mangling it</li>
+            <li>Works on a full URL, a query string, or a single value — all decode the same way</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input: <code class="font-mono text-xs" style="color:var(--accent)">{`https%3A%2F%2Fdevformats.com%2Fsearch%3Fq%3Djson%20formatter`}</code></p>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`https://devformats.com/search?q=json formatter`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Edge cases</h2>
+          <p>A lone <code class="font-mono text-xs" style="color:var(--accent)">%</code> in the input (one that isn't part of a valid two-digit hex escape, like a literal percent sign in "50% off") isn't valid percent-encoding and throws — text containing a real <code class="font-mono text-xs" style="color:var(--accent)">%</code> character needs it encoded as <code class="font-mono text-xs" style="color:var(--accent)">%25</code> first. Decoding a value that was never actually encoded is harmless as long as it has no stray <code class="font-mono text-xs" style="color:var(--accent)">%</code> characters — it passes through unchanged. Decoding a value twice when it was only encoded once will incorrectly turn literal <code class="font-mono text-xs" style="color:var(--accent)">%20</code> text into a space where none was intended.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Decode once, at the point where you need the human-readable value — most HTTP libraries and web frameworks already decode query parameters for you automatically, so manual decoding is mainly for debugging raw request logs or one-off inspection. If decoding fails, check for a stray <code class="font-mono text-xs" style="color:var(--accent)">%</code> before assuming the whole string is corrupt.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Spec</h2>
+          <p><a href="https://www.rfc-editor.org/rfc/rfc3986" target="_blank" rel="noopener" class="underline" style="color:var(--accent)">RFC 3986</a> — Uniform Resource Identifier (URI): Generic Syntax</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

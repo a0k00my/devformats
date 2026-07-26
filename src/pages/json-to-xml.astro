@@ -23,6 +23,54 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is JSON to XML?</h2>
+          <p>This tool converts a JSON document into well-formed XML, wrapping the whole thing in a configurable root element. It's useful when a downstream system — a legacy API, an XSLT pipeline, a SOAP endpoint — expects XML but your data originates as JSON.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>Each JSON key becomes an XML tag wrapping its value: objects recurse into child elements, primitive values become text content, and <code class="font-mono text-xs" style="color:var(--accent)">null</code>/<code class="font-mono text-xs" style="color:var(--accent)">undefined</code> become a self-closing empty tag (<code class="font-mono text-xs" style="color:var(--accent)">{`<field/>`}</code>) rather than an empty pair of tags. Arrays are handled specially: the array's own key has its trailing "s" stripped to name each repeated child element (so a key like <code class="font-mono text-xs" style="color:var(--accent)">tags</code> produces repeated <code class="font-mono text-xs" style="color:var(--accent)">{`<tag>`}</code> elements, one per item) instead of wrapping the whole array in a single container element. Any key that isn't a legal XML tag name (containing spaces, starting with a digit, etc.) falls back to a generic <code class="font-mono text-xs" style="color:var(--accent)">{`<item>`}</code> tag so the output always stays valid XML. Text content is escaped for the five XML special characters (<code class="font-mono text-xs" style="color:var(--accent)">&amp; &lt; &gt; " '</code>-equivalents) before being inserted.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Configurable root element name via the toolbar's Root field</li>
+            <li>Arrays expand into repeated sibling elements rather than a nested list wrapper</li>
+            <li><code class="font-mono text-xs" style="color:var(--accent)">null</code> values render as self-closing empty tags</li>
+            <li>Invalid tag-name keys automatically fall back to a generic <code class="font-mono text-xs" style="color:var(--accent)">{`<item>`}</code> element</li>
+            <li>Full XML entity escaping on all text content</li>
+            <li>Runs entirely client-side — nothing you paste is uploaded</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input: <code class="font-mono text-xs" style="color:var(--accent)">{`{ "user": { "name": "Ana", "email": null }, "tags": ["dev", "admin"] }`}</code> with root name <code class="font-mono text-xs" style="color:var(--accent)">root</code>.</p>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <user>
+    <name>Ana</name>
+    <email/>
+  </user>
+  <tag>dev</tag>
+  <tag>admin</tag>
+</root>`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>The array-key singularization is a naive trailing-"s" strip, not real linguistic singularization: a key like <code class="font-mono text-xs" style="color:var(--accent)">tags</code> becomes <code class="font-mono text-xs" style="color:var(--accent)">tag</code> correctly, but an irregular plural like <code class="font-mono text-xs" style="color:var(--accent)">children</code> would become <code class="font-mono text-xs" style="color:var(--accent)">childre</code>. If that matters for your output, rename the array's key in the source JSON before converting, or edit the generated tag names afterward. Also note that top-level JSON arrays (rather than an array nested inside an object) are converted item-by-item under a generic <code class="font-mono text-xs" style="color:var(--accent)">{`<item>`}</code> tag, since there's no parent key to derive a name from.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Pick array key names that are already correct plain-English plurals ending in a single "s" (<code class="font-mono text-xs" style="color:var(--accent)">tags</code>, <code class="font-mono text-xs" style="color:var(--accent)">items</code>, <code class="font-mono text-xs" style="color:var(--accent)">users</code>) so the generated singular element names read naturally. If the target system needs attributes rather than child elements (e.g. <code class="font-mono text-xs" style="color:var(--accent)">{`<user id="1">`}</code> instead of a nested <code class="font-mono text-xs" style="color:var(--accent)">{`<id>`}</code> element), you'll need to restructure the JSON or post-process the XML, since this converter always emits child elements, never attributes.</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

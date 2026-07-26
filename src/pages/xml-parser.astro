@@ -22,6 +22,52 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is XML Parser?</h2>
+          <p>XML Parser reads an XML document and renders it as a collapsible, searchable tree — the same interactive JsonTree view used by the JSON tools — so you can explore a document's shape without reading raw angle brackets. It's built for inspection, not for producing a converted file.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>Input is parsed with the browser's native <code class="font-mono text-xs" style="color:var(--accent)">DOMParser</code> in <code class="font-mono text-xs" style="color:var(--accent)">application/xml</code> mode. If a <code class="font-mono text-xs" style="color:var(--accent)">parsererror</code> node appears in the result, its message is shown in the error bar and, when the browser's error text includes a line number, that line is highlighted in the input gutter. On success, the document's root element is walked recursively: each attribute becomes a key prefixed with <code class="font-mono text-xs" style="color:var(--accent)">@</code>, repeated sibling tags are grouped into arrays, and an element with no child elements collapses to its plain text content (or an object with an <code class="font-mono text-xs" style="color:var(--accent)">@attr</code>/<code class="font-mono text-xs" style="color:var(--accent)">#text</code> shape if it also has attributes or text). The resulting object is handed to the tree view for display — the tool never generates a text output panel.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Collapsible, searchable tree view of the parsed structure</li>
+            <li>Attributes shown as @-prefixed keys alongside child elements</li>
+            <li>Repeated sibling tags automatically grouped into arrays</li>
+            <li>Line-highlighted parse errors in the input editor</li>
+            <li>Load a .xml file directly from disk</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input: <code class="font-mono text-xs" style="color:var(--accent)">{'<tools><tool id="1">json-formatter</tool><tool id="2">yaml-formatter</tool></tools>'}</code></p>
+          <p>Tree view shows (conceptually, as the underlying object):</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`{
+  "tools": {
+    "tool": [
+      { "@id": "1", "#text": "json-formatter" },
+      { "@id": "2", "#text": "yaml-formatter" }
+    ]
+  }
+}`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>The most common failure is more than one root element, or a tag that's opened but never closed — both trip the DOMParser's parsererror and prevent a tree from rendering at all. Unlike a schema validator, this tool only checks well-formedness as a side effect of parsing; it doesn't verify tags against an XSD or DTD.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Use this tool when you need to understand an unfamiliar XML document's shape — which elements repeat, which carry attributes — before writing code against it. If you actually need the data as a JSON file to consume elsewhere, use XML to JSON instead; this tool's tree view isn't downloadable.</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

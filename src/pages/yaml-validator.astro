@@ -23,6 +23,49 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is YAML Validator?</h2>
+          <p>YAML Validator checks whether a document parses as valid YAML and, on success, reports structural stats about it — it doesn't show a tree or produce a converted file, just a pass/fail verdict plus a couple of numbers describing the document's shape.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>Clicking Validate (or Cmd/Ctrl+Enter) runs the input through <code class="font-mono text-xs" style="color:var(--accent)">js-yaml</code>'s <code class="font-mono text-xs" style="color:var(--accent)">load()</code>. On success, the parsed value is walked recursively to compute two stats: <strong>Total Keys</strong>, the count of all map keys across the entire document (arrays don't add to this count, only their contents do if they're maps), and <strong>Max Depth</strong>, the deepest level of nesting reached. On failure, the thrown <code class="font-mono text-xs" style="color:var(--accent)">YAMLException</code>'s <code class="font-mono text-xs" style="color:var(--accent)">mark</code> supplies an exact line and column, shown in the result panel and highlighted directly in the input gutter.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Full YAML 1.2-compatible validation via js-yaml</li>
+            <li>Exact line/column error location on failure</li>
+            <li>Total Keys and Max Depth stats on success</li>
+            <li>Character count of the current input</li>
+            <li>Load a .yaml/.yml file directly from disk</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`name: DevFormats
+valid: true
+tools:
+  - json-formatter
+  - yaml-formatter`}</pre>
+          <p>Output: <code class="font-mono text-xs" style="color:var(--accent)">✓ Valid YAML</code>, with <code class="font-mono text-xs" style="color:var(--accent)">Total Keys: 2</code> (name, valid — the tools array's string entries aren't keys) and <code class="font-mono text-xs" style="color:var(--accent)">Max Depth: 2</code> (the top-level map, then the tools array's items).</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>Mixing tabs and spaces for indentation is the most common failure — YAML requires consistent spaces because indentation itself carries structural meaning, unlike JSON or XML where whitespace is cosmetic. Inconsistent list-item indentation relative to its parent key, and an unclosed quoted string, are the other frequent causes, both reported with an exact line and column.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Run this validator in CI or a pre-commit hook against config files before they're deployed — a syntactically invalid YAML file that reaches a deploy step tends to fail with a much less specific error than the line/column this tool reports up front.</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

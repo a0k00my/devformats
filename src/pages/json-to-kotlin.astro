@@ -23,6 +23,57 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is JSON to Kotlin?</h2>
+          <p>This tool converts a JSON sample into Kotlin <code class="font-mono text-xs" style="color:var(--accent)">data class</code> declarations — one per object level, using <code class="font-mono text-xs" style="color:var(--accent)">val</code> constructor properties instead of Java-style getters and setters. Data classes get free <code class="font-mono text-xs" style="color:var(--accent)">equals()</code>, <code class="font-mono text-xs" style="color:var(--accent)">hashCode()</code>, <code class="font-mono text-xs" style="color:var(--accent)">toString()</code>, and <code class="font-mono text-xs" style="color:var(--accent)">copy()</code>, which is exactly what a JSON-backed model needs.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>Nested objects each become their own <code class="font-mono text-xs" style="color:var(--accent)">data class</code>, printed child-first. Numbers become <code class="font-mono text-xs" style="color:var(--accent)">Int</code> or <code class="font-mono text-xs" style="color:var(--accent)">Double</code> depending on whether the sample value has a fractional part, and arrays become <code class="font-mono text-xs" style="color:var(--accent)">List&lt;T&gt;</code>. A field whose sample was <code class="font-mono text-xs" style="color:var(--accent)">null</code> is typed nullable (<code class="font-mono text-xs" style="color:var(--accent)">T?</code>) with a default of <code class="font-mono text-xs" style="color:var(--accent)">null</code>, matching Kotlin's null-safety model rather than using a sentinel value. When a JSON key isn't a valid or idiomatic Kotlin property name — or camelCasing it would produce a different string than the raw key — the generator adds <code class="font-mono text-xs" style="color:var(--accent)">@SerialName("originalKey")</code> so the property stays idiomatic while still deserializing correctly. Property names that would collide with a Kotlin keyword get a <code class="font-mono text-xs" style="color:var(--accent)">Value</code> suffix, and class names colliding with built-ins (<code class="font-mono text-xs" style="color:var(--accent)">List</code>, <code class="font-mono text-xs" style="color:var(--accent)">String</code>, <code class="font-mono text-xs" style="color:var(--accent)">Any</code>, etc.) get a <code class="font-mono text-xs" style="color:var(--accent)">Model</code> suffix.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Emits idiomatic <code class="font-mono text-xs" style="color:var(--accent)">data class</code> declarations with constructor-declared <code class="font-mono text-xs" style="color:var(--accent)">val</code> properties</li>
+            <li>Nullable fields use Kotlin's <code class="font-mono text-xs" style="color:var(--accent)">?</code> type suffix with a <code class="font-mono text-xs" style="color:var(--accent)">= null</code> default, not a placeholder value</li>
+            <li>Nested objects become their own named data classes</li>
+            <li><code class="font-mono text-xs" style="color:var(--accent)">@SerialName</code> annotations only appear where the Kotlin property name would otherwise diverge from the JSON key</li>
+            <li>Reserved keyword and built-in-type collisions are automatically renamed so the output compiles as-is</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input: <code class="font-mono text-xs" style="color:var(--accent)">{`{ "id": 101, "username": "alice_dev", "isActive": true, "signupBonus": null, "address": { "city": "Berlin", "zipCode": "10115" }, "tags": ["admin", "beta"] }`}</code></p>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`data class Address(
+    val city: String,
+    val zipCode: String
+)
+
+data class Root(
+    val id: Int,
+    val username: String,
+    val isActive: Boolean,
+    val signupBonus: Any? = null,
+    val address: Address,
+    val tags: List<String>
+)`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>A <code class="font-mono text-xs" style="color:var(--accent)">null</code> sample value is typed as <code class="font-mono text-xs" style="color:var(--accent)">Any?</code> since no concrete shape can be inferred from it — replace with a real type once you know what the field actually holds. An empty sample array produces <code class="font-mono text-xs" style="color:var(--accent)">List&lt;Any?&gt;</code>. The generated <code class="font-mono text-xs" style="color:var(--accent)">@SerialName</code> annotation is specific to kotlinx.serialization — if you're using Moshi or Gson instead, swap it for <code class="font-mono text-xs" style="color:var(--accent)">@Json(name = ...)</code> or <code class="font-mono text-xs" style="color:var(--accent)">@SerializedName</code> respectively; the class shape itself works unchanged with any of them.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Keep data classes immutable (<code class="font-mono text-xs" style="color:var(--accent)">val</code>, not <code class="font-mono text-xs" style="color:var(--accent)">var</code>) — the generator already does this, and it pairs well with <code class="font-mono text-xs" style="color:var(--accent)">copy()</code> for producing modified instances without mutating the original. Add <code class="font-mono text-xs" style="color:var(--accent)">@Serializable</code> at the class level once you wire up kotlinx.serialization, and prefer sealed classes over nullable fields when a value is genuinely one of several known variants rather than simply optional.</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

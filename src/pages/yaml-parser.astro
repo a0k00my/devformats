@@ -22,6 +22,50 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is YAML Parser?</h2>
+          <p>YAML Parser loads a YAML document and shows it as a collapsible, searchable tree — the same interactive JsonTree view used across DevFormats — so you can inspect a config file's actual shape (which keys nest under which, where lists live) without a separate output file.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>Input is parsed with <code class="font-mono text-xs" style="color:var(--accent)">js-yaml</code>'s <code class="font-mono text-xs" style="color:var(--accent)">load()</code>, which supports YAML's default schema — nested maps and sequences, anchors and aliases, multi-line block scalars, and automatic typing of plain scalars (unquoted <code class="font-mono text-xs" style="color:var(--accent)">true</code>/<code class="font-mono text-xs" style="color:var(--accent)">false</code>/numbers/<code class="font-mono text-xs" style="color:var(--accent)">null</code>). The parsed JavaScript value is handed directly to the tree view for display. On a parse failure, <code class="font-mono text-xs" style="color:var(--accent)">js-yaml</code> throws a <code class="font-mono text-xs" style="color:var(--accent)">YAMLException</code> carrying a <code class="font-mono text-xs" style="color:var(--accent)">mark</code> object with an exact line and column, which the tool surfaces in the error bar and highlights in the input gutter — a more precise error location than XML's best-effort line extraction.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Collapsible, searchable tree view of the parsed document</li>
+            <li>Supports anchors/aliases, multi-line strings, and standard scalar types</li>
+            <li>Precise line/column error reporting from js-yaml's mark data</li>
+            <li>Live re-parsing as you type</li>
+            <li>Load a .yaml/.yml file directly from disk</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`name: DevFormats
+tools:
+  - json-formatter
+  - yaml-formatter
+meta:
+  free: true`}</pre>
+          <p>Tree view shows the equivalent of: <code class="font-mono text-xs" style="color:var(--accent)">{'{ name: "DevFormats", tools: ["json-formatter", "yaml-formatter"], meta: { free: true } }'}</code></p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>Mixing tabs and spaces for indentation is the single most common failure, since YAML uses indentation itself to express nesting and rejects tabs outright. A missing colon after a mapping key, or a list item indented at a different level than its siblings, also produce a YAMLException with an exact line/column pointing at the offending indentation.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Use this tool to sanity-check how YAML anchors and aliases actually resolve — since the tree view shows the fully expanded values, it's an easy way to confirm an alias points where you think it does before that config file reaches production.</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

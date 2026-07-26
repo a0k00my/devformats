@@ -23,6 +23,73 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is curl-to-Go?</h2>
+          <p>This tool parses a curl command line — method, URL, headers, body, form fields, Basic Auth, and the -k/--insecure flag — and emits an equivalent Go program built on the standard library's <code class="font-mono text-xs" style="color:var(--accent)">net/http</code> package. No third-party HTTP client is pulled in, so the output compiles with nothing more than a stock Go toolchain.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>The curl string is tokenized respecting quoted arguments, then walked flag by flag into a structured request description (method, url, headers, data, form, auth, cookie, insecure). The Go emitter builds an <code class="font-mono text-xs" style="color:var(--accent)">http.NewRequest</code> call from that structure: a <code class="font-mono text-xs" style="color:var(--accent)">-d</code>/<code class="font-mono text-xs" style="color:var(--accent)">--data</code> body becomes a raw backtick string wrapped in <code class="font-mono text-xs" style="color:var(--accent)">strings.NewReader(...)</code> — the exact bytes curl would have sent, never re-parsed or re-encoded as a Go struct. Headers become <code class="font-mono text-xs" style="color:var(--accent)">req.Header.Set(...)</code> calls, and <code class="font-mono text-xs" style="color:var(--accent)">-u user:pass</code> becomes <code class="font-mono text-xs" style="color:var(--accent)">req.SetBasicAuth(user, pass)</code> — Go's own idiom for Basic Auth, rather than a manually-built Authorization header. Imports are computed on the fly: <code class="font-mono text-xs" style="color:var(--accent)">strings</code> only appears if there's a body, <code class="font-mono text-xs" style="color:var(--accent)">bytes</code>/<code class="font-mono text-xs" style="color:var(--accent)">mime/multipart</code> only for -F uploads, and <code class="font-mono text-xs" style="color:var(--accent)">crypto/tls</code> only when -k is present.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Zero-dependency output — only Go standard library packages</li>
+            <li>Body passed through byte-for-byte via <code class="font-mono text-xs" style="color:var(--accent)">strings.NewReader</code>, never reconstructed</li>
+            <li><code class="font-mono text-xs" style="color:var(--accent)">-u</code> Basic Auth mapped to <code class="font-mono text-xs" style="color:var(--accent)">req.SetBasicAuth</code></li>
+            <li><code class="font-mono text-xs" style="color:var(--accent)">-F</code>/--form uploads built via <code class="font-mono text-xs" style="color:var(--accent)">multipart.Writer</code>, with a TODO stub for file fields</li>
+            <li><code class="font-mono text-xs" style="color:var(--accent)">-k</code>/--insecure mapped to a custom <code class="font-mono text-xs" style="color:var(--accent)">Transport</code> with <code class="font-mono text-xs" style="color:var(--accent)">InsecureSkipVerify: true</code></li>
+            <li>Minimal, readable output — one <code class="font-mono text-xs" style="color:var(--accent)">func main()</code>, no framework boilerplate</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input: <code class="font-mono text-xs" style="color:var(--accent)">{`curl -X POST https://api.example.com/v1/login -H "Content-Type: application/json" -u admin:s3cret -d '{"username":"admin","remember":true}'`}</code></p>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`package main
+
+import (
+	"fmt"
+	"io"
+	"net/http"
+	"strings"
+)
+
+func main() {
+	req, err := http.NewRequest("POST", "https://api.example.com/v1/login", strings.NewReader(\`{"username":"admin","remember":true}\`))
+	if err != nil {
+		panic(err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.SetBasicAuth("admin", "s3cret")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	respBody, _ := io.ReadAll(resp.Body)
+	fmt.Println(resp.StatusCode, string(respBody))
+}`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>The generated code always checks <code class="font-mono text-xs" style="color:var(--accent)">err</code> after <code class="font-mono text-xs" style="color:var(--accent)">http.NewRequest</code> and <code class="font-mono text-xs" style="color:var(--accent)">client.Do</code>, but panics rather than returning the error up the call stack — fine for a quick script, not for production code, where you'd want to return <code class="font-mono text-xs" style="color:var(--accent)">error</code> from a function instead. File uploads via <code class="font-mono text-xs" style="color:var(--accent)">-F key=@path</code> leave a <code class="font-mono text-xs" style="color:var(--accent)">// TODO</code> comment because the generator runs in your browser and has no access to the actual file on disk — you fill in the <code class="font-mono text-xs" style="color:var(--accent)">io.Copy</code> yourself.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Run <code class="font-mono text-xs" style="color:var(--accent)">gofmt</code> on the output before committing it — the generator emits correct but unformatted Go (tabs for struct-like blocks, no alignment). Replace the <code class="font-mono text-xs" style="color:var(--accent)">panic(err)</code> calls with proper error returns for anything beyond a throwaway script, and never ship <code class="font-mono text-xs" style="color:var(--accent)">InsecureSkipVerify: true</code> to production — it disables TLS certificate validation entirely.</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

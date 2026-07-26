@@ -23,6 +23,48 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is CSV to SQL?</h2>
+          <p>CSV to SQL turns spreadsheet rows into a batch of <code class="font-mono text-xs" style="color:var(--accent)">INSERT INTO</code> statements you can run against an existing table — the fastest way to seed a database or migrate a small export without writing a script.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>The CSV is parsed with <code class="font-mono text-xs" style="color:var(--accent)">papaparse</code> using <code class="font-mono text-xs" style="color:var(--accent)">{`{ header: true, skipEmptyLines: true, dynamicTyping: true }`}</code>, so the header row supplies column names and cells are coerced to real JS types before generation. The <code class="font-mono text-xs" style="color:var(--accent)">toSqlInserts()</code> function (in <code class="font-mono text-xs" style="color:var(--accent)">src/lib/csvToSql.ts</code>) then builds one <code class="font-mono text-xs" style="color:var(--accent)">INSERT</code> per row: the table name and every column identifier are wrapped in double quotes (with any embedded quote doubled), values are formatted by type — numbers unquoted, booleans as <code class="font-mono text-xs" style="color:var(--accent)">TRUE</code>/<code class="font-mono text-xs" style="color:var(--accent)">FALSE</code>, empty cells as <code class="font-mono text-xs" style="color:var(--accent)">NULL</code>, everything else as a single-quoted string with internal <code class="font-mono text-xs" style="color:var(--accent)">'</code> doubled to <code class="font-mono text-xs" style="color:var(--accent)">''</code>. Column order in each statement matches the CSV header order.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Editable target table name, remembered in your browser between visits</li>
+            <li>Type-aware value formatting: numbers, booleans, NULL, and quoted strings</li>
+            <li>Quote escaping for both identifiers and string values</li>
+            <li>Copy, download as .sql, or load a .csv file directly</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input (table name: <code class="font-mono text-xs" style="color:var(--accent)">users</code>):</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`id,name,email,active
+1,Alice,alice@example.com,true
+2,Bob,bob@example.com,false`}</pre>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`INSERT INTO "users" ("id", "name", "email", "active") VALUES (1, 'Alice', 'alice@example.com', TRUE);
+INSERT INTO "users" ("id", "name", "email", "active") VALUES (2, 'Bob', 'bob@example.com', FALSE);`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>This tool only produces <code class="font-mono text-xs" style="color:var(--accent)">INSERT</code> statements — it does not emit a <code class="font-mono text-xs" style="color:var(--accent)">CREATE TABLE</code>, so running the output against a database where the table or columns don't yet exist will fail. The header row is always treated as column names; a headerless CSV needs a synthetic header (e.g. <code class="font-mono text-xs" style="color:var(--accent)">col1,col2,col3</code>) added before pasting. Values are escaped as literal SQL text (single quotes doubled), which is safe against malformed strings breaking the statement, but this is not the same guarantee as a parameterized query — treat the generated SQL as trusted output from your own data, not as a substitute for parameterized queries when handling untrusted user input in an application.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Double-check numeric-looking ID or code columns that should stay strings (e.g. zero-padded account numbers) — dynamic typing will convert "007" to the number 7, stripping the leading zeros before it ever reaches SQL. For large CSVs, run the generated INSERTs inside a transaction on the database side so a single failed row doesn't leave the batch partially applied. Double-check the table name field before generating output, since it's baked into every line.</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

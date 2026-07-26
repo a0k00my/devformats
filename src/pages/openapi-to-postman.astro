@@ -23,6 +23,56 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is OpenAPI to Postman?</h2>
+          <p>This tool reads an OpenAPI 3.x spec (YAML or JSON) and generates a Postman Collection v2.1 JSON file — one Postman request per operation, with path/query/header parameters and a sample request body pre-filled, ready to import into Postman without hand-building each request.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>The input is parsed as JSON first, falling back to YAML via <code class="font-mono text-xs" style="color:var(--accent)">js-yaml</code> if that fails. For every path and HTTP method in <code class="font-mono text-xs" style="color:var(--accent)">spec.paths</code>, curly-brace path parameters like <code class="font-mono text-xs" style="color:var(--accent)">{'{id}'}</code> are rewritten to Postman's colon syntax (<code class="font-mono text-xs" style="color:var(--accent)">:id</code>). Parameters with <code class="font-mono text-xs" style="color:var(--accent)">in: header</code> or <code class="font-mono text-xs" style="color:var(--accent)">in: query</code> become Postman header/query entries, using each parameter's <code class="font-mono text-xs" style="color:var(--accent)">example</code> (or <code class="font-mono text-xs" style="color:var(--accent)">schema.example</code>) as the value. If the operation has an <code class="font-mono text-xs" style="color:var(--accent)">application/json</code> request body, its schema is walked recursively to synthesize a sample JSON payload — objects and arrays recurse into their properties/items, and each leaf falls back to a type-appropriate placeholder (0 for integer/number, true for boolean, "string" otherwise) when no example is present.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Accepts both YAML and JSON OpenAPI input</li>
+            <li>Converts {'{id}'} path parameters to Postman's :id syntax automatically</li>
+            <li>Generates a sample JSON body from each schema, using declared examples where available</li>
+            <li>Uses {'{{baseUrl}}'} as a Postman environment variable instead of a hardcoded host</li>
+            <li>Copy, download as postman_collection.json, or load a spec file directly</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input (OpenAPI YAML, abbreviated): a <code class="font-mono text-xs" style="color:var(--accent)">POST /users</code> operation with a JSON body schema of <code class="font-mono text-xs" style="color:var(--accent)">{'{ name: string (example: Alice), email: string (example: alice@example.com) }'}</code>.</p>
+          <p>Output (Postman item, abbreviated):</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`{
+  "name": "Create user",
+  "request": {
+    "method": "POST",
+    "header": [{ "key": "Content-Type", "value": "application/json" }],
+    "body": {
+      "mode": "raw",
+      "raw": "{\\n  \\"name\\": \\"Alice\\",\\n  \\"email\\": \\"alice@example.com\\"\\n}"
+    },
+    "url": { "raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"], "query": [] }
+  }
+}`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>"Not an OpenAPI spec — expected a top-level paths object" means the input parsed as valid JSON/YAML but doesn't look like an OpenAPI document. This tool only reads <code class="font-mono text-xs" style="color:var(--accent)">paths</code>, <code class="font-mono text-xs" style="color:var(--accent)">info.title</code>, and each operation's <code class="font-mono text-xs" style="color:var(--accent)">parameters</code>/<code class="font-mono text-xs" style="color:var(--accent)">requestBody</code> — other OpenAPI features like <code class="font-mono text-xs" style="color:var(--accent)">components.$ref</code> references, security schemes, and server variables aren't resolved, so a heavily $ref-based spec may produce sparser requests than expected.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Add concrete <code class="font-mono text-xs" style="color:var(--accent)">example</code> values to your OpenAPI parameters and schemas before converting — they flow straight into the generated Postman request, saving you from editing placeholder values by hand. After importing, create a Postman environment with a <code class="font-mono text-xs" style="color:var(--accent)">baseUrl</code> variable matching your spec's actual server URL.</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

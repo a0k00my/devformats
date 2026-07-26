@@ -23,6 +23,51 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is JSON Parser?</h2>
+          <p>JSON Parser validates JSON and, on failure, goes further than a bare syntax error: it inspects the text around the failure point and explains in plain language what likely went wrong — a trailing comma, single quotes, an unquoted key, or a comment. On success it renders the parsed result as a tree, same as JSON Viewer.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>Input is run through the native <code class="font-mono text-xs" style="color:var(--accent)">JSON.parse()</code>. On failure, the tool extracts the character position from <code class="font-mono text-xs" style="color:var(--accent)">JSON.parse</code>'s error message, converts it to a line and column, and takes a small snippet of text around that position. A set of regex checks then pattern-matches the snippet: a comma directly before a closing <code class="font-mono text-xs" style="color:var(--accent)">{`}`}</code> or <code class="font-mono text-xs" style="color:var(--accent)">{`]`}</code> is flagged as a trailing comma, a quote character (<code class="font-mono text-xs" style="color:var(--accent)">'</code>) is flagged as single-quoted strings/keys, a bare identifier followed by a colon is flagged as an unquoted key, and <code class="font-mono text-xs" style="color:var(--accent)">//</code> or <code class="font-mono text-xs" style="color:var(--accent)">/*</code> is flagged as a comment (JSON has none). If none of those patterns match, it falls back to a generic "check the syntax" explanation but still shows the exact line and column.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Plain-language explanation of the most common JSON syntax mistakes</li>
+            <li>Line/column-accurate error, mirrored as a highlighted line in the editor</li>
+            <li>Successfully parsed input is rendered as a collapsible tree</li>
+            <li>Load a .json file directly or start from built-in sample data</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`{
+  "name": "DevFormats",
+  "valid": true,
+}`}</pre>
+          <p>Result: SyntaxError at the line containing the closing brace, with the explanation "A trailing comma appears right before a closing {`}`} or {`]`} — JSON does not allow a comma after the last item."</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>The four patterns this tool specifically recognizes are: a trailing comma after the last item in an object or array, single quotes instead of double quotes around strings or keys, an object key written without quotes, and <code class="font-mono text-xs" style="color:var(--accent)">//</code> or <code class="font-mono text-xs" style="color:var(--accent)">/* */</code> comments — none of which are legal JSON even though all four are legal (or common) in JavaScript object literals, which is where the confusion usually comes from. "Unexpected end of JSON input" means a bracket or brace was never closed — count your <code class="font-mono text-xs" style="color:var(--accent)">{`{ }`}</code> and <code class="font-mono text-xs" style="color:var(--accent)">{`[ ]`}</code> pairs.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Treat the explanation as a hint, not a guaranteed diagnosis — the pattern matching looks at a small window of text around the failure point, so on unusual input it can occasionally point at the wrong cause even while the line/column is exact. The tool deliberately doesn't auto-fix your JSON, since silently correcting syntax could also silently change data you didn't intend to change; fix the reported spot yourself and re-run.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Spec</h2>
+          <p><a href="https://www.rfc-editor.org/rfc/rfc8259" target="_blank" rel="noopener" class="underline" style="color:var(--accent)">RFC 8259</a> — The JSON Data Interchange Format</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

@@ -24,6 +24,59 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is CSV to JSON?</h2>
+          <p>CSV to JSON converts comma-separated rows into a JSON array — either an array of objects keyed by the header row, or an array of plain arrays if the CSV has no header. It's the fastest path from a spreadsheet export to a data structure a script or API can consume directly.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>The tool parses your input with the <code class="font-mono text-xs" style="color:var(--accent)">papaparse</code> library, using <code class="font-mono text-xs" style="color:var(--accent)">{`{ header, skipEmptyLines: true, dynamicTyping: true }`}</code>. <code class="font-mono text-xs" style="color:var(--accent)">header: true</code> turns the first row into object keys; <code class="font-mono text-xs" style="color:var(--accent)">dynamicTyping</code> converts numeric- and boolean-looking cells into real JSON numbers/booleans instead of leaving everything as strings. The parsed rows are then serialized with <code class="font-mono text-xs" style="color:var(--accent)">JSON.stringify(data, null, 2)</code>. Papaparse also handles quoted fields (commas or newlines inside quotes) per the CSV spec, and reports row-level parse errors with a line number so the input panel can highlight exactly where things broke.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Toggle between "array of objects" (header row) and "array of arrays" (no header)</li>
+            <li>Automatic type coercion — numeric and boolean-looking cells become real JSON types</li>
+            <li>Quoted-field and embedded-comma support via papaparse</li>
+            <li>Row-level error reporting with the offending line highlighted</li>
+            <li>Copy, download as .json, or load a .csv file directly from disk</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`name,age,city
+Alice,30,New York
+Bob,25,Boston`}</pre>
+          <p>Output (header row on, 2-space indent):</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`[
+  {
+    "name": "Alice",
+    "age": 30,
+    "city": "New York"
+  },
+  {
+    "name": "Bob",
+    "age": 25,
+    "city": "Boston"
+  }
+]`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>Ragged rows (a data row with more or fewer fields than the header) are the most frequent papaparse error, reported with the offending row number. Unbalanced quotes — a stray <code class="font-mono text-xs" style="color:var(--accent)">"</code> that isn't properly closed or escaped as <code class="font-mono text-xs" style="color:var(--accent)">""</code> — also break parsing partway through a field. Because <code class="font-mono text-xs" style="color:var(--accent)">dynamicTyping</code> is on, a column that's mostly numbers but has one text value (e.g. "N/A") will produce a mixed-type array across rows — decide up front whether that's acceptable for your consumer.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Turn off "First row is header" only for genuinely headerless exports — most real-world CSVs (database exports, spreadsheet downloads) include one. If a column should always stay a string (e.g. zip codes or IDs with leading zeros), keep it quoted in the source CSV or fix it up after conversion, since dynamic typing will otherwise strip leading zeros by treating it as a number. For very large files, prefer the Load File button over pasting, since it avoids round-tripping megabytes of text through the textarea.</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

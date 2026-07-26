@@ -23,6 +23,46 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is XML Validator?</h2>
+          <p>XML Validator checks whether a document is well-formed XML and reports a pass/fail result — it doesn't parse the document into a viewable structure or convert it, just tells you yes or no (and why not).</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>Clicking Validate (or pressing Cmd/Ctrl+Enter) runs the input through the browser's native <code class="font-mono text-xs" style="color:var(--accent)">DOMParser</code> with MIME type <code class="font-mono text-xs" style="color:var(--accent)">application/xml</code>. The parser inserts a <code class="font-mono text-xs" style="color:var(--accent)">parsererror</code> element into the resulting document when the XML is malformed; the tool checks for that element and, if found, reports its text as the failure message, attempting to pull a line number out of it with a regex (browsers don't expose a consistent line/column API for XML errors, so this is best-effort). If no error node is present, the document is well-formed and the tool reports success along with the root element's tag name.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Instant well-formedness check via the native DOMParser</li>
+            <li>Reports the root element's tag name on success</li>
+            <li>Best-effort line highlighting on failure, when the browser's error text includes one</li>
+            <li>Character count of the current input</li>
+            <li>Load an .xml file directly from disk</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input: <code class="font-mono text-xs" style="color:var(--accent)">{'<root><name>DevFormats</name><valid>true</valid></root>'}</code></p>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`✓ Well-formed XML — root element <root>`}</pre>
+          <p>An unclosed tag like <code class="font-mono text-xs" style="color:var(--accent)">{'<root><name>DevFormats</root>'}</code> instead reports a failure with the browser's raw parser error text.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>"Well-formed" only means the structural rules of XML are satisfied: matched and properly nested tags, quoted attribute values, and a single root element. This tool does not check a document against an XSD or DTD schema — a well-formed document can still be semantically wrong for a given schema (missing required elements, wrong types, etc.), which needs a separate, schema-aware validator.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Run this as a fast first check before feeding XML into a stricter pipeline — well-formedness failures are cheap to catch here and much more informative than a downstream parser crashing deep inside a build or ingestion process.</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

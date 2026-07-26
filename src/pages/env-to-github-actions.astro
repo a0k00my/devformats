@@ -23,6 +23,62 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is .env to GitHub Actions?</h2>
+          <p>This tool converts a <code class="font-mono text-xs" style="color:var(--accent)">.env</code> file into a shell script of <code class="font-mono text-xs" style="color:var(--accent)">gh secret set</code> commands — one per variable — for bulk-importing them as GitHub Actions repository secrets via the official GitHub CLI.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>GitHub Actions secrets are encrypted client-side against a repository-specific public key and stored on GitHub's servers — there's no API a static, browser-only site can call to set them directly. So instead of pretending to upload anything, the tool generates the exact <code class="font-mono text-xs" style="color:var(--accent)">gh secret set KEY --body '&lt;value&gt;'</code> command for each parsed variable, single-quoting the value (and escaping any literal single quotes inside it) so it survives the shell unmodified. The script starts with a <code class="font-mono text-xs" style="color:var(--accent)">#!/usr/bin/env bash</code> shebang and a comment pointing at the GitHub CLI docs, and ends with a commented-out <code class="font-mono text-xs" style="color:var(--accent)">env:</code> block showing exactly how to reference each secret in a workflow file afterward.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>One <code class="font-mono text-xs" style="color:var(--accent)">gh secret set</code> command per variable, correctly shell-quoted</li>
+            <li>Includes a commented reference block showing the <code class="font-mono text-xs" style="color:var(--accent)">${'{'}{'{'} secrets.KEY {'}'}{'}'}</code> syntax for every key, ready to paste into a workflow</li>
+            <li>Handles quoted values and inline comments the same way as the other .env converters</li>
+            <li>Copy, download as a runnable <code class="font-mono text-xs" style="color:var(--accent)">.sh</code> script, or load sample data</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`DATABASE_URL=postgres://user:pass@localhost:5432/mydb
+API_KEY="sk_live_abc123"
+DEBUG=false
+PORT=3000`}</pre>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`#!/usr/bin/env bash
+# Requires the GitHub CLI, authenticated: https://cli.github.com
+# Run from inside the repo (or add --repo owner/name to each line).
+
+gh secret set DATABASE_URL --body 'postgres://user:pass@localhost:5432/mydb'
+gh secret set API_KEY --body 'sk_live_abc123'
+gh secret set DEBUG --body 'false'
+gh secret set PORT --body '3000'
+
+# Reference them in a workflow like:
+# env:
+#   DATABASE_URL: \${{ secrets.DATABASE_URL }}
+#   API_KEY: \${{ secrets.API_KEY }}
+#   DEBUG: \${{ secrets.DEBUG }}
+#   PORT: \${{ secrets.PORT }}`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>Running the script without <code class="font-mono text-xs" style="color:var(--accent)">gh auth login</code> first fails immediately — the CLI needs an authenticated session with access to the target repo. Running it from outside the repo (and without <code class="font-mono text-xs" style="color:var(--accent)">--repo owner/name</code> added to each line) fails because <code class="font-mono text-xs" style="color:var(--accent)">gh</code> can't infer which repository to target. "No KEY=value lines found" means nothing in the pasted text parsed as a valid assignment.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>This script contains real secret values as plain-text shell arguments — run it once, then delete it, and never commit it to version control (treat it exactly like the source <code class="font-mono text-xs" style="color:var(--accent)">.env</code> file). Shell history can also retain the command line, so consider running it from a file rather than pasting each line interactively if your shell logs history persistently.</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

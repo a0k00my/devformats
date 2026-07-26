@@ -22,6 +22,48 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is URL Encode?</h2>
+          <p>URL Encode (percent-encoding) converts characters that aren't safe or unambiguous inside a URL — spaces, <code class="font-mono text-xs" style="color:var(--accent)">&amp;</code>, <code class="font-mono text-xs" style="color:var(--accent)">?</code>, non-ASCII text — into a <code class="font-mono text-xs" style="color:var(--accent)">%XX</code> hex sequence, so the value can be dropped into a query string or path segment without colliding with the URL's own syntax.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>This tool calls the browser's native <code class="font-mono text-xs" style="color:var(--accent)">encodeURIComponent()</code> on your input. It percent-encodes everything except unreserved characters — letters, digits, and <code class="font-mono text-xs" style="color:var(--accent)">- _ . ! ~ * ' ( )</code> — which means it also encodes characters like <code class="font-mono text-xs" style="color:var(--accent)">/</code>, <code class="font-mono text-xs" style="color:var(--accent)">?</code>, <code class="font-mono text-xs" style="color:var(--accent)">&amp;</code>, and <code class="font-mono text-xs" style="color:var(--accent)">=</code> that are reserved for separating URL components. That's the key difference from <code class="font-mono text-xs" style="color:var(--accent)">encodeURI()</code>, which leaves those reserved characters alone because it's meant for encoding a whole URL rather than one value going inside it — this tool intentionally uses the stricter, component-level function since a single query parameter is the most common case.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Matches JavaScript's encodeURIComponent exactly, byte for byte</li>
+            <li>Handles Unicode text (encoded as UTF-8 percent sequences)</li>
+            <li>Runs on keystroke or Cmd/Ctrl+Enter, entirely client-side</li>
+            <li>Copy the encoded value directly into a query string or path segment</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input: <code class="font-mono text-xs" style="color:var(--accent)">{`https://devformats.com/search?q=json formatter & validator`}</code></p>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`https%3A%2F%2Fdevformats.com%2Fsearch%3Fq%3Djson%20formatter%20%26%20validator`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Edge cases</h2>
+          <p>Encoding an already-encoded value ("double encoding") turns a literal <code class="font-mono text-xs" style="color:var(--accent)">%20</code> into <code class="font-mono text-xs" style="color:var(--accent)">%2520</code>, which then decodes back to <code class="font-mono text-xs" style="color:var(--accent)">%20</code> instead of a space — a frequent source of broken redirect URLs. Because the whole input is encoded as one component, running this over a full URL (rather than just a query value) also escapes the <code class="font-mono text-xs" style="color:var(--accent)">://</code> and path slashes, which is usually not what you want — encode individual parameter values, not the entire URL.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Encode each query parameter value or path segment individually, right before assembling the final URL — never encode the URL's structural characters (<code class="font-mono text-xs" style="color:var(--accent)">:</code>, <code class="font-mono text-xs" style="color:var(--accent)">/</code>, <code class="font-mono text-xs" style="color:var(--accent)">?</code>, <code class="font-mono text-xs" style="color:var(--accent)">&amp;</code>) that separate its parts. Track whether a value has already been encoded (e.g. when it's passed between services) to avoid the double-encoding trap above.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Spec</h2>
+          <p><a href="https://www.rfc-editor.org/rfc/rfc3986" target="_blank" rel="noopener" class="underline" style="color:var(--accent)">RFC 3986</a> — Uniform Resource Identifier (URI): Generic Syntax</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

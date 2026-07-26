@@ -23,6 +23,83 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is JSON to Java?</h2>
+          <p>This tool converts a JSON sample into plain Java POJOs (Plain Old Java Objects) — private fields with public getters and setters, one class per object level. It's a starting point for a DTO or model class, without pulling in Jackson, Gson, or any specific JSON library.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>The tool infers a type tree from the JSON, then emits every nested object as its own <code class="font-mono text-xs" style="color:var(--accent)">public class</code>, printing child classes before parents. Numbers are inspected at the value level: a whole number in the sample becomes <code class="font-mono text-xs" style="color:var(--accent)">Integer</code>, one with a decimal point becomes <code class="font-mono text-xs" style="color:var(--accent)">Double</code>. Arrays become <code class="font-mono text-xs" style="color:var(--accent)">List&lt;T&gt;</code>, backed by a <code class="font-mono text-xs" style="color:var(--accent)">java.util.List</code> import. Field names are camelCased from the JSON key; if that would collide with a Java keyword (e.g. a JSON key literally named <code class="font-mono text-xs" style="color:var(--accent)">class</code> or <code class="font-mono text-xs" style="color:var(--accent)">int</code>), the field is suffixed with <code class="font-mono text-xs" style="color:var(--accent)">Value</code> so the generated code still compiles. Likewise, if a nested object's class name would collide with a built-in like <code class="font-mono text-xs" style="color:var(--accent)">List</code>, <code class="font-mono text-xs" style="color:var(--accent)">String</code>, or <code class="font-mono text-xs" style="color:var(--accent)">Object</code>, it's renamed with a <code class="font-mono text-xs" style="color:var(--accent)">Model</code> suffix.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Standard getter/setter accessor methods generated for every field, following JavaBean conventions</li>
+            <li>Nested JSON objects become separate top-level classes, not inline anonymous types</li>
+            <li>Numbers are typed as <code class="font-mono text-xs" style="color:var(--accent)">Integer</code> or <code class="font-mono text-xs" style="color:var(--accent)">Double</code> based on the actual sample value</li>
+            <li>Reserved keyword field names are automatically renamed to keep the output compilable</li>
+            <li>Library-agnostic output — add Jackson's <code class="font-mono text-xs" style="color:var(--accent)">@JsonProperty</code> or Gson's <code class="font-mono text-xs" style="color:var(--accent)">@SerializedName</code> yourself if you need explicit wire-name mapping</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input: <code class="font-mono text-xs" style="color:var(--accent)">{`{ "id": 101, "username": "alice_dev", "isActive": true, "signupBonus": null, "address": { "city": "Berlin", "zipCode": "10115" }, "tags": ["admin", "beta"] }`}</code></p>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`import java.util.List;
+
+public class Address {
+    private String city;
+    private String zipCode;
+
+    public String getCity() { return city; }
+    public void setCity(String city) { this.city = city; }
+
+    public String getZipCode() { return zipCode; }
+    public void setZipCode(String zipCode) { this.zipCode = zipCode; }
+}
+
+public class Root {
+    private Integer id;
+    private String username;
+    private Boolean isActive;
+    private Object signupBonus;
+    private Address address;
+    private List<String> tags;
+
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
+
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
+
+    public Boolean getIsActive() { return isActive; }
+    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
+
+    public Object getSignupBonus() { return signupBonus; }
+    public void setSignupBonus(Object signupBonus) { this.signupBonus = signupBonus; }
+
+    public Address getAddress() { return address; }
+    public void setAddress(Address address) { this.address = address; }
+
+    public List<String> getTags() { return tags; }
+    public void setTags(List<String> tags) { this.tags = tags; }
+}`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>A <code class="font-mono text-xs" style="color:var(--accent)">null</code> sample value produces an <code class="font-mono text-xs" style="color:var(--accent)">Object</code> field, since there's no way to infer a concrete type from it — narrow it once you know the real shape. An empty array in the sample has no element to infer from and falls back to <code class="font-mono text-xs" style="color:var(--accent)">List&lt;Object&gt;</code>. If your JSON keys are snake_case, the camelCased field name and the wire key will no longer match, so you'll need a mapping annotation from your JSON library of choice.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Treat the generated POJO as a first draft: add validation annotations (Bean Validation's <code class="font-mono text-xs" style="color:var(--accent)">@NotNull</code>, <code class="font-mono text-xs" style="color:var(--accent)">@Size</code>) and an explicit <code class="font-mono text-xs" style="color:var(--accent)">equals()</code>/<code class="font-mono text-xs" style="color:var(--accent)">hashCode()</code> if the class will be used as a map key or in collections. For newer codebases, consider converting the generated fields into a Java <code class="font-mono text-xs" style="color:var(--accent)">record</code> by hand — records give you immutability and generated accessors with far less boilerplate than a classic getter/setter POJO.</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

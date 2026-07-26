@@ -23,6 +23,80 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is SQL to SQLAlchemy?</h2>
+          <p>SQL to SQLAlchemy turns <code class="font-mono text-xs" style="color:var(--accent)">CREATE TABLE</code> statements into classic SQLAlchemy declarative models — a <code class="font-mono text-xs" style="color:var(--accent)">class(Base)</code> per table with <code class="font-mono text-xs" style="color:var(--accent)">__tablename__</code> and <code class="font-mono text-xs" style="color:var(--accent)">Column(...)</code> attributes, the <code class="font-mono text-xs" style="color:var(--accent)">declarative_base()</code> style used across most existing SQLAlchemy 1.x projects.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>Each SQL type maps to a SQLAlchemy column type — <code class="font-mono text-xs" style="color:var(--accent)">INTEGER</code>/<code class="font-mono text-xs" style="color:var(--accent)">SERIAL</code> → <code class="font-mono text-xs" style="color:var(--accent)">Integer</code>, <code class="font-mono text-xs" style="color:var(--accent)">VARCHAR(n)</code> → <code class="font-mono text-xs" style="color:var(--accent)">String(n)</code>, <code class="font-mono text-xs" style="color:var(--accent)">DECIMAL(p,s)</code> → <code class="font-mono text-xs" style="color:var(--accent)">Numeric(p, s)</code> (preserving precision and scale rather than collapsing to a lossy <code class="font-mono text-xs" style="color:var(--accent)">Float</code>), <code class="font-mono text-xs" style="color:var(--accent)">TIMESTAMP</code> → <code class="font-mono text-xs" style="color:var(--accent)">DateTime</code>, <code class="font-mono text-xs" style="color:var(--accent)">UUID</code> → <code class="font-mono text-xs" style="color:var(--accent)">String(36)</code>. Unlike the JS/TS generators in this cluster, a foreign key becomes a real, functional <code class="font-mono text-xs" style="color:var(--accent)">ForeignKey('table.column')</code> argument directly inside <code class="font-mono text-xs" style="color:var(--accent)">Column(...)</code> — SQLAlchemy models foreign keys as a column-level constraint, not a separate relation object, so this translation is unambiguous and safe to generate. <code class="font-mono text-xs" style="color:var(--accent)">primary_key=True</code>, <code class="font-mono text-xs" style="color:var(--accent)">autoincrement=True</code>, <code class="font-mono text-xs" style="color:var(--accent)">nullable=False</code>, and <code class="font-mono text-xs" style="color:var(--accent)">unique=True</code> are added from the parsed constraints. Only literal defaults and <code class="font-mono text-xs" style="color:var(--accent)">CURRENT_TIMESTAMP</code>/<code class="font-mono text-xs" style="color:var(--accent)">NOW()</code> (→ <code class="font-mono text-xs" style="color:var(--accent)">default=datetime.utcnow</code>, with <code class="font-mono text-xs" style="color:var(--accent)">from datetime import datetime</code> added automatically) are translated into <code class="font-mono text-xs" style="color:var(--accent)">default=</code> arguments.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>One <code class="font-mono text-xs" style="color:var(--accent)">class(Base)</code> model per table, with <code class="font-mono text-xs" style="color:var(--accent)">__tablename__</code> set to the real SQL name</li>
+            <li>Real, working <code class="font-mono text-xs" style="color:var(--accent)">ForeignKey('table.column')</code> generation for referenced columns</li>
+            <li><code class="font-mono text-xs" style="color:var(--accent)">Numeric(precision, scale)</code> preserved from <code class="font-mono text-xs" style="color:var(--accent)">DECIMAL</code>/<code class="font-mono text-xs" style="color:var(--accent)">NUMERIC</code> instead of a lossy float</li>
+            <li>Literal and <code class="font-mono text-xs" style="color:var(--accent)">utcnow</code> defaults translated; everything else left as a comment</li>
+            <li>Copy or download the generated <code class="font-mono text-xs" style="color:var(--accent)">.py</code> module</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  external_id UUID DEFAULT uuid_generate_v4(),
+  name VARCHAR(255) NOT NULL,
+  is_active BOOLEAN DEFAULT true
+);
+
+CREATE TABLE posts (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  title VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);`}</pre>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`from sqlalchemy import Column, Boolean, DateTime, ForeignKey, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+from datetime import datetime
+
+Base = declarative_base()
+
+
+class User(Base):
+    __tablename__ = 'users'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    external_id = Column(String(36))  # SQL default not translated: uuid_generate_v4()
+    name = Column(String(255), nullable=False)
+    is_active = Column(Boolean, default=True)
+
+
+class Post(Base):
+    __tablename__ = 'posts'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    title = Column(String(255), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>A <code class="font-mono text-xs" style="color:var(--accent)">DEFAULT</code> expression the generator doesn't recognize, like <code class="font-mono text-xs" style="color:var(--accent)">uuid_generate_v4()</code>, is left as a <code class="font-mono text-xs" style="color:var(--accent)"># SQL default not translated: uuid_generate_v4()</code> comment rather than a guessed <code class="font-mono text-xs" style="color:var(--accent)">default=</code> value — add the real behavior yourself, e.g. <code class="font-mono text-xs" style="color:var(--accent)">default=lambda: str(uuid.uuid4())</code> or a server-side default via <code class="font-mono text-xs" style="color:var(--accent)">server_default=text(...)</code>. Note that while <code class="font-mono text-xs" style="color:var(--accent)">ForeignKey</code> is generated for you, the higher-level <code class="font-mono text-xs" style="color:var(--accent)">relationship()</code> accessor (e.g. <code class="font-mono text-xs" style="color:var(--accent)">posts = relationship('Post', back_populates='user')</code>) is not — that still requires you to decide the attribute name and back-reference on both classes. The generator also targets the classic <code class="font-mono text-xs" style="color:var(--accent)">declarative_base()</code> API, not SQLAlchemy 2.0's typed <code class="font-mono text-xs" style="color:var(--accent)">Mapped</code>/<code class="font-mono text-xs" style="color:var(--accent)">mapped_column</code> style, so on a 2.0 codebase you'll need to convert the <code class="font-mono text-xs" style="color:var(--accent)">Column(...)</code> lines by hand.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Add <code class="font-mono text-xs" style="color:var(--accent)">relationship()</code> calls immediately after pasting the models in, using the generated <code class="font-mono text-xs" style="color:var(--accent)">ForeignKey</code> columns as your map of what needs one. Run <code class="font-mono text-xs" style="color:var(--accent)">alembic revision --autogenerate</code> (or your migration tool of choice) against the models to catch any type mismatch with the real database before applying.</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

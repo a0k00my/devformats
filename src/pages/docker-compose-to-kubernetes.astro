@@ -23,6 +23,109 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is docker-compose to Kubernetes?</h2>
+          <p>This tool converts a <code class="font-mono text-xs" style="color:var(--accent)">docker-compose.yml</code> file into the closest equivalent set of Kubernetes manifests — a <code class="font-mono text-xs" style="color:var(--accent)">Deployment</code> and, if the service exposes ports, a matching <code class="font-mono text-xs" style="color:var(--accent)">Service</code> per compose service, plus a <code class="font-mono text-xs" style="color:var(--accent)">PersistentVolumeClaim</code> for each named volume. It's a starting point for moving a local Compose stack onto a cluster, not a drop-in replacement for hand-tuned production YAML.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>Each service's <code class="font-mono text-xs" style="color:var(--accent)">image</code>, <code class="font-mono text-xs" style="color:var(--accent)">ports</code>, <code class="font-mono text-xs" style="color:var(--accent)">environment</code>, and <code class="font-mono text-xs" style="color:var(--accent)">volumes</code> become a single-container <code class="font-mono text-xs" style="color:var(--accent)">Deployment</code> with <code class="font-mono text-xs" style="color:var(--accent)">replicas</code> taken from <code class="font-mono text-xs" style="color:var(--accent)">deploy.replicas</code> (defaulting to 1). Docker Compose service and volume names are lowercased and stripped of characters Kubernetes doesn't allow in object names (only lowercase letters, digits, and <code class="font-mono text-xs" style="color:var(--accent)">-</code> are valid). Manifests are serialized with <code class="font-mono text-xs" style="color:var(--accent)">js-yaml</code> and joined with <code class="font-mono text-xs" style="color:var(--accent)">---</code> document separators so the whole output can be piped straight into <code class="font-mono text-xs" style="color:var(--accent)">kubectl apply -f</code>.</p>
+          <p>Named volumes (e.g. <code class="font-mono text-xs" style="color:var(--accent)">db-data:/var/lib/postgresql/data</code>) get a dedicated <code class="font-mono text-xs" style="color:var(--accent)">PersistentVolumeClaim</code> (1Gi default, one per unique volume name, deduplicated across services), since that's the portable, multi-node-safe equivalent. Bind mounts (a literal host path like <code class="font-mono text-xs" style="color:var(--accent)">./html:/usr/share/nginx/html</code>) become <code class="font-mono text-xs" style="color:var(--accent)">hostPath</code> volumes instead, with a comment warning that <code class="font-mono text-xs" style="color:var(--accent)">hostPath</code> only works if that exact path exists on whichever node the pod is scheduled to.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Generates <code class="font-mono text-xs" style="color:var(--accent)">Deployment</code> + <code class="font-mono text-xs" style="color:var(--accent)">Service</code> pairs, ready for <code class="font-mono text-xs" style="color:var(--accent)">kubectl apply</code></li>
+            <li>Named volumes become deduplicated <code class="font-mono text-xs" style="color:var(--accent)">PersistentVolumeClaim</code> objects; bind mounts become <code class="font-mono text-xs" style="color:var(--accent)">hostPath</code> with a portability warning</li>
+            <li>Sanitizes compose service/volume names into valid Kubernetes RFC 1123 object names</li>
+            <li>Flags <code class="font-mono text-xs" style="color:var(--accent)">depends_on</code> and build-only services with explanatory comments rather than guessing</li>
+            <li>Carries <code class="font-mono text-xs" style="color:var(--accent)">deploy.replicas</code> straight into <code class="font-mono text-xs" style="color:var(--accent)">spec.replicas</code></li>
+            <li>Copy, download as a single <code class="font-mono text-xs" style="color:var(--accent)">.yaml</code> file, or load sample data</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_PASSWORD: secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data`}</pre>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: db-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+# ^ default 1Gi size — adjust to what db-data actually needs.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db
+  template:
+    metadata:
+      labels:
+        app: db
+    spec:
+      containers:
+        - name: db
+          image: postgres:15
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          env:
+            - name: POSTGRES_PASSWORD
+              value: secret
+          volumeMounts:
+            - name: db-data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: db-data
+          persistentVolumeClaim:
+            claimName: db-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+spec:
+  selector:
+    app: db
+  ports:
+    - port: 5432
+      targetPort: 5432
+      protocol: TCP`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>"No services found" means the input is missing a top-level <code class="font-mono text-xs" style="color:var(--accent)">services:</code> map. A service with no <code class="font-mono text-xs" style="color:var(--accent)">Deployment</code> in the output, only a comment, means it had a <code class="font-mono text-xs" style="color:var(--accent)">build:</code> section but no <code class="font-mono text-xs" style="color:var(--accent)">image:</code> — Kubernetes can't build images, so you need to build and push one to a registry first. A service or volume name with underscores or uppercase letters gets silently rewritten to a hyphenated lowercase equivalent to satisfy Kubernetes naming rules — check the generated <code class="font-mono text-xs" style="color:var(--accent)">metadata.name</code> matches what you expect if you're scripting around it.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Treat the output as a first draft: resize the generated PVCs to real storage requirements, replace any <code class="font-mono text-xs" style="color:var(--accent)">hostPath</code> volume with a proper PVC before running on more than one node, and add liveness/readiness probes plus resource requests/limits, none of which a docker-compose file has an equivalent for. If services had <code class="font-mono text-xs" style="color:var(--accent)">depends_on</code>, add a readiness probe or initContainer to actually enforce that ordering — Kubernetes won't infer it from the comment.</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

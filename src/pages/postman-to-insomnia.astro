@@ -23,6 +23,55 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is Postman to Insomnia?</h2>
+          <p>This tool converts an exported Postman Collection (JSON) into an Insomnia export document, so a team using Postman can hand a collection to a teammate on Insomnia without recreating every request by hand.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>The collection's <code class="font-mono text-xs" style="color:var(--accent)">item</code> tree is flattened recursively so requests nested in folders aren't skipped. A single <code class="font-mono text-xs" style="color:var(--accent)">workspace</code> resource is created from the collection's name, and each request becomes an Insomnia <code class="font-mono text-xs" style="color:var(--accent)">request</code> resource with <code class="font-mono text-xs" style="color:var(--accent)">parentId</code> pointing back to that workspace. Postman's <code class="font-mono text-xs" style="color:var(--accent)">{'{{var}}'}</code> variable syntax is rewritten to Insomnia's Nunjucks-style <code class="font-mono text-xs" style="color:var(--accent)">{'{{ _.var }}'}</code> tags everywhere it appears — in the URL and in header values — via a regex substitution, since the two apps use different templating engines and don't share an environment format. Raw JSON bodies map to Insomnia's <code class="font-mono text-xs" style="color:var(--accent)">{'{ mimeType: "application/json", text: rawBody }'}</code> shape; urlencoded and form-data bodies map to <code class="font-mono text-xs" style="color:var(--accent)">{'{ mimeType, params: [{ name, value }] }'}</code>. The final document is wrapped as <code class="font-mono text-xs" style="color:var(--accent)">{'{ _type: "export", __export_format: 4, resources: [...] }'}</code>, the exact shape Insomnia's own Import Data feature reads.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Recursively flattens requests nested in Postman folders</li>
+            <li>Translates {'{{var}}'} to Insomnia's {'{{ _.var }}'} tag syntax in URLs and headers</li>
+            <li>Maps raw, urlencoded, and form-data bodies to Insomnia's body shapes</li>
+            <li>Outputs Insomnia export format 4, ready for direct import</li>
+            <li>Copy, download as insomnia_export.json, or load a collection file directly</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input (Postman request): <code class="font-mono text-xs" style="color:var(--accent)">GET {'{{baseUrl}}'}/users/:id</code> with header <code class="font-mono text-xs" style="color:var(--accent)">Authorization: Bearer {'{{token}}'}</code>.</p>
+          <p>Output (Insomnia request resource):</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`{
+  "_id": "req_1",
+  "_type": "request",
+  "parentId": "wrk_1",
+  "name": "Get user",
+  "method": "GET",
+  "url": "{{ _.baseUrl }}/users/:id",
+  "headers": [
+    { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+  ]
+}`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>"Not a Postman collection — expected a top-level item array" means the pasted JSON is missing the <code class="font-mono text-xs" style="color:var(--accent)">item</code> array every collection export has — double-check you exported the collection, not just an environment. Note that Postman's <code class="font-mono text-xs" style="color:var(--accent)">:id</code> path variable syntax is left as-is in the URL rather than translated, since Insomnia doesn't use a distinct path-variable notation — it will still resolve correctly as long as your Insomnia request treats it as literal path text.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>This is a text substitution between two templating syntaxes, not a full environment migration — after importing into Insomnia, create an environment and define values for every <code class="font-mono text-xs" style="color:var(--accent)">_.variableName</code> reference the converted requests use (baseUrl, token, etc.), since Postman environment values themselves aren't carried over.</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

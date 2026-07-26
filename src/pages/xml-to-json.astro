@@ -23,6 +23,55 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is XML to JSON?</h2>
+          <p>XML to JSON converts an XML document into an equivalent JSON text file with syntax highlighting, ready to copy or download — unlike XML Parser's inspection-only tree, this tool produces an actual JSON output you can paste into other tools or code.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>The XML is parsed with the browser's native <code class="font-mono text-xs" style="color:var(--accent)">DOMParser</code>. If parsing produces a <code class="font-mono text-xs" style="color:var(--accent)">parsererror</code> node, the tool throws with that message, extracts a line number when the message mentions one, and highlights that line in the input gutter. Otherwise the root element is converted recursively: attributes become <code class="font-mono text-xs" style="color:var(--accent)">@</code>-prefixed keys, elements with no children collapse to their text content, elements with both attributes and text keep the text under a <code class="font-mono text-xs" style="color:var(--accent)">#text</code> key, and two or more sibling elements sharing a tag name are grouped into a JSON array instead of overwriting each other. The resulting object is serialized with <code class="font-mono text-xs" style="color:var(--accent)">JSON.stringify(result, null, 2)</code> and shown with JSON syntax highlighting.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Attributes preserved as @-prefixed keys</li>
+            <li>Repeated sibling tags become JSON arrays</li>
+            <li>Mixed text/child content preserved under a #text key</li>
+            <li>Syntax-highlighted JSON output panel</li>
+            <li>Copy, download as .json, or load an .xml file directly</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input: <code class="font-mono text-xs" style="color:var(--accent)">{'<root><name>DevFormats</name><tools><tool id="1">json-formatter</tool><tool id="2">yaml-formatter</tool></tools></root>'}</code></p>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`{
+  "root": {
+    "name": "DevFormats",
+    "tools": {
+      "tool": [
+        { "@id": "1", "#text": "json-formatter" },
+        { "@id": "2", "#text": "yaml-formatter" }
+      ]
+    }
+  }
+}`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>An unclosed tag or more than one root element produces "Malformed XML" (or the browser's underlying parsererror text) instead of output. Because the conversion has no schema awareness, an element that appears once in your sample but could repeat elsewhere will convert to a single object rather than a single-item array — check consuming code handles both shapes if the source data is inconsistent.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Decide up front how your consuming code should treat attributes — the @-prefix convention used here is common but not universal, so confirm any downstream library (e.g. a specific XML-JSON mapping spec) expects the same shape before wiring this output directly into a pipeline.</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

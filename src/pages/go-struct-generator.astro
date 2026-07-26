@@ -23,6 +23,58 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is Go Struct Generator?</h2>
+          <p>This tool infers Go struct definitions from a JSON sample — the reverse of <code class="font-mono text-xs" style="color:var(--accent)">encoding/json</code> marshaling. Paste a JSON response body and get back PascalCase struct fields with the correct <code class="font-mono text-xs" style="color:var(--accent)">json:"..."</code> tags to round-trip that exact shape.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>The input is parsed with <code class="font-mono text-xs" style="color:var(--accent)">JSON.parse</code>, then walked recursively by value type. Objects become a new named struct — the name derived from the field's key, PascalCased (so <code class="font-mono text-xs" style="color:var(--accent)">author</code> becomes <code class="font-mono text-xs" style="color:var(--accent)">Author</code>) — with each of its own keys becoming a PascalCased field carrying a <code class="font-mono text-xs" style="color:var(--accent)">json:"originalKey"</code> tag that preserves the exact original casing for marshaling. Arrays look at their first element to infer the element type (<code class="font-mono text-xs" style="color:var(--accent)">[]string</code>, <code class="font-mono text-xs" style="color:var(--accent)">[]int</code>, or a nested <code class="font-mono text-xs" style="color:var(--accent)">[]SomeStruct</code>); an empty array falls back to <code class="font-mono text-xs" style="color:var(--accent)">[]interface{}</code> since there's no element to inspect. Nested object structs are emitted as their own top-level <code class="font-mono text-xs" style="color:var(--accent)">type ... struct</code> blocks — never inlined anonymously — with the root type printed first and nested types following.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Custom root struct name (defaults to <code class="font-mono text-xs" style="color:var(--accent)">Root</code>)</li>
+            <li>Nested objects become separate named structs, not anonymous inline ones</li>
+            <li>Accurate <code class="font-mono text-xs" style="color:var(--accent)">json:"key"</code> tags matching the original JSON casing exactly</li>
+            <li>Integers vs. floats distinguished (<code class="font-mono text-xs" style="color:var(--accent)">int</code> vs. <code class="font-mono text-xs" style="color:var(--accent)">float64</code>) using <code class="font-mono text-xs" style="color:var(--accent)">Number.isInteger</code></li>
+            <li><code class="font-mono text-xs" style="color:var(--accent)">null</code> values become <code class="font-mono text-xs" style="color:var(--accent)">interface{}</code>, since Go has no bare optional primitive</li>
+            <li>Load from file, copy, or download as a <code class="font-mono text-xs" style="color:var(--accent)">.go</code> file</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input: <code class="font-mono text-xs" style="color:var(--accent)">{`{"name":"DevFormats","version":"2.0","free":true,"price":null,"tags":["json","yaml"],"author":{"type":"web-tool","clientSide":true}}`}</code></p>
+          <p>Output (root name <code class="font-mono text-xs" style="color:var(--accent)">Root</code>):</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`type Root struct {
+	Name string \`json:"name"\`
+	Version string \`json:"version"\`
+	Free bool \`json:"free"\`
+	Price interface{} \`json:"price"\`
+	Tags []string \`json:"tags"\`
+	Author Author \`json:"author"\`
+}
+
+type Author struct {
+	Type string \`json:"type"\`
+	ClientSide bool \`json:"clientSide"\`
+}`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors / edge cases</h2>
+          <p>Invalid JSON surfaces the browser's native <code class="font-mono text-xs" style="color:var(--accent)">JSON.parse</code> error, converted to a line/column so you know exactly where the syntax broke. Because the struct is inferred from one sample, a field that is a string in your example but sometimes a number in other responses (a common API inconsistency) won't be caught — the generator has no way to know about values it never saw. The output isn't run through <code class="font-mono text-xs" style="color:var(--accent)">gofmt</code>, so struct fields aren't column-aligned; that's cosmetic only and doesn't affect compilation.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Run <code class="font-mono text-xs" style="color:var(--accent)">gofmt</code> or <code class="font-mono text-xs" style="color:var(--accent)">goimports</code> on the generated file before committing. For fields that might legitimately be absent from the JSON payload (not just <code class="font-mono text-xs" style="color:var(--accent)">null</code>), add <code class="font-mono text-xs" style="color:var(--accent)">,omitempty</code> to the tag yourself, and consider a pointer type instead of <code class="font-mono text-xs" style="color:var(--accent)">interface{}</code> for fields you know are optional scalars, so you can distinguish "absent" from "zero value" when decoding.</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

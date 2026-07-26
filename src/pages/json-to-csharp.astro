@@ -23,6 +23,76 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is JSON to C#?</h2>
+          <p>This tool converts a JSON sample into C# classes with auto-property syntax (<code class="font-mono text-xs" style="color:var(--accent)">{`{ get; set; }`}</code>), annotated for <code class="font-mono text-xs" style="color:var(--accent)">System.Text.Json</code> — the JSON serializer built into .NET since .NET Core 3.0. It's a fast way to turn an API response or config payload into a strongly-typed model without writing the class by hand.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>Each nested JSON object becomes its own <code class="font-mono text-xs" style="color:var(--accent)">public class</code>, printed before any class that references it. Property names are PascalCased from the JSON key, per C# convention. Because a PascalCased property name (<code class="font-mono text-xs" style="color:var(--accent)">Id</code>) almost always differs from the raw JSON key (<code class="font-mono text-xs" style="color:var(--accent)">id</code>), the generator adds a <code class="font-mono text-xs" style="color:var(--accent)">[JsonPropertyName("...")]</code> attribute above nearly every property so serialization still round-trips to the exact original key. A field whose sample value was <code class="font-mono text-xs" style="color:var(--accent)">null</code> is typed with a nullable suffix (<code class="font-mono text-xs" style="color:var(--accent)">T?</code>). Numbers are <code class="font-mono text-xs" style="color:var(--accent)">int</code> or <code class="font-mono text-xs" style="color:var(--accent)">double</code> depending on whether the sample value had a decimal point, and arrays are <code class="font-mono text-xs" style="color:var(--accent)">List&lt;T&gt;</code> from <code class="font-mono text-xs" style="color:var(--accent)">System.Collections.Generic</code>.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>PascalCase auto-properties with <code class="font-mono text-xs" style="color:var(--accent)">{`{ get; set; }`}</code>, matching standard C# conventions</li>
+            <li><code class="font-mono text-xs" style="color:var(--accent)">[JsonPropertyName]</code> attributes wired up automatically wherever the property name differs from the JSON key</li>
+            <li>Nested objects become separate classes; arrays become <code class="font-mono text-xs" style="color:var(--accent)">List&lt;T&gt;</code></li>
+            <li>Nullable value/reference types (<code class="font-mono text-xs" style="color:var(--accent)">T?</code>) for fields observed as <code class="font-mono text-xs" style="color:var(--accent)">null</code></li>
+            <li>Required <code class="font-mono text-xs" style="color:var(--accent)">using</code> directives included at the top of the output, ready to paste into a file</li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input: <code class="font-mono text-xs" style="color:var(--accent)">{`{ "id": 101, "username": "alice_dev", "isActive": true, "signupBonus": null, "address": { "city": "Berlin", "zipCode": "10115" }, "tags": ["admin", "beta"] }`}</code></p>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`using System.Collections.Generic;
+using System.Text.Json.Serialization;
+
+public class Address
+{
+    [JsonPropertyName("city")]
+    public string City { get; set; }
+
+    [JsonPropertyName("zipCode")]
+    public string ZipCode { get; set; }
+}
+
+public class Root
+{
+    [JsonPropertyName("id")]
+    public int Id { get; set; }
+
+    [JsonPropertyName("username")]
+    public string Username { get; set; }
+
+    [JsonPropertyName("isActive")]
+    public bool IsActive { get; set; }
+
+    [JsonPropertyName("signupBonus")]
+    public object? SignupBonus { get; set; }
+
+    [JsonPropertyName("address")]
+    public Address Address { get; set; }
+
+    [JsonPropertyName("tags")]
+    public List<string> Tags { get; set; }
+}`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>A <code class="font-mono text-xs" style="color:var(--accent)">null</code> sample value produces <code class="font-mono text-xs" style="color:var(--accent)">object?</code> since there's nothing concrete to infer — narrow it once you know the real type. If your project still uses Newtonsoft.Json instead of System.Text.Json, swap every <code class="font-mono text-xs" style="color:var(--accent)">[JsonPropertyName("...")]</code> for <code class="font-mono text-xs" style="color:var(--accent)">[JsonProperty("...")]</code> — the class shape is otherwise identical. An empty array in the sample has no element to infer a type from and falls back to <code class="font-mono text-xs" style="color:var(--accent)">List&lt;object&gt;</code>.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Consider converting the generated class into a C# <code class="font-mono text-xs" style="color:var(--accent)">record</code> if the model should be immutable — records keep the same property syntax but add value-based equality for free. Enable nullable reference types (<code class="font-mono text-xs" style="color:var(--accent)">{`<Nullable>enable</Nullable>`}</code>) in your project so the <code class="font-mono text-xs" style="color:var(--accent)">?</code> annotations the generator emits are actually enforced by the compiler rather than being purely documentational.</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>

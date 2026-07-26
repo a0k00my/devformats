@@ -23,6 +23,61 @@ const faqItems = [
 
   <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
     <RelatedTools tools={related} />
+
+    <details class="rounded-lg border" style="border-color:var(--border);background:var(--bg-subtle)">
+      <summary class="cursor-pointer px-4 py-3 text-sm font-semibold" style="color:var(--fg)">Documentation</summary>
+      <div class="space-y-5 px-4 pb-5 text-sm leading-relaxed" style="color:var(--fg-muted)">
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">What is curl-to-Rust?</h2>
+          <p>This tool converts a curl command into an async Rust program built on <code class="font-mono text-xs" style="color:var(--accent)">reqwest</code>, the de facto standard HTTP client crate for Rust (built on <code class="font-mono text-xs" style="color:var(--accent)">hyper</code>), running under the <code class="font-mono text-xs" style="color:var(--accent)">tokio</code> async runtime.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">How it works</h2>
+          <p>Curl's flags are parsed into method, url, headers, a raw body string, form fields, Basic Auth, and the insecure flag. The Rust emitter builds a <code class="font-mono text-xs" style="color:var(--accent)">reqwest::Client</code>, then chains a request builder: <code class="font-mono text-xs" style="color:var(--accent)">.header(key, value)</code> for each curl <code class="font-mono text-xs" style="color:var(--accent)">-H</code>, <code class="font-mono text-xs" style="color:var(--accent)">.basic_auth(user, Some(pass))</code> for <code class="font-mono text-xs" style="color:var(--accent)">-u</code>, and <code class="font-mono text-xs" style="color:var(--accent)">.body(...)</code> for <code class="font-mono text-xs" style="color:var(--accent)">-d</code>/--data — passed through as a raw Rust string literal (using a raw string <code class="font-mono text-xs" style="color:var(--accent)">r#"..."#</code> when the body itself contains double quotes, so nothing needs escaping). The HTTP method is built via <code class="font-mono text-xs" style="color:var(--accent)">reqwest::Method::from_bytes(...)</code> rather than reqwest's named constructors (<code class="font-mono text-xs" style="color:var(--accent)">Client::get</code>, <code class="font-mono text-xs" style="color:var(--accent)">Client::post</code>, etc.), because that accepts any method string — including less common verbs like PATCH or a custom method — not just the handful reqwest exposes helpers for.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Features</h2>
+          <ul class="list-disc space-y-1 pl-5">
+            <li>Async output using <code class="font-mono text-xs" style="color:var(--accent)">#[tokio::main]</code> and <code class="font-mono text-xs" style="color:var(--accent)">reqwest</code></li>
+            <li>Any HTTP method supported via <code class="font-mono text-xs" style="color:var(--accent)">Method::from_bytes</code>, not just the common ones</li>
+            <li>Body passed through as a raw string, using <code class="font-mono text-xs" style="color:var(--accent)">r#"..."#</code> automatically when it contains quotes</li>
+            <li><code class="font-mono text-xs" style="color:var(--accent)">-F</code>/--form uploads via <code class="font-mono text-xs" style="color:var(--accent)">multipart::Form</code> — <code class="font-mono text-xs" style="color:var(--accent)">.text(key, value)</code> for fields, <code class="font-mono text-xs" style="color:var(--accent)">.file(key, path).await?</code> for files (reqwest reads the file from disk directly, no manual I/O needed)</li>
+            <li><code class="font-mono text-xs" style="color:var(--accent)">-k</code>/--insecure mapped to <code class="font-mono text-xs" style="color:var(--accent)">ClientBuilder::danger_accept_invalid_certs(true)</code></li>
+          </ul>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Example</h2>
+          <p>Input: <code class="font-mono text-xs" style="color:var(--accent)">{`curl -X POST https://api.example.com/v1/users -H "Content-Type: application/json" -H "X-Api-Key: abc123" -d '{"name":"Ada Lovelace","role":"admin"}'`}</code></p>
+          <p>Output:</p>
+          <pre class="overflow-x-auto rounded border p-3 font-mono text-xs" style="border-color:var(--border);background:var(--bg)">{`use reqwest::Client;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = Client::new();
+
+    let req = client.request(reqwest::Method::from_bytes(b"POST")?, "https://api.example.com/v1/users")
+        .header("Content-Type", "application/json")
+        .header("X-Api-Key", "abc123")
+        .body(r#"{"name":"Ada Lovelace","role":"admin"}"#);
+
+    let response = req.send().await?;
+
+    println!("{}", response.status());
+    println!("{}", response.text().await?);
+    Ok(())
+}`}</pre>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Common errors</h2>
+          <p>The output needs the <code class="font-mono text-xs" style="color:var(--accent)">reqwest</code> and <code class="font-mono text-xs" style="color:var(--accent)">tokio</code> crates in <code class="font-mono text-xs" style="color:var(--accent)">Cargo.toml</code> — <code class="font-mono text-xs" style="color:var(--accent)">tokio</code> specifically needs its <code class="font-mono text-xs" style="color:var(--accent)">"full"</code> feature (or at minimum <code class="font-mono text-xs" style="color:var(--accent)">"rt-multi-thread"</code> and <code class="font-mono text-xs" style="color:var(--accent)">"macros"</code>) enabled, since <code class="font-mono text-xs" style="color:var(--accent)">#[tokio::main]</code> won't compile without it. Forgetting <code class="font-mono text-xs" style="color:var(--accent)">reqwest</code>'s <code class="font-mono text-xs" style="color:var(--accent)">"multipart"</code> feature flag will fail to compile any command that used <code class="font-mono text-xs" style="color:var(--accent)">-F</code>.</p>
+        </section>
+        <section>
+          <h2 class="mb-1.5 text-xs font-semibold uppercase tracking-wider" style="color:var(--accent)">Best practices</h2>
+          <p>Reuse one <code class="font-mono text-xs" style="color:var(--accent)">Client</code> across many requests instead of constructing a new one each time — it holds a connection pool internally and is cheap to clone. Always propagate errors with <code class="font-mono text-xs" style="color:var(--accent)">?</code> (as the generated code does) rather than <code class="font-mono text-xs" style="color:var(--accent)">.unwrap()</code>, and avoid <code class="font-mono text-xs" style="color:var(--accent)">danger_accept_invalid_certs(true)</code> outside local development.</p>
+        </section>
+      </div>
+    </details>
+
     <FAQ items={faqItems} />
   </div>
 </ToolLayout>
