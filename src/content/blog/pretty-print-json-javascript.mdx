@@ -1,0 +1,49 @@
+---
+title: "How to Pretty-Print JSON in JavaScript (JSON.stringify and the DevTools Trick)"
+description: "JSON.stringify's third argument, formatting JSON in the browser console, and what to do when the string won't parse at all."
+pubDate: 2026-07-26
+tags: ["json", "javascript"]
+relatedTools: ["json-formatter", "json-validator", "json-minifier"]
+---
+
+`JSON.stringify` already ships in every JavaScript runtime — no import needed — but most people only ever use its one-argument form and never discover the formatting it can do.
+
+## The `indent` argument nobody uses
+
+```js
+const data = JSON.parse(rawJsonString);
+console.log(JSON.stringify(data, null, 2));
+```
+
+The third argument controls indentation: `2` or `4` for spaces, or even a string like `'\t'` for tabs. Skip it and you get the same compact single-line output `stringify` normally produces — which is exactly what you want for wire transfer, but useless for reading.
+
+The second argument (`null` above) is a **replacer** — a function or array that filters/transforms keys before serialization. A common use: strip sensitive fields before logging.
+
+```js
+console.log(JSON.stringify(data, (key, value) => key === 'password' ? undefined : value, 2));
+```
+
+## Reading JSON directly in the browser console
+
+If you're inspecting a `fetch()` response or a big object during debugging, `console.log`ing an object (not a JSON string) already gives you Chrome/Firefox DevTools' built-in collapsible tree view — often more useful than pretty-printed text, since you can expand/collapse nested branches interactively:
+
+```js
+const res = await fetch('/api/user');
+console.log(await res.json()); // logs the parsed object, not a string — DevTools renders it as a tree
+```
+
+Only reach for `JSON.stringify(..., null, 2)` when you need the *text* — copying it into a bug report, a test fixture file, or anywhere DevTools' interactive tree isn't available.
+
+## When JSON.parse throws instead
+
+If the string doesn't parse at all, `JSON.stringify` never gets a chance to run — you'll hit a `SyntaxError` from `JSON.parse` first, usually with a vague message like `Unexpected token } in JSON at position 142`. Counting characters to position 142 by hand is miserable. Paste the raw string into [JSON Formatter](/json-formatter) instead — it'll show you the exact line the parser choked on rather than a raw character offset, which is what actually lets you find and fix the problem.
+
+## Minifying instead of formatting
+
+Going the other direction — flattening pretty-printed JSON back to compact form before sending it over the wire — is just `JSON.stringify(data)` with no third argument. If you're starting from *already-formatted text* rather than a live object (e.g. a config file you hand-edited), our [JSON Minifier](/json-minifier) does the same thing without you writing a script, and shows the byte-size reduction.
+
+## The quick decision
+
+- Debugging live in the browser console → just `console.log` the object, use DevTools' tree view
+- Need formatted *text* (for a file, a bug report, a diff) → `JSON.stringify(data, null, 2)`
+- Given a raw string that might not even be valid JSON → [JSON Formatter](/json-formatter) or [JSON Validator](/json-validator), so a parse failure tells you *where*, not just *that*

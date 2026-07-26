@@ -1,0 +1,55 @@
+---
+title: "How to Validate JSON Against a Schema in Go (and When to Skip Writing Go for It)"
+description: "Using gojsonschema to validate JSON in Go, generating a struct from a sample payload, and when a browser-based validator is just faster."
+pubDate: 2026-07-26
+tags: ["json", "go"]
+relatedTools: ["json-schema-validator", "go-struct-generator", "json-formatter"]
+---
+
+Go's standard library `encoding/json` will happily unmarshal malformed-shape JSON into a struct with zero values and no error — which is exactly the failure mode that makes schema validation worth doing explicitly, rather than trusting `Unmarshal`'s silence.
+
+## Why `Unmarshal` alone isn't validation
+
+```go
+type User struct {
+    ID   int    `json:"id"`
+    Name string `json:"name"`
+}
+
+var u User
+json.Unmarshal([]byte(`{"name": "Alice"}`), &u) // no error — u.ID is just 0
+```
+
+Missing fields don't error — they silently become the zero value (`0`, `""`, `false`, `nil`). If `id` is actually required, this bug ships silently until something downstream breaks on an ID of `0`. `encoding/json` validates *syntax*, not *shape*.
+
+## Schema validation with `gojsonschema`
+
+```go
+import "github.com/xeipuuv/gojsonschema"
+
+schemaLoader := gojsonschema.NewStringLoader(schemaJSON)
+docLoader := gojsonschema.NewStringLoader(payloadJSON)
+result, err := gojsonschema.Validate(schemaLoader, docLoader)
+
+if !result.Valid() {
+    for _, e := range result.Errors() {
+        fmt.Println(e.String()) // e.g. "id is required"
+    }
+}
+```
+
+This actually enforces required fields, types, string patterns, and enums — the checks `Unmarshal` skips. The cost is writing and maintaining a JSON Schema document alongside your Go types, which is one more artifact to keep in sync when the shape changes.
+
+## Going the other direction: struct from JSON
+
+If you're the one *consuming* an API and just need a Go struct that matches its response shape, hand-writing field names, JSON tags, and guessing at types (is that number an `int` or should it be `float64`? is that field ever absent, meaning it needs to be a pointer?) from a sample payload is tedious and error-prone. Our [Go Struct Generator](/go-struct-generator) takes a JSON sample and produces the struct definition with tags already attached — a faster and more accurate starting point than typing it by hand, even if you then hand-tune a few fields (like widening an `int` to `int64`, or making an optional field a pointer).
+
+## When you just need a quick check, no Go involved
+
+Setting up `go run` with an import just to eyeball whether a JSON blob matches an expected shape is overhead for what's often a 30-second question. [JSON Schema Validator](/json-schema-validator) runs the same category of check — required fields, types, enums — directly in the browser with immediate, readable error output, no `go.mod` required. Reach for actual Go code when the validation needs to run as part of your service; reach for the browser tool when you're just sanity-checking a payload by hand.
+
+## The quick decision
+
+- Validating untrusted input inside a running Go service → `gojsonschema` (or similar), so the check is enforced in code, not just eyeballed once
+- Need a Go struct to consume a JSON API → [Go Struct Generator](/go-struct-generator) for the first draft
+- Just checking a pasted blob against expected shape, no service involved → [JSON Schema Validator](/json-schema-validator)

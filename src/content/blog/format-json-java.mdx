@@ -1,0 +1,48 @@
+---
+title: "How to Format and Validate JSON in Java (Jackson, Gson, and No-Library Options)"
+description: "Pretty-printing and validating JSON in Java with Jackson and Gson, plus what to do when you don't want to add a dependency just to check a string."
+pubDate: 2026-07-26
+tags: ["json", "java"]
+relatedTools: ["json-formatter", "json-validator", "json-to-typescript"]
+---
+
+Java has no built-in JSON support in the standard library — unlike Python or JavaScript, you need a library. Here's the fastest path with the two most common ones, and what to reach for when adding a dependency isn't worth it for a one-off check.
+
+## Jackson: `ObjectMapper` with a pretty printer
+
+Jackson is the de facto standard in most Spring-based projects (Spring Boot pulls it in transitively):
+
+```java
+ObjectMapper mapper = new ObjectMapper();
+Object json = mapper.readValue(rawJsonString, Object.class);
+String pretty = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json);
+System.out.println(pretty);
+```
+
+`readValue` throws `JsonProcessingException` (specifically `JsonParseException` for malformed syntax, `MismatchedInputException` for type mismatches) if the input is invalid — the message includes a line/column, but it's often buried in a long exception chain that's easy to miss when scrolling a stack trace.
+
+## Gson: shorter, fewer options
+
+```java
+Gson gson = new GsonBuilder().setPrettyPrinting().create();
+JsonElement json = JsonParser.parseString(rawJsonString);
+System.out.println(gson.toJson(json));
+```
+
+Gson throws `JsonSyntaxException` on malformed input. It's lighter-weight than Jackson and a common choice on Android specifically, though Jackson has taken over most server-side Java in recent years.
+
+## Validating structure, not just syntax
+
+Both libraries confirm the JSON *parses*, but neither validates it against a **schema** — checking required fields exist, types match, enums are constrained — out of the box. For that you'd add `everit-org/json-schema` or `networknt/json-schema-validator` on top, which is a real dependency-and-setup cost just to sanity-check a payload shape.
+
+## When you don't want to touch the build file
+
+Adding a Maven/Gradle dependency, waiting for it to resolve, and writing a throwaway `main()` method is a lot of overhead just to check whether a JSON blob a teammate pasted in Slack is even valid. For that case, [JSON Validator](/json-validator) checks syntax and schema conformance directly in the browser — no build step, and it'll point at the exact line if something's wrong, which beats digging a line number out of a Jackson stack trace.
+
+If you're consuming a JSON API response and want a starting point for a Java model class instead of hand-typing fields, [JSON to TypeScript](/json-to-typescript) at least gives you the accurate field names and nesting to translate into Java DTOs by hand — Jackson's `@JsonProperty` mapping is far less error-prone when you're not guessing at the shape from a wall of minified text.
+
+## The quick decision
+
+- Already in a Spring Boot / Jackson project → `writerWithDefaultPrettyPrinter()`, no new dependency needed
+- Android or already using Gson → `setPrettyPrinting()`
+- Just checking a pasted blob, no code involved → [JSON Formatter](/json-formatter) for syntax, [JSON Validator](/json-validator) if you also care about schema/shape

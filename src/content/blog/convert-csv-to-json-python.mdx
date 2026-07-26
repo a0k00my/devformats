@@ -1,0 +1,58 @@
+---
+title: "How to Convert CSV to JSON in Python (csv.DictReader and pandas)"
+description: "Two ways to convert CSV to JSON in Python — the standard-library csv.DictReader and pandas — plus the type-coercion gotchas that bite both."
+pubDate: 2026-07-26
+tags: ["json", "csv", "python"]
+relatedTools: ["csv-to-json", "json-to-csv", "json-formatter"]
+---
+
+CSV and JSON represent data very differently — CSV is flat rows of strings, JSON supports nesting and real types — so "converting" between them always involves a decision about how to handle that mismatch. Here's how to do it in Python, and where it quietly goes wrong.
+
+## Standard library: `csv.DictReader`
+
+No dependencies needed for a straightforward conversion:
+
+```python
+import csv
+import json
+
+with open('data.csv') as f:
+    rows = list(csv.DictReader(f))
+
+print(json.dumps(rows, indent=2))
+```
+
+`DictReader` uses the first row as keys automatically. The catch: **every value comes out as a string**, even ones that look numeric or boolean. `"42"` stays `"42"`, not `42`; `"true"` stays the string `"true"`, not a JSON boolean. If the consumer of your JSON expects real numbers or booleans, you need to coerce fields explicitly:
+
+```python
+for row in rows:
+    row['age'] = int(row['age'])
+    row['active'] = row['active'].lower() == 'true'
+```
+
+There's no way to infer this automatically and reliably — a column of `"007"` values could be a numeric ID that should stay a zero-padded string, not become the integer `7`. This is a modeling decision, not something the conversion can guess correctly on its own.
+
+## pandas: shorter, with the same type caveat
+
+```python
+import pandas as pd
+
+df = pd.read_csv('data.csv')
+print(df.to_json(orient='records', indent=2))
+```
+
+`orient='records'` produces the same shape as `DictReader` — a JSON array of objects, one per row. pandas *does* attempt automatic type inference (numeric-looking columns often come out as actual numbers), which solves the string problem for the common case — but it can also silently misinfer types on edge cases (a column that's almost all numbers with one text value becomes `object` dtype, and a column of IDs might get coerced to `float64` if any value is missing, turning `"1042"` into `1042.0`). Always spot-check the output rather than assuming pandas guessed correctly.
+
+## Nesting: CSV has none, JSON might need it
+
+If your target JSON schema needs nested objects (e.g. flattening `address_street`, `address_city` columns back into a nested `address: {street, city}` object), neither `DictReader` nor plain pandas do this automatically — you'd write an explicit reshape step, or reach for `pandas.json_normalize`'s inverse manually.
+
+## Skipping the script for a one-off file
+
+If you just have a CSV file and need JSON output right now — no repeatable pipeline, no type-coercion logic to maintain — [CSV to JSON](/csv-to-json) does the conversion directly in the browser, auto-detecting headers, with the result immediately visible so you can confirm types look right before using it. Going the other direction, [JSON to CSV](/json-to-csv) flattens a JSON array of objects back into a CSV, which is the more common need when exporting API data to a spreadsheet.
+
+## The quick decision
+
+- One-off file, need JSON now, no script to maintain → [CSV to JSON](/csv-to-json)
+- Repeatable pipeline, need explicit control over type coercion → `csv.DictReader` + manual field coercion
+- Already doing data analysis in pandas anyway → `df.to_json(orient='records')`, but verify the inferred types with [JSON Formatter](/json-formatter) before trusting them downstream
