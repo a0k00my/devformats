@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import CsvToSql from '../components/CsvToSql';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('csv-to-sql')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'How are column types decided?', a: 'From each cell\'s actual value, not a declared schema: numbers become unquoted numeric literals, true/false become SQL TRUE/FALSE, and everything else becomes a quoted string with embedded single quotes doubled ( \'\' ) for safe escaping. Empty cells become NULL.' },
+  { q: 'Does this create the table first?', a: 'No — it only generates INSERT statements assuming the table and columns already exist. Column names are taken directly from the CSV header row.' },
+  { q: 'Is this safe from SQL injection when I run it?', a: 'The tool escapes single quotes in string values, but these are still generated as literal SQL text, not parameterized queries — treat pasted CSV data as trusted input (e.g. your own export), not as a substitute for parameterized queries when handling arbitrary user-supplied data in an application.' },
+  { q: 'What if my CSV doesn\'t have a header row?', a: 'The first row is always treated as column names. If your data has no header, add one (e.g. col1,col2,col3) before pasting it in — this tool doesn\'t currently support a headerless mode.' },
+];
+---
+<ToolLayout tool={tool}>
+  <CsvToSql client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

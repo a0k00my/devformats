@@ -1,0 +1,46 @@
+---
+title: "Turning a CSV Export into SQL INSERT Statements"
+description: "Convert a CSV file into ready-to-run SQL INSERT statements — how types get inferred, how quotes get escaped safely, and when this is (and isn't) the right tool for loading data."
+pubDate: 2026-07-26
+tags: ["sql", "csv"]
+relatedTools: ["csv-to-sql", "csv-to-json", "json-to-csv"]
+---
+
+Getting a spreadsheet export into a database table is a common one-off task that doesn't always justify setting up a proper ETL pipeline or `COPY`/`LOAD DATA` command — sometimes you just need a handful of `INSERT` statements to paste into a query console.
+
+## What type inference actually does here
+
+```csv
+id,name,email,active
+1,Alice,alice@example.com,true
+2,Bob,bob@example.com,false
+```
+
+becomes:
+
+```sql
+INSERT INTO "table_name" ("id", "name", "email", "active") VALUES (1, 'Alice', 'alice@example.com', TRUE);
+INSERT INTO "table_name" ("id", "name", "email", "active") VALUES (2, 'Bob', 'bob@example.com', FALSE);
+```
+
+Numbers come out unquoted, `true`/`false` become SQL's `TRUE`/`FALSE`, everything else becomes a quoted string, and an empty cell becomes `NULL`. This is inferred per-cell from the CSV's actual content — there's no schema behind it, so a column that's mostly numbers with one text value in it will just produce mixed quoted/unquoted values across rows, matching whatever each individual cell actually contained.
+
+## The one thing this doesn't do: create the table
+
+The generated statements assume `table_name` (or whatever name you set) and its columns already exist, matching the CSV header row exactly. If you're loading into a brand-new table, you'll still need a `CREATE TABLE` statement with real column types — this tool solves the "get the data in" half, not the schema design half.
+
+## Handling embedded quotes safely
+
+A name like `O'Brien` becomes `'O''Brien'` — the standard SQL way to escape a single quote inside a string literal (doubling it, not backslash-escaping, since backslash escapes aren't part of standard SQL string syntax the way they are in most programming languages).
+
+Worth being explicit about: this escaping makes the output *syntactically* safe SQL text, but it's still literal text being generated — not a parameterized query. That distinction matters if you're pasting arbitrary user-submitted CSV data rather than your own data export; treat this the same way you'd treat any hand-written SQL script, not as a substitute for parameterized queries in application code that handles untrusted input.
+
+## When this is (and isn't) the right tool
+
+**Good fit**: a one-off data seed, migrating a small spreadsheet into a new table, generating fixture data for tests, sharing a runnable snippet in a bug report or PR.
+
+**Better tools exist** for large imports — most databases have a native bulk-load path (`COPY` in Postgres, `LOAD DATA INFILE` in MySQL, `.import` in SQLite) that's dramatically faster than executing thousands of individual `INSERT` statements, and doesn't route the data through a text-generation step at all.
+
+If you need the CSV as JSON instead of SQL — say, for a script that reshapes the data before loading it — [CSV to JSON](/csv-to-json) covers that, and [JSON to CSV](/json-to-csv) handles the reverse direction when you're exporting API data back out to a spreadsheet.
+
+Runs entirely in your browser — the CSV you paste is never uploaded anywhere.

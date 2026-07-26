@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import EnvToSecrets from '../components/EnvToSecrets';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('env-to-github-actions')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'Why a shell script instead of setting secrets directly?', a: 'GitHub Actions secrets are encrypted with a repository-specific public key on GitHub\'s servers — they can\'t be set by a static site running in your browser. The gh secret set command (via the official GitHub CLI) is the real, secure way to bulk-import them; this tool generates the exact commands to run.' },
+  { q: 'What do I need before running the script?', a: 'The GitHub CLI (gh) installed and authenticated (gh auth login), and the script run from inside the target repository — or add --repo owner/name to each generated command if running elsewhere.' },
+  { q: 'Is it safe to keep this generated script around afterward?', a: 'No — it contains your real secret values in plain text as shell arguments. Run it once, then delete it (or at minimum keep it out of version control), the same way you\'d treat the original .env file.' },
+  { q: 'How do I actually use the secrets in a workflow after this?', a: 'Reference them under env: in your workflow YAML as ${{ secrets.KEY_NAME }} — the generated output includes a commented-out example block with the exact keys from your .env file so you can copy it directly.' },
+];
+---
+<ToolLayout tool={tool}>
+  <EnvToSecrets lang="github-actions" client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

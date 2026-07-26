@@ -2,7 +2,7 @@
 // cards, category pages, search index, sitemap, and related-tools sections
 // all read from this file — never hardcode a tool list anywhere else.
 
-export type Category = 'json' | 'yaml' | 'xml' | 'converters' | 'generators' | 'encoding' | 'jwt' | 'api';
+export type Category = 'json' | 'yaml' | 'xml' | 'converters' | 'generators' | 'encoding' | 'jwt' | 'api' | 'devops';
 
 export type Tool = {
   slug: string;
@@ -59,6 +59,11 @@ export const CATEGORY_META: Record<Category, { name: string; description: string
     description: 'Convert a cURL command into working request code in your language of choice.',
     icon: 'Terminal',
   },
+  devops: {
+    name: 'DevOps',
+    description: 'Convert .env files into docker-compose, Kubernetes, and GitHub Actions secrets.',
+    icon: 'Server',
+  },
 };
 
 export const tools: Tool[] = [
@@ -111,7 +116,7 @@ export const tools: Tool[] = [
     metaDescription: 'Convert JSON arrays of objects to CSV instantly in your browser. Keys become column headers — download as a .csv file with zero data upload.',
     keywords: ['json to csv', 'convert json to csv', 'json to csv converter online'],
     icon: 'Table',
-    related: ['csv-to-json', 'json-formatter'],
+    related: ['csv-to-json', 'csv-to-sql', 'json-formatter'],
     status: 'live',
     addedAt: '2025-01-10',
   },
@@ -219,7 +224,7 @@ export const tools: Tool[] = [
     metaDescription: 'Convert CSV to JSON online with automatic delimiter detection, header toggle, and support for quoted and escaped fields.',
     keywords: ['csv to json', 'convert csv to json', 'csv to json converter'],
     icon: 'Table',
-    related: ['json-to-csv', 'json-formatter'],
+    related: ['json-to-csv', 'csv-to-sql', 'json-formatter'],
     status: 'live',
     addedAt: '2026-07-23',
   },
@@ -575,6 +580,58 @@ export const tools: Tool[] = [
     keywords: ['curl to rust', 'curl to reqwest', 'convert curl command to rust'],
     icon: 'Terminal',
     related: ['curl-to-go', 'json-to-rust', 'curl-to-python'],
+    status: 'live',
+    addedAt: '2026-07-26',
+  },
+  {
+    slug: 'env-to-docker-compose',
+    name: '.env to docker-compose',
+    category: 'devops',
+    description: 'Convert a .env file into a docker-compose environment section.',
+    metaTitle: '.env to docker-compose Converter | DevFormats',
+    metaDescription: 'Convert a .env file into a docker-compose environment section, all in your browser. No data leaves your device.',
+    keywords: ['env to docker-compose', 'dotenv to docker compose', 'convert env file to yaml'],
+    icon: 'Server',
+    related: ['env-to-k8s-secret', 'env-to-github-actions', 'yaml-formatter'],
+    status: 'live',
+    addedAt: '2026-07-26',
+  },
+  {
+    slug: 'env-to-k8s-secret',
+    name: '.env to Kubernetes Secret',
+    category: 'devops',
+    description: 'Convert a .env file into a base64-encoded Kubernetes Secret manifest.',
+    metaTitle: '.env to Kubernetes Secret Converter | DevFormats',
+    metaDescription: 'Convert a .env file into a Kubernetes Secret YAML manifest with base64-encoded values, all in your browser. No data leaves your device.',
+    keywords: ['env to kubernetes secret', 'dotenv to k8s secret', 'convert env file to kubernetes yaml'],
+    icon: 'Server',
+    related: ['env-to-docker-compose', 'env-to-github-actions', 'base64'],
+    status: 'live',
+    addedAt: '2026-07-26',
+  },
+  {
+    slug: 'env-to-github-actions',
+    name: '.env to GitHub Actions Secrets',
+    category: 'devops',
+    description: 'Convert a .env file into gh secret set commands for GitHub Actions.',
+    metaTitle: '.env to GitHub Actions Secrets Converter | DevFormats',
+    metaDescription: 'Convert a .env file into gh secret set commands to bulk-import GitHub Actions secrets, all in your browser. No data leaves your device.',
+    keywords: ['env to github actions secrets', 'gh secret set from env file', 'import env to github secrets'],
+    icon: 'Server',
+    related: ['env-to-docker-compose', 'env-to-k8s-secret', 'jwt-decoder'],
+    status: 'live',
+    addedAt: '2026-07-26',
+  },
+  {
+    slug: 'csv-to-sql',
+    name: 'CSV to SQL',
+    category: 'converters',
+    description: 'Convert CSV rows into SQL INSERT statements.',
+    metaTitle: 'CSV to SQL INSERT Converter | DevFormats',
+    metaDescription: 'Convert CSV rows into SQL INSERT statements with a chosen table name, all in your browser. No data leaves your device.',
+    keywords: ['csv to sql', 'csv to sql insert', 'convert csv to sql statements'],
+    icon: 'Database',
+    related: ['csv-to-json', 'json-to-csv', 'json-formatter'],
     status: 'live',
     addedAt: '2026-07-26',
   },

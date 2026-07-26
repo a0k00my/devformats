@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import EnvToSecrets from '../components/EnvToSecrets';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('env-to-docker-compose')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'Why not just use env_file: .env directly in docker-compose?', a: 'That\'s simpler when you\'re fine keeping a separate .env file alongside the compose file. This tool is for when you need the values inlined directly into the compose YAML itself — sharing a single self-contained file, generating a template, or a CI step that doesn\'t have the original .env available.' },
+  { q: 'Are values quoted or escaped?', a: 'Values are inserted as plain KEY=value entries under environment:, matching how .env files themselves are unquoted by default. If a value contains YAML-significant characters, quote it manually in the output before committing.' },
+  { q: 'What about comments and blank lines in the .env file?', a: 'Both are skipped automatically — only real KEY=value assignments (with export optionally stripped) are converted.' },
+  { q: 'Does this handle quoted values in the .env file?', a: 'Yes — both "double-quoted" and \'single-quoted\' values are unwrapped, with \\n and \\" unescaped inside double-quoted values, matching standard dotenv parsing behavior.' },
+];
+---
+<ToolLayout tool={tool}>
+  <EnvToSecrets lang="docker-compose" client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>
