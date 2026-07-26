@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { JsonTree } from './JsonTree';
 import { LineNumberedTextarea } from './LineNumberedTextarea';
 import { describeJsonError } from '../lib/jsonError';
+import { useSplitter, SplitDivider, useIsMobile } from './SplitPanel';
 
 const SAMPLE = `{
   "name": "DevFormats",
@@ -14,6 +15,7 @@ const SAMPLE = `{
 }`;
 
 const LS_INPUT = 'df-input-json-viewer';
+const LS_SPLIT = 'df-split-json-viewer';
 const MONO = { fontFamily: "ui-monospace, 'Geist Mono', SFMono-Regular, Menlo, monospace" };
 
 export default function JsonViewer() {
@@ -64,8 +66,11 @@ export default function JsonViewer() {
   const doSampleData = () => setInput(SAMPLE);
   const doClear = () => { setInput(''); setParsed(null); setError(''); setErrorLine(null); localStorage.removeItem(LS_INPUT); };
 
+  const isMobile = useIsMobile();
+  const { splitPct, containerRef, onMouseDown, onTouchStart } = useSplitter(LS_SPLIT, 50);
+
   return (
-    <div className="flex flex-col border-y" style={{ minHeight: 'min(70vh, 640px)', borderColor: 'var(--jfo-border)' }}>
+    <div className="flex flex-col border-y" style={{ minHeight: 'clamp(480px, calc(100vh - 200px), 1100px)', borderColor: 'var(--jfo-border)' }}>
       <div className="toolbar-scroll flex flex-wrap items-center gap-1.5 border-b px-3 py-2" style={{ background: 'var(--jfo-toolbar)', borderColor: 'var(--jfo-border)' }}>
         <input
           value={search}
@@ -94,8 +99,8 @@ export default function JsonViewer() {
         </div>
       )}
 
-      <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
-        <div className="flex flex-col overflow-hidden md:w-1/2" style={{ minWidth: 0 }}>
+      <div ref={containerRef} className="flex flex-1 flex-col overflow-hidden md:flex-row" style={{ position: 'relative' }}>
+        <div className="flex flex-col overflow-hidden" style={{ width: isMobile ? '100%' : `${splitPct}%`, height: isMobile ? '50%' : 'auto', minWidth: 0 }}>
           <div className="flex items-center justify-between border-b px-3 py-1" style={{ background: 'var(--jfo-panel-hdr)', borderColor: 'var(--jfo-border-2)' }}>
             <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>Input</span>
             <span style={{ ...MONO, fontSize: '10px', color: 'var(--jfo-text-4)' }}>{input.length} chars</span>
@@ -108,7 +113,8 @@ export default function JsonViewer() {
             spellCheck={false} autoComplete="off" autoCapitalize="off"
           />
         </div>
-        <div className="flex flex-col overflow-hidden md:w-1/2" style={{ minWidth: 0, borderTop: '1px solid var(--jfo-border-2)' }}>
+        <SplitDivider onMouseDown={onMouseDown} onTouchStart={onTouchStart} isMobile={isMobile} />
+        <div className="flex flex-col overflow-hidden" style={{ flex: 1, minWidth: 0, borderTop: '1px solid var(--jfo-border-2)' }}>
           <div className="flex items-center justify-between border-b px-3 py-1" style={{ background: 'var(--jfo-panel-hdr)', borderColor: 'var(--jfo-border-2)' }}>
             <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>Tree</span>
           </div>

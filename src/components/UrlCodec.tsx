@@ -36,7 +36,7 @@ export default function UrlCodec({ mode }: Props) {
   const doClear = () => { setInput(''); setOutput(''); setError(''); localStorage.removeItem(lsKey); };
 
   return (
-    <div className="flex flex-col border-y" style={{ minHeight: 'min(70vh, 640px)', borderColor: 'var(--jfo-border)' }}>
+    <div className="flex flex-col border-y" style={{ minHeight: 'clamp(480px, calc(100vh - 200px), 1100px)', borderColor: 'var(--jfo-border)' }}>
       <div className="toolbar-scroll flex flex-wrap items-center gap-1.5 border-b px-3 py-2" style={{ background: 'var(--jfo-toolbar)', borderColor: 'var(--jfo-border)' }}>
         <button onClick={doRun} className="tb-btn-primary" title="Cmd/Ctrl+Enter">⚡ {mode === 'encode' ? 'Encode' : 'Decode'}</button>
         <button onClick={doCopy} className={`tb-btn${copied ? ' tb-copy-pop' : ''}`} style={copied ? { background: "var(--jfo-accent-bg)", borderColor: "var(--jfo-accent-border)", color: "var(--jfo-accent)" } : {}}>{copied ? '✓ Copied' : 'Copy'}</button>

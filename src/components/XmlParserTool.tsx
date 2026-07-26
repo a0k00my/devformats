@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { useSplitter, SplitDivider, useIsMobile } from './SplitPanel';
 import { JsonTree } from './JsonTree';
 import { LineNumberedTextarea } from './LineNumberedTextarea';
 
@@ -16,6 +17,7 @@ const SAMPLE = `<root>
 </root>`;
 
 const LS_INPUT = 'df-input-xml-parser';
+const LS_SPLIT = 'df-split-xml-parser';
 const MONO = { fontFamily: "ui-monospace, 'Geist Mono', SFMono-Regular, Menlo, monospace" };
 
 function elementToObject(el: Element): unknown {
@@ -78,8 +80,11 @@ export default function XmlParserTool() {
   const doSampleData = () => setInput(SAMPLE);
   const doClear = () => { setInput(''); setParsed(null); setError(''); setErrorLine(null); localStorage.removeItem(LS_INPUT); };
 
+  const isMobile = useIsMobile();
+  const { splitPct, containerRef, onMouseDown, onTouchStart } = useSplitter(LS_SPLIT, 50);
+
   return (
-    <div className="flex flex-col border-y" style={{ minHeight: 'min(70vh, 640px)', borderColor: 'var(--jfo-border)' }}>
+    <div className="flex flex-col border-y" style={{ minHeight: 'clamp(480px, calc(100vh - 200px), 1100px)', borderColor: 'var(--jfo-border)' }}>
       <div className="toolbar-scroll flex flex-wrap items-center gap-1.5 border-b px-3 py-2" style={{ background: 'var(--jfo-toolbar)', borderColor: 'var(--jfo-border)' }}>
         <button onClick={() => fileRef.current?.click()} className="tb-btn-ghost">↑ Load File</button>
         <input ref={fileRef} type="file" accept=".xml,text/xml" className="hidden" onChange={doLoadFile} />
@@ -93,8 +98,8 @@ export default function XmlParserTool() {
         </div>
       )}
 
-      <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
-        <div className="flex flex-col overflow-hidden md:w-1/2" style={{ minWidth: 0 }}>
+      <div ref={containerRef} className="flex flex-col md:flex-row flex-1 overflow-hidden" style={{ position: 'relative' }}>
+        <div className="flex flex-col overflow-hidden" style={{ width: isMobile ? '100%' : `${splitPct}%`, height: isMobile ? '50%' : 'auto', minWidth: 0 }}>
           <div className="flex items-center justify-between border-b px-3 py-1" style={{ background: 'var(--jfo-panel-hdr)', borderColor: 'var(--jfo-border-2)' }}>
             <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>XML Input</span>
           </div>
@@ -102,7 +107,9 @@ export default function XmlParserTool() {
             errorLine={errorLine}
             spellCheck={false} autoComplete="off" autoCapitalize="off" />
         </div>
-        <div className="flex flex-col overflow-hidden border-t md:w-1/2 md:border-l md:border-t-0" style={{ borderColor: 'var(--jfo-border-2)', minWidth: 0 }}>
+        <SplitDivider onMouseDown={onMouseDown} onTouchStart={onTouchStart} isMobile={isMobile} />
+
+        <div className="flex flex-col overflow-hidden border-t md:border-l md:border-t-0" style={{ flex: 1, borderColor: 'var(--jfo-border-2)', minWidth: 0 }}>
           <div className="flex items-center justify-between border-b px-3 py-1" style={{ background: 'var(--jfo-panel-hdr)', borderColor: 'var(--jfo-border-2)' }}>
             <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>Parsed Structure</span>
           </div>

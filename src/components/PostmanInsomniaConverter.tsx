@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { useToolShortcuts } from './SplitPanel';
+import { useToolShortcuts, useSplitter, SplitDivider, useIsMobile } from './SplitPanel';
 import { postmanToInsomnia, insomniaToPostman } from '../lib/postmanInsomnia';
 
 const POSTMAN_SAMPLE = JSON.stringify({
@@ -56,6 +56,7 @@ export default function PostmanInsomniaConverter({ direction }: { direction: Dir
   const downloadName = isPostmanToInsomnia ? 'insomnia_export.json' : 'postman_collection.json';
   const lsInput = `df-input-${direction}`;
 
+  const lsSplit = `df-split-${direction}`;
   const [input, setInput] = useState(() => (typeof window === 'undefined' ? sample : localStorage.getItem(lsInput) ?? sample));
   const [output, setOutput] = useState('');
   const [error, setError] = useState('');
@@ -88,8 +89,11 @@ export default function PostmanInsomniaConverter({ direction }: { direction: Dir
   const doSampleData = () => setInput(sample);
   const doClear = () => { setInput(''); setOutput(''); setError(''); localStorage.removeItem(lsInput); };
 
+  const isMobile = useIsMobile();
+  const { splitPct, containerRef, onMouseDown, onTouchStart } = useSplitter(lsSplit, 50);
+
   return (
-    <div className="tool-height flex flex-col border-y" style={{ height: 'min(70vh, 640px)', borderColor: 'var(--jfo-border)' }}>
+    <div className="tool-height flex flex-col border-y" style={{ height: 'clamp(480px, calc(100vh - 200px), 1100px)', borderColor: 'var(--jfo-border)' }}>
       <div className="toolbar-scroll flex flex-wrap items-center gap-1.5 border-b px-3 py-2" style={{ background: 'var(--jfo-toolbar)', borderColor: 'var(--jfo-border)' }}>
         <button onClick={doGenerate} className="tb-btn-primary" title="Cmd/Ctrl+Enter">⚡ Convert</button>
         <button onClick={doCopy} className={`tb-btn${copied ? ' tb-copy-pop' : ''}`} style={copied ? { background: 'var(--jfo-accent-bg)', borderColor: 'var(--jfo-accent-border)', color: 'var(--jfo-accent)' } : {}}>{copied ? '✓ Copied' : 'Copy'}</button>
@@ -104,8 +108,8 @@ export default function PostmanInsomniaConverter({ direction }: { direction: Dir
         </div>
       )}
 
-      <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
-        <div className="flex flex-col overflow-hidden md:w-1/2" style={{ minWidth: 0 }}>
+      <div ref={containerRef} className="flex flex-col md:flex-row flex-1 overflow-hidden" style={{ position: 'relative' }}>
+        <div className="flex flex-col overflow-hidden" style={{ width: isMobile ? '100%' : `${splitPct}%`, height: isMobile ? '50%' : 'auto', minWidth: 0 }}>
           <div className="flex items-center justify-between border-b px-3 py-1" style={{ background: 'var(--jfo-panel-hdr)', borderColor: 'var(--jfo-border-2)' }}>
             <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>{inputLabel}</span>
           </div>
@@ -120,7 +124,9 @@ export default function PostmanInsomniaConverter({ direction }: { direction: Dir
             style={{ ...MONO, fontSize: '13px', lineHeight: '1.65', background: 'var(--jfo-editor)', color: 'var(--jfo-code)' }}
           />
         </div>
-        <div className="flex flex-col overflow-hidden border-t md:w-1/2 md:border-l md:border-t-0" style={{ borderColor: 'var(--jfo-border-2)', minWidth: 0 }}>
+        <SplitDivider onMouseDown={onMouseDown} onTouchStart={onTouchStart} isMobile={isMobile} />
+
+        <div className="flex flex-col overflow-hidden border-t md:border-l md:border-t-0" style={{ flex: 1, borderColor: 'var(--jfo-border-2)', minWidth: 0 }}>
           <div className="flex items-center justify-between border-b px-3 py-1" style={{ background: 'var(--jfo-panel-hdr)', borderColor: 'var(--jfo-border-2)' }}>
             <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>{outputLabel}</span>
           </div>

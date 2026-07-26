@@ -106,7 +106,7 @@ export default function JsonToCsv() {
   };
 
   return (
-    <div className="tool-height flex flex-col" style={{ height: 'min(70vh, 640px)' }}>
+    <div className="tool-height flex flex-col" style={{ height: 'clamp(480px, calc(100vh - 200px), 1100px)' }}>
       <div className="toolbar-scroll flex flex-wrap items-center gap-1.5 border-b px-3 py-2"
         style={{ background: 'var(--jfo-toolbar)', borderColor: 'var(--jfo-border)' }}>
 

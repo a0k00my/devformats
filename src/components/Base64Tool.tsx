@@ -93,7 +93,7 @@ export default function Base64Tool() {
   const doClear = () => { setInput(''); setOutput(''); setError(''); setFileBytes(null); localStorage.removeItem(LS_INPUT); };
 
   return (
-    <div className="flex flex-col border-y" style={{ minHeight: 'min(70vh, 640px)', borderColor: 'var(--jfo-border)' }}>
+    <div className="flex flex-col border-y" style={{ minHeight: 'clamp(480px, calc(100vh - 200px), 1100px)', borderColor: 'var(--jfo-border)' }}>
       <div className="toolbar-scroll flex flex-wrap items-center gap-1.5 border-b px-3 py-2" style={{ background: 'var(--jfo-toolbar)', borderColor: 'var(--jfo-border)' }}>
         <div className="flex items-center rounded border p-0.5" style={{ borderColor: 'var(--jfo-border)', background: 'var(--jfo-editor)' }}>
           {(['encode', 'decode'] as Mode[]).map(m => (
