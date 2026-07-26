@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useToolShortcuts } from './SplitPanel';
 import { parseCreateTable } from '../lib/sqlDdlParser';
-import { toPrisma, toDrizzle, toTypeOrm, toSqlAlchemy } from '../lib/sqlDdlToOrm';
+import { toPrisma, toDrizzle, toTypeOrm, toSqlAlchemy, toSequelize } from '../lib/sqlDdlToOrm';
 
 const SAMPLE = `CREATE TABLE users (
   id SERIAL PRIMARY KEY,
@@ -20,13 +20,14 @@ CREATE TABLE posts (
 
 const MONO = { fontFamily: "ui-monospace, 'Geist Mono', SFMono-Regular, Menlo, monospace" };
 
-export type TargetLang = 'prisma' | 'drizzle' | 'typeorm' | 'sqlalchemy';
+export type TargetLang = 'prisma' | 'drizzle' | 'typeorm' | 'sqlalchemy' | 'sequelize';
 
 const TARGETS: Record<TargetLang, { label: string; ext: string; mime: string; generate: (sql: string) => string }> = {
   prisma: { label: 'Prisma Schema', ext: 'prisma', mime: 'text/plain', generate: sql => toPrisma(parseCreateTable(sql)) },
   drizzle: { label: 'Drizzle Schema', ext: 'ts', mime: 'text/typescript', generate: sql => toDrizzle(parseCreateTable(sql)) },
   typeorm: { label: 'TypeORM Entity', ext: 'ts', mime: 'text/typescript', generate: sql => toTypeOrm(parseCreateTable(sql)) },
   sqlalchemy: { label: 'SQLAlchemy Model', ext: 'py', mime: 'text/x-python', generate: sql => toSqlAlchemy(parseCreateTable(sql)) },
+  sequelize: { label: 'Sequelize Model', ext: 'js', mime: 'text/javascript', generate: sql => toSequelize(parseCreateTable(sql)) },
 };
 
 export default function SqlDdlToOrm({ lang }: { lang: TargetLang }) {

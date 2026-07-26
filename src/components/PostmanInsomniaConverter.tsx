@@ -1,31 +1,62 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useToolShortcuts } from './SplitPanel';
-import { parseCurl } from '../lib/curlParser';
-import { toPythonRequests, toGoNetHttp, toNodeFetch, toPhpCurl, toRustReqwest, toPostmanCollection } from '../lib/curlToCode';
+import { postmanToInsomnia, insomniaToPostman } from '../lib/postmanInsomnia';
 
-const SAMPLE = `curl -X POST https://api.example.com/v1/users \\
-  -H "Content-Type: application/json" \\
-  -H "Authorization: Bearer YOUR_TOKEN" \\
-  -d '{"name": "Alice", "email": "alice@example.com"}'`;
+const POSTMAN_SAMPLE = JSON.stringify({
+  info: { name: 'Sample API', schema: 'https://schema.getpostman.com/json/collection/v2.1.0/collection.json' },
+  item: [
+    {
+      name: 'Get user',
+      request: {
+        method: 'GET',
+        header: [{ key: 'Authorization', value: 'Bearer {{token}}' }],
+        url: { raw: '{{baseUrl}}/users/:id', path: ['users', ':id'] },
+      },
+    },
+    {
+      name: 'Create user',
+      request: {
+        method: 'POST',
+        header: [{ key: 'Content-Type', value: 'application/json' }],
+        body: { mode: 'raw', raw: JSON.stringify({ name: 'Alice', email: 'alice@example.com' }, null, 2) },
+        url: { raw: '{{baseUrl}}/users', path: ['users'] },
+      },
+    },
+  ],
+}, null, 2);
+
+const INSOMNIA_SAMPLE = JSON.stringify({
+  _type: 'export',
+  __export_format: 4,
+  resources: [
+    { _id: 'wrk_1', _type: 'workspace', name: 'Sample API' },
+    {
+      _id: 'req_1', _type: 'request', parentId: 'wrk_1', name: 'Get user', method: 'GET',
+      url: '{{ _.baseUrl }}/users/:id',
+      headers: [{ name: 'Authorization', value: 'Bearer {{ _.token }}' }],
+    },
+    {
+      _id: 'req_2', _type: 'request', parentId: 'wrk_1', name: 'Create user', method: 'POST',
+      url: '{{ _.baseUrl }}/users',
+      headers: [{ name: 'Content-Type', value: 'application/json' }],
+      body: { mimeType: 'application/json', text: JSON.stringify({ name: 'Alice', email: 'alice@example.com' }, null, 2) },
+    },
+  ],
+}, null, 2);
 
 const MONO = { fontFamily: "ui-monospace, 'Geist Mono', SFMono-Regular, Menlo, monospace" };
 
-export type TargetLang = 'python' | 'go' | 'node' | 'php' | 'rust' | 'postman';
+export type Direction = 'postman-to-insomnia' | 'insomnia-to-postman';
 
-const TARGETS: Record<TargetLang, { label: string; ext: string; mime: string; generate: (cmd: string) => string }> = {
-  python: { label: 'Python (requests)', ext: 'py', mime: 'text/x-python', generate: cmd => toPythonRequests(parseCurl(cmd)) },
-  go: { label: 'Go (net/http)', ext: 'go', mime: 'text/x-go', generate: cmd => toGoNetHttp(parseCurl(cmd)) },
-  node: { label: 'Node.js (fetch)', ext: 'js', mime: 'text/javascript', generate: cmd => toNodeFetch(parseCurl(cmd)) },
-  php: { label: 'PHP (curl)', ext: 'php', mime: 'text/x-php', generate: cmd => toPhpCurl(parseCurl(cmd)) },
-  rust: { label: 'Rust (reqwest)', ext: 'rs', mime: 'text/x-rust', generate: cmd => toRustReqwest(parseCurl(cmd)) },
-  postman: { label: 'Postman Collection', ext: 'json', mime: 'application/json', generate: cmd => toPostmanCollection(parseCurl(cmd)) },
-};
+export default function PostmanInsomniaConverter({ direction }: { direction: Direction }) {
+  const isPostmanToInsomnia = direction === 'postman-to-insomnia';
+  const sample = isPostmanToInsomnia ? POSTMAN_SAMPLE : INSOMNIA_SAMPLE;
+  const inputLabel = isPostmanToInsomnia ? 'Postman Collection Input' : 'Insomnia Export Input';
+  const outputLabel = isPostmanToInsomnia ? 'Insomnia Export Output' : 'Postman Collection Output';
+  const downloadName = isPostmanToInsomnia ? 'insomnia_export.json' : 'postman_collection.json';
+  const lsInput = `df-input-${direction}`;
 
-export default function CurlConverter({ lang }: { lang: TargetLang }) {
-  const target = TARGETS[lang];
-  const lsInput = `df-input-curl-to-${lang}`;
-
-  const [input, setInput] = useState(() => (typeof window === 'undefined' ? SAMPLE : localStorage.getItem(lsInput) ?? SAMPLE));
+  const [input, setInput] = useState(() => (typeof window === 'undefined' ? sample : localStorage.getItem(lsInput) ?? sample));
   const [output, setOutput] = useState('');
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
@@ -35,27 +66,26 @@ export default function CurlConverter({ lang }: { lang: TargetLang }) {
   const doGenerate = useCallback(() => {
     if (!input.trim()) { setOutput(''); setError(''); return; }
     try {
-      const parsed = parseCurl(input);
-      if (!parsed.url) { setError('Could not find a URL in this command — make sure it starts with curl and includes a URL.'); setOutput(''); return; }
-      setOutput(target.generate(input));
+      const result = isPostmanToInsomnia ? postmanToInsomnia(input) : insomniaToPostman(input);
+      setOutput(JSON.stringify(result, null, 2));
       setError('');
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Could not parse this command.');
+      setError(e instanceof Error ? e.message : 'Could not parse this file.');
       setOutput('');
     }
-  }, [input, target]);
+  }, [input, isPostmanToInsomnia]);
 
   useToolShortcuts(doGenerate);
-  useEffect(() => { if (input) doGenerate(); }, [lang]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (input) doGenerate(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const doCopy = async () => { if (!output) return; await navigator.clipboard.writeText(output); setCopied(true); setTimeout(() => setCopied(false), 2000); };
   const doDownload = () => {
     if (!output) return;
-    const url = URL.createObjectURL(new Blob([output], { type: target.mime }));
-    Object.assign(document.createElement('a'), { href: url, download: `request.${target.ext}` }).click();
+    const url = URL.createObjectURL(new Blob([output], { type: 'application/json' }));
+    Object.assign(document.createElement('a'), { href: url, download: downloadName }).click();
     URL.revokeObjectURL(url);
   };
-  const doSampleData = () => setInput(SAMPLE);
+  const doSampleData = () => setInput(sample);
   const doClear = () => { setInput(''); setOutput(''); setError(''); localStorage.removeItem(lsInput); };
 
   return (
@@ -77,12 +107,12 @@ export default function CurlConverter({ lang }: { lang: TargetLang }) {
       <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
         <div className="flex flex-col overflow-hidden md:w-1/2" style={{ minWidth: 0 }}>
           <div className="flex items-center justify-between border-b px-3 py-1" style={{ background: 'var(--jfo-panel-hdr)', borderColor: 'var(--jfo-border-2)' }}>
-            <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>cURL Command</span>
+            <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>{inputLabel}</span>
           </div>
           <textarea
             value={input}
             onChange={e => setInput(e.target.value)}
-            placeholder="Paste a curl command here…"
+            placeholder="Paste your JSON export here…"
             spellCheck={false}
             autoComplete="off"
             autoCapitalize="off"
@@ -92,14 +122,14 @@ export default function CurlConverter({ lang }: { lang: TargetLang }) {
         </div>
         <div className="flex flex-col overflow-hidden border-t md:w-1/2 md:border-l md:border-t-0" style={{ borderColor: 'var(--jfo-border-2)', minWidth: 0 }}>
           <div className="flex items-center justify-between border-b px-3 py-1" style={{ background: 'var(--jfo-panel-hdr)', borderColor: 'var(--jfo-border-2)' }}>
-            <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>{target.label} Output</span>
+            <span style={{ ...MONO, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--jfo-text-3)' }}>{outputLabel}</span>
           </div>
           <div className="flex-1 overflow-auto p-4" style={{ background: 'var(--jfo-editor)' }}>
             {output ? (
               <pre style={{ ...MONO, lineHeight: '1.65', fontSize: '13px', whiteSpace: 'pre-wrap', wordBreak: 'break-all', color: 'var(--jfo-code)' }}>{output}</pre>
             ) : (
               <div className="flex h-full items-center justify-center text-xs" style={{ ...MONO, color: 'var(--jfo-placeholder)' }}>
-                {error ? '← fix the error' : `${target.label} code appears here`}
+                {error ? '← fix the error' : 'Converted output appears here'}
               </div>
             )}
           </div>

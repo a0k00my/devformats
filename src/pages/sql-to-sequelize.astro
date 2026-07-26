@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import SqlDdlToOrm from '../components/SqlDdlToOrm';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('sql-to-sequelize')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'Why sequelize.define() instead of the newer class-based Model.init()?', a: 'sequelize.define() is still the most widely used and documented pattern across existing Sequelize (v6) codebases, and it doesn\'t require setting up a class hierarchy — you get a working model from one function call. If your project uses the class-based style, the field definitions translate directly into the second argument of Model.init().' },
+  { q: 'Why does the output set tableName and timestamps: false explicitly?', a: 'Without tableName, Sequelize pluralizes and camelCases the model name into a guessed table name — which won\'t match your actual SQL table unless you\'re following Sequelize\'s own naming convention already. timestamps: false turns off Sequelize\'s automatic createdAt/updatedAt columns, since the DDL doesn\'t necessarily have those and adding them silently would create columns that don\'t exist in your real table.' },
+  { q: 'Are foreign keys wired up with associations (belongsTo, etc.)?', a: 'No — a foreign key column becomes a plain integer field with a comment noting what it references. Sequelize associations are defined separately (via Model.belongsTo(...)) after both models exist, and naming/aliasing that association is a judgment call the DDL alone doesn\'t answer.' },
+  { q: 'How is DEFAULT CURRENT_TIMESTAMP handled?', a: 'As defaultValue: DataTypes.NOW, Sequelize\'s built-in way to set the current timestamp as a column default. Other SQL default expressions aren\'t guessed at — only literal values and this common case are translated, with anything else flagged in a comment.' },
+];
+---
+<ToolLayout tool={tool}>
+  <SqlDdlToOrm lang="sequelize" client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

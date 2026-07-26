@@ -1,0 +1,87 @@
+---
+title: "Five More Converters: Pydantic, curl→Postman, docker run, Sequelize, and Insomnia"
+description: "Rounding out four existing tool clusters with the highest-demand gaps we'd left out — a Pydantic model generator, curl-to-Postman, docker-compose-to-docker-run, a Sequelize generator, and Postman/Insomnia conversion."
+pubDate: 2026-07-26
+tags: ["json", "api", "sql", "devops"]
+relatedTools: ["json-to-pydantic", "curl-to-postman", "docker-compose-to-docker-run", "sql-to-sequelize", "postman-to-insomnia"]
+---
+
+Five small additions to existing tool clusters, each picked because it was a real, named gap rather than a random new idea — every one of these reuses a parser or type-inference engine we'd already built.
+
+## [JSON to Pydantic Model](/json-to-pydantic)
+
+Joins the JSON-to-types cluster (TypeScript, Zod, Go, Rust, Java, C#, Kotlin, and the pre-existing Python dataclass generator) with the one Python target that's arguably more requested than the dataclass version:
+
+```python
+from typing import Any, List, Optional
+from pydantic import BaseModel, Field
+
+
+class Author(BaseModel):
+    type: str
+    client_side: bool = Field(alias="clientSide")
+
+
+class Root(BaseModel):
+    name: str
+    version: str
+    free: bool
+    price: Optional[Any] = None
+    tags: List[str]
+    author: Author
+```
+
+The difference from a plain dataclass isn't cosmetic: a dataclass describes shape only, with zero runtime checking. Pydantic validates real data against the model — the default choice for FastAPI request/response models and anywhere you're parsing JSON you don't fully trust. Fields get `Field(alias="originalKey")` whenever the snake_cased Python name differs from the source JSON key, so the model still serializes over the wire using the exact original key.
+
+## [curl to Postman Collection](/curl-to-postman)
+
+The curl-to-code cluster (Python, Go, Node, PHP, Rust) gets a sixth target that isn't code at all — a ready-to-import Postman Collection v2.1 JSON file:
+
+```bash
+curl -u admin:secret "https://api.example.com/search?q=test&limit=10"
+```
+
+becomes a collection with the URL correctly split into protocol/host/path/query (using the browser's native URL parser) and a proper `auth: { type: "basic" }` block — no manual reconfiguration needed after import.
+
+## [docker-compose to docker run](/docker-compose-to-docker-run)
+
+The reverse of the docker-compose-to-Kubernetes tool, sharing the exact same compose parser:
+
+```bash
+docker run -d \
+  --name web \
+  -p 8080:80 \
+  -e NODE_ENV=production \
+  -v ./html:/usr/share/nginx/html \
+  nginx:latest
+```
+
+Named and bind-mount volumes both just become `-v source:target` (docker run doesn't need the Kubernetes-side distinction between a PersistentVolumeClaim and a hostPath — both compose volume types work identically with plain `-v`). `depends_on` and `deploy.replicas` still don't have a real equivalent in a single `docker run` invocation, so both surface as comments rather than being silently dropped or faked.
+
+## [SQL to Sequelize Model](/sql-to-sequelize)
+
+Rounds out the SQL-to-ORM cluster (Prisma, Drizzle, TypeORM, SQLAlchemy) with the model most JS/Node backends actually use:
+
+```js
+const { DataTypes } = require('sequelize');
+
+module.exports.defineUser = (sequelize) => {
+  const User = sequelize.define('User', {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    name: { type: DataTypes.STRING(255), allowNull: false },
+  }, {
+    tableName: 'users',
+    timestamps: false,
+  });
+
+  return User;
+};
+```
+
+`tableName` and `timestamps: false` are set explicitly and deliberately — without them, Sequelize guesses a pluralized, camelCased table name and silently adds its own `createdAt`/`updatedAt` columns, neither of which necessarily matches the table this was generated from.
+
+## [Postman ↔ Insomnia](/postman-to-insomnia)
+
+The one addition that isn't an extension of an existing engine — a new pair of converters between the two most common API client export formats. The main wrinkle: Postman's `{{variable}}` and Insomnia's `{{ _.variable }}` are different templating syntaxes for the same idea, so both directions do a text substitution between them rather than a deeper environment-variable migration — you'll still set the actual values in the target app after importing.
+
+All five run entirely client-side — nothing you paste is uploaded anywhere.

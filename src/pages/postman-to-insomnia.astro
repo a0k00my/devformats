@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import PostmanInsomniaConverter from '../components/PostmanInsomniaConverter';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('postman-to-insomnia')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'How are Postman\'s {{variables}} handled?', a: 'Converted to Insomnia\'s Nunjucks-style tag syntax, {{ _.variableName }} — the two apps use different templating engines for environment variables, so this is a text substitution between the two syntaxes, not a full environment migration. You\'ll still need to define the actual variable values in an Insomnia environment after importing.' },
+  { q: 'Does this handle folders inside the collection?', a: 'Yes — every request is flattened out of its folder structure into a flat list of Insomnia request resources under one workspace, regardless of how deeply nested it was in the original collection.' },
+  { q: 'What Insomnia format version does this target?', a: 'Export format 4 (__export_format: 4), the JSON structure Insomnia\'s own "Import Data" feature reads directly — no intermediate conversion needed on Insomnia\'s side.' },
+  { q: 'Does the request body carry over?', a: 'Yes for raw JSON bodies — they map directly to Insomnia\'s { mimeType, text } body format. Form-encoded and multipart bodies convert to Insomnia\'s params array as well.' },
+];
+---
+<ToolLayout tool={tool}>
+  <PostmanInsomniaConverter direction="postman-to-insomnia" client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

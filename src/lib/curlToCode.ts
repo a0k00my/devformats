@@ -273,3 +273,58 @@ export function toRustReqwest(p: ParsedCurl): string {
   lines.push('}');
   return lines.join('\n');
 }
+
+// ── Postman collection ──
+function urlToPostmanUrl(rawUrl: string): Record<string, unknown> {
+  try {
+    const u = new URL(rawUrl);
+    const query = Array.from(u.searchParams.entries()).map(([key, value]) => ({ key, value }));
+    return {
+      raw: rawUrl,
+      protocol: u.protocol.replace(':', ''),
+      host: u.hostname.split('.'),
+      path: u.pathname.split('/').filter(Boolean),
+      ...(query.length ? { query } : {}),
+    };
+  } catch {
+    // Not a full absolute URL (e.g. missing scheme) — fall back to the raw string only.
+    return { raw: rawUrl };
+  }
+}
+
+export function toPostmanCollection(p: ParsedCurl): string {
+  const header = allHeaders(p).map(([key, value]) => ({ key, value }));
+
+  let body: Record<string, unknown> | undefined;
+  if (p.form) {
+    body = {
+      mode: 'formdata',
+      formdata: p.form.map(f => f.isFile ? { key: f.key, type: 'file', src: f.value } : { key: f.key, value: f.value, type: 'text' }),
+    };
+  } else if (p.data) {
+    body = { mode: 'raw', raw: p.data, options: { raw: { language: /^\s*[{[]/.test(p.data) ? 'json' : 'text' } } };
+  }
+
+  const auth = p.auth
+    ? { type: 'basic', basic: [{ key: 'username', value: p.auth.user, type: 'string' }, { key: 'password', value: p.auth.pass, type: 'string' }] }
+    : undefined;
+
+  const collection = {
+    info: { name: `${p.method} ${p.url}`, schema: 'https://schema.getpostman.com/json/collection/v2.1.0/collection.json' },
+    item: [
+      {
+        name: `${p.method} ${p.url}`,
+        request: {
+          method: p.method,
+          header,
+          ...(body ? { body } : {}),
+          ...(auth ? { auth } : {}),
+          url: urlToPostmanUrl(p.url),
+        },
+        response: [],
+      },
+    ],
+  };
+
+  return JSON.stringify(collection, null, 2);
+}

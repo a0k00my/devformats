@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import CurlConverter from '../components/CurlConverter';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('curl-to-postman')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'Can I import the output directly into Postman?', a: 'Yes — the output is a complete Postman Collection v2.1 JSON file (the same format Postman\'s own "Import" button reads), including the info.schema URL Postman uses to recognize the format.' },
+  { q: 'How is the URL split into host/path/query?', a: 'Using the browser\'s built-in URL parser, so it correctly separates the protocol, host, path segments, and query parameters as long as the curl command has a full absolute URL (with http:// or https://). A bare hostname or relative path without a scheme falls back to a raw URL string only, since it can\'t be reliably split without one.' },
+  { q: 'Does it support file uploads (-F with @file)?', a: 'Yes — form fields become Postman\'s formdata body mode, with file fields (values starting with @) marked as type: "file" so Postman prompts you to pick the actual file when you run the request.' },
+  { q: 'What happens to -u (Basic Auth)?', a: 'Converted to Postman\'s auth: { type: "basic" } block with username and password filled in, so the request is pre-authenticated the moment you import it rather than needing to be reconfigured by hand.' },
+];
+---
+<ToolLayout tool={tool}>
+  <CurlConverter lang="postman" client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

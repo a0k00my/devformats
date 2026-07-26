@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import ComposeToDockerRun from '../components/ComposeToDockerRun';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('docker-compose-to-docker-run')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'Why does the output use -d (detached mode)?', a: 'Detached is the closest match to how docker-compose up normally runs services in the background. Drop -d from the command if you want the container attached to your terminal instead.' },
+  { q: 'What happens to a service with no "image", only "build"?', a: 'docker run can\'t build an image any more than Kubernetes can — it only starts containers from images that already exist. That service is skipped with a comment telling you to run docker build first and substitute the resulting image name in.' },
+  { q: 'Does depends_on control which command runs first?', a: 'No — each docker run command is independent, so a comment lists the dependency instead of silently ignoring it. Start the commands in dependency order yourself (or use docker-compose, which does understand depends_on, if you need this automated).' },
+  { q: 'What about deploy.replicas?', a: 'docker run always starts exactly one container per invocation — there\'s no concept of replica count. If a service specifies replicas > 1, a comment flags it rather than silently dropping the requirement; running more than one instance means looping the command with distinct --name and -p values yourself.' },
+];
+---
+<ToolLayout tool={tool}>
+  <ComposeToDockerRun client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

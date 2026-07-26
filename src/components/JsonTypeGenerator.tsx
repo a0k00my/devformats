@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useToolShortcuts } from './SplitPanel';
 import { LineNumberedTextarea } from './LineNumberedTextarea';
 import { describeJsonError } from '../lib/jsonError';
-import { inferType, toZod, toJavaPojo, toRustStruct, toKotlinDataClass, toCSharpClass } from '../lib/jsonTypeGen';
+import { inferType, toZod, toJavaPojo, toRustStruct, toKotlinDataClass, toCSharpClass, toPydantic } from '../lib/jsonTypeGen';
 
 const SAMPLE = `{
   "name": "DevFormats",
@@ -15,7 +15,7 @@ const SAMPLE = `{
 
 const MONO = { fontFamily: "ui-monospace, 'Geist Mono', SFMono-Regular, Menlo, monospace" };
 
-export type TargetLang = 'zod' | 'java' | 'rust' | 'kotlin' | 'csharp';
+export type TargetLang = 'zod' | 'java' | 'rust' | 'kotlin' | 'csharp' | 'pydantic';
 
 const TARGETS: Record<TargetLang, { label: string; ext: string; mime: string; generate: (json: string, rootName: string) => string }> = {
   zod: { label: 'Zod Schema', ext: 'ts', mime: 'text/typescript', generate: (json, root) => toZod(inferType(JSON.parse(json), root)) },
@@ -23,6 +23,7 @@ const TARGETS: Record<TargetLang, { label: string; ext: string; mime: string; ge
   rust: { label: 'Rust Struct', ext: 'rs', mime: 'text/x-rust', generate: (json, root) => toRustStruct(inferType(JSON.parse(json), root)) },
   kotlin: { label: 'Kotlin Data Class', ext: 'kt', mime: 'text/x-kotlin', generate: (json, root) => toKotlinDataClass(inferType(JSON.parse(json), root)) },
   csharp: { label: 'C# Class', ext: 'cs', mime: 'text/x-csharp', generate: (json, root) => toCSharpClass(inferType(JSON.parse(json), root)) },
+  pydantic: { label: 'Pydantic Model', ext: 'py', mime: 'text/x-python', generate: (json, root) => toPydantic(inferType(JSON.parse(json), root)) },
 };
 
 export default function JsonTypeGenerator({ lang }: { lang: TargetLang }) {

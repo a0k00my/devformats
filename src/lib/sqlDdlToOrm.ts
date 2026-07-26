@@ -229,3 +229,57 @@ export function toSqlAlchemy(tables: SqlTable[]): string {
   const datetimeImport = usesNow ? 'from datetime import datetime\n' : '';
   return `from sqlalchemy import Column, ${importList}\nfrom sqlalchemy.ext.declarative import declarative_base\n${datetimeImport}\nBase = declarative_base()\n\n\n${blocks.join('\n\n\n')}`;
 }
+
+// ── Sequelize ──
+function sequelizeType(c: SqlColumn, cat: string): string {
+  switch (cat) {
+    case 'int': return 'DataTypes.INTEGER';
+    case 'bigint': return 'DataTypes.BIGINT';
+    case 'smallint': return 'DataTypes.SMALLINT';
+    case 'decimal': return `DataTypes.DECIMAL(${c.precision ?? 10}, ${c.scale ?? 0})`;
+    case 'float': return 'DataTypes.FLOAT';
+    case 'string': return c.length ? `DataTypes.STRING(${c.length})` : 'DataTypes.STRING';
+    case 'text': return 'DataTypes.TEXT';
+    case 'boolean': return 'DataTypes.BOOLEAN';
+    case 'date': return 'DataTypes.DATEONLY';
+    case 'datetime': return 'DataTypes.DATE';
+    case 'uuid': return 'DataTypes.UUID';
+    case 'json': return 'DataTypes.JSON';
+    default: return 'DataTypes.STRING';
+  }
+}
+
+export function toSequelize(tables: SqlTable[]): string {
+  const blocks = tables.map(table => {
+    const modelName = toPascalCase(singularize(table.name));
+    const fields = table.columns.map(c => {
+      const cat = typeCategory(c.baseType);
+      const opts: string[] = [`type: ${sequelizeType(c, cat)}`];
+      if (c.primaryKey) opts.push('primaryKey: true');
+      if (c.autoIncrement) opts.push('autoIncrement: true');
+      if (!c.nullable && !c.primaryKey) opts.push('allowNull: false');
+      if (c.unique && !c.primaryKey) opts.push('unique: true');
+
+      let unmappedDefault = '';
+      if (c.default && !c.autoIncrement) {
+        const d = describeDefault(c.default);
+        if (d.kind === 'number') opts.push(`defaultValue: ${d.value}`);
+        else if (d.kind === 'string') opts.push(`defaultValue: ${jsStr(d.value)}`);
+        else if (d.kind === 'bool') opts.push(`defaultValue: ${d.value}`);
+        else if (d.kind === 'now') opts.push('defaultValue: DataTypes.NOW');
+        else unmappedDefault = ` // SQL default not translated: ${c.default}`;
+      }
+      const refComment = c.references ? ` // FK -> ${c.references.table}.${c.references.column}` : '';
+
+      return `    ${c.name}: {\n      ${opts.join(',\n      ')},\n    },${refComment}${unmappedDefault}`;
+    });
+    return `  const ${modelName} = sequelize.define('${modelName}', {\n${fields.join('\n')}\n  }, {\n    tableName: '${table.name}',\n    timestamps: false,\n  });\n\n  return ${modelName};`;
+  });
+
+  const bodies = tables.map((table, i) => {
+    const modelName = toPascalCase(singularize(table.name));
+    return `module.exports.define${modelName} = (sequelize) => {\n${blocks[i]}\n};`;
+  });
+
+  return `const { DataTypes } = require('sequelize');\n\n${bodies.join('\n\n')}`;
+}

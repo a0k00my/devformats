@@ -37,12 +37,12 @@ function schemaToSample(schema: Record<string, any> | undefined): unknown {
 
 // ── Postman -> OpenAPI ──
 
-interface PmHeader { key: string; value: string }
-interface PmUrl { raw?: string; path?: string[]; query?: { key: string; value: string }[] }
-interface PmRequest { method?: string; header?: PmHeader[]; url?: string | PmUrl; body?: { mode?: string; raw?: string; urlencoded?: PmHeader[]; formdata?: PmHeader[] } }
-interface PmItem { name?: string; item?: PmItem[]; request?: PmRequest }
+export interface PmHeader { key: string; value: string }
+export interface PmUrl { raw?: string; path?: string[]; query?: { key: string; value: string }[] }
+export interface PmRequest { method?: string; header?: PmHeader[]; url?: string | PmUrl; body?: { mode?: string; raw?: string; urlencoded?: PmHeader[]; formdata?: PmHeader[] } }
+export interface PmItem { name?: string; item?: PmItem[]; request?: PmRequest }
 
-function flattenPostmanItems(items: PmItem[], out: PmItem[] = []): PmItem[] {
+export function flattenPostmanItems(items: PmItem[], out: PmItem[] = []): PmItem[] {
   for (const it of items) {
     if (it.item) flattenPostmanItems(it.item, out);
     else if (it.request) out.push(it);

@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import JsonTypeGenerator from '../components/JsonTypeGenerator';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('json-to-pydantic')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'Why Pydantic instead of a plain dataclass?', a: 'A dataclass only describes shape — it does nothing at runtime to check that the data you actually received matches. Pydantic validates real data (an API response, request body) against the model and raises a clear error if it doesn\'t match, which is why it\'s the default choice for FastAPI request/response models and any code parsing untrusted JSON.' },
+  { q: 'Why do some fields have Field(alias=...)?', a: 'JSON keys are often camelCase; Python convention is snake_case. When a field name would change from the original JSON key, the generator adds Field(alias="originalKey") so the model still accepts and serializes the exact original key over the wire while your Python code reads idiomatically.' },
+  { q: 'How are nullable fields handled?', a: 'A field whose sample value is null becomes Optional[T] with a default of None, matching how Pydantic represents an optional field — distinct from a field that\'s simply absent from the JSON, which the generator can\'t detect from a single sample.' },
+  { q: 'Does this target Pydantic v1 or v2?', a: 'The generated code (BaseModel, Field(alias=...)) works on both v1 and v2 — it doesn\'t use v2-only syntax like model_config or the newer validator decorators, so it drops into either version without changes.' },
+];
+---
+<ToolLayout tool={tool}>
+  <JsonTypeGenerator lang="pydantic" client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

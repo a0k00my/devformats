@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import PostmanInsomniaConverter from '../components/PostmanInsomniaConverter';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('insomnia-to-postman')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'How are Insomnia\'s {{ _.variable }} tags handled?', a: 'Converted back to Postman\'s {{variable}} syntax. As with the reverse direction, this is a text substitution between the two templating syntaxes — you\'ll still need to set the actual values in a Postman environment after importing.' },
+  { q: 'What Insomnia export version does this expect?', a: 'Export format 4 (the current Insomnia export structure, with a top-level "resources" array containing workspace and request entries) — the same format Insomnia\'s own "Export Data" feature produces.' },
+  { q: 'Does this only convert requests, or folders/environments too?', a: 'Only request resources become Postman items. Insomnia\'s workspace name is carried over as the collection name, but Insomnia environments and any request-grouping folders aren\'t currently modeled — every converted request lands flat in the output collection.' },
+  { q: 'What happens to the request body?', a: 'A raw JSON body (Insomnia\'s { mimeType, text } format) becomes a Postman raw body with a matching Content-Type header. Form params convert to Postman\'s urlencoded or formdata body mode based on the original mimeType.' },
+];
+---
+<ToolLayout tool={tool}>
+  <PostmanInsomniaConverter direction="insomnia-to-postman" client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

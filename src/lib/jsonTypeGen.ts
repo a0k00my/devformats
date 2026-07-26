@@ -291,3 +291,48 @@ export function toCSharpClass(root: TypeNode): string {
   });
   return `using System.Collections.Generic;\nusing System.Text.Json.Serialization;\n\n` + classes.join('\n\n');
 }
+
+// ── Pydantic ──
+const PYTHON_KEYWORDS = new Set([
+  'False', 'None', 'True', 'and', 'as', 'assert', 'async', 'await', 'break', 'class', 'continue',
+  'def', 'del', 'elif', 'else', 'except', 'finally', 'for', 'from', 'global', 'if', 'import', 'in',
+  'is', 'lambda', 'nonlocal', 'not', 'or', 'pass', 'raise', 'return', 'try', 'while', 'with', 'yield',
+]);
+function pySafeField(key: string): string {
+  const snake = toSnakeCase(key) || 'field';
+  return PYTHON_KEYWORDS.has(snake) ? `${snake}_` : snake;
+}
+
+export function toPydantic(root: TypeNode): string {
+  const objects = collectObjects(root);
+  let usesAny = false;
+  const ref = (t: TypeNode): string => {
+    switch (t.kind) {
+      case 'string': return 'str';
+      case 'boolean': return 'bool';
+      case 'number': return t.isInteger ? 'int' : 'float';
+      case 'null': usesAny = true; return 'Any';
+      case 'unknown': usesAny = true; return 'Any';
+      case 'array': return `List[${ref(t.item)}]`;
+      case 'object': return t.name;
+    }
+  };
+  const classes = objects.map(o => {
+    if (o.kind !== 'object') return '';
+    const fields = o.fields.map(f => {
+      const snake = pySafeField(f.key);
+      const base = ref(f.type);
+      const type = f.optional ? `Optional[${base}]` : base;
+      if (snake !== f.key) {
+        const fieldArgs = f.optional ? `alias=${JSON.stringify(f.key)}, default=None` : `alias=${JSON.stringify(f.key)}`;
+        return `    ${snake}: ${type} = Field(${fieldArgs})`;
+      }
+      return f.optional ? `    ${snake}: ${type} = None` : `    ${snake}: ${type}`;
+    }).join('\n');
+    return `class ${o.name}(BaseModel):\n${fields}`;
+  });
+  const usesField = objects.some(o => o.kind === 'object' && o.fields.some(f => pySafeField(f.key) !== f.key));
+  const typingImports = ['List', 'Optional', ...(usesAny ? ['Any'] : [])].sort();
+  const pydanticImports = ['BaseModel', ...(usesField ? ['Field'] : [])];
+  return `from typing import ${typingImports.join(', ')}\nfrom pydantic import ${pydanticImports.join(', ')}\n\n\n` + classes.join('\n\n\n');
+}
