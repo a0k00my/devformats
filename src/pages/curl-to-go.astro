@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import CurlConverter from '../components/CurlConverter';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('curl-to-go')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'Why net/http instead of a third-party client?', a: 'net/http is in Go\'s standard library — no extra dependency needed, and it\'s what most idiomatic Go HTTP code is built on anyway.' },
+  { q: 'How is the request body handled?', a: 'Passed through as the raw string via strings.NewReader, exactly as curl would send it — not re-encoded as a Go struct, so the payload\'s bytes are guaranteed to match what -d sent.' },
+  { q: 'Does it support -F / --form uploads?', a: 'Yes — it builds a multipart.Writer, writing text fields directly and stubbing a TODO comment for file fields (Go\'s multipart file attachment needs an actual file handle, which the generator can\'t supply since it doesn\'t have access to your filesystem).' },
+  { q: 'What does -k / --insecure become?', a: 'An http.Client configured with a custom Transport whose TLSClientConfig.InsecureSkipVerify is set to true — the direct Go equivalent of curl -k. Only use this against endpoints you trust.' },
+];
+---
+<ToolLayout tool={tool}>
+  <CurlConverter lang="go" client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

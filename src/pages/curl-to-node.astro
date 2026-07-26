@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import CurlConverter from '../components/CurlConverter';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('curl-to-node')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'Does this need a package like axios or node-fetch?', a: 'No — fetch has been built into Node.js since v18 with no extra install, so the generated code works out of the box on any reasonably current Node version.' },
+  { q: 'What Node version is required?', a: 'Node 18 or later, since that\'s when global fetch and FormData landed without a flag. If you\'re on an older Node version, install node-fetch or axios and adapt the call — the options object (method, headers, body) maps over directly.' },
+  { q: 'How is Basic Auth handled?', a: 'The generated code computes the base64 credentials at runtime with Buffer.from(...).toString(\'base64\'), rather than hardcoding a precomputed value — Buffer is a Node global, available wherever this generated code actually runs.' },
+  { q: 'Does it support file uploads via -F?', a: 'Non-file fields are appended directly to a FormData instance. File fields include a TODO comment, since attaching real file bytes needs your filesystem (fs.readFileSync + Blob) which the generator can\'t access from your browser.' },
+];
+---
+<ToolLayout tool={tool}>
+  <CurlConverter lang="node" client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

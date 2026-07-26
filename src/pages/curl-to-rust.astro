@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import CurlConverter from '../components/CurlConverter';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('curl-to-rust')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'Why reqwest specifically?', a: 'reqwest is the de facto standard async HTTP client for Rust, built on hyper — the generated code targets it directly rather than a lower-level alternative, since it\'s what most Rust HTTP code in the wild already uses.' },
+  { q: 'Does this need tokio?', a: 'Yes — reqwest\'s async API needs an async runtime, and the generated main function is annotated #[tokio::main], which requires the tokio crate with the "full" (or at least "rt-multi-thread" + "macros") feature enabled in Cargo.toml.' },
+  { q: 'How is an arbitrary HTTP method (like PATCH) handled?', a: 'Via reqwest::Method::from_bytes(...), which accepts any method string — not just the handful reqwest exposes as named constructors (get, post, put, delete) — so unusual verbs from the original curl command still work.' },
+  { q: 'Does it support multipart file uploads?', a: 'Yes, via reqwest::multipart::Form — text fields use .text(key, value) and file fields use .file(key, path).await?, which reads the file from disk directly (unlike the Node/Go generators, reqwest\'s API makes this a one-line call).' },
+];
+---
+<ToolLayout tool={tool}>
+  <CurlConverter lang="rust" client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

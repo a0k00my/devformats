@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import CurlConverter from '../components/CurlConverter';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('curl-to-php')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'Does this need the Guzzle library?', a: 'No — it uses PHP\'s built-in curl extension (curl_init, curl_setopt, curl_exec) directly, which ships with virtually every PHP install. Guzzle is a nicer API for larger projects, but isn\'t required for a single request.' },
+  { q: 'How are file uploads (-F with @file) handled?', a: 'Wrapped in a CURLFile object, PHP\'s standard way of attaching a file to a multipart POST via CURLOPT_POSTFIELDS.' },
+  { q: 'Is error handling included?', a: 'A minimal check is included — curl_exec returning false triggers curl_error($ch) — but production code should also check the HTTP status code via curl_getinfo($ch, CURLINFO_HTTP_CODE), which isn\'t added automatically here to keep the output focused on the request itself.' },
+  { q: 'What does -k / --insecure map to?', a: 'CURLOPT_SSL_VERIFYPEER and CURLOPT_SSL_VERIFYHOST both set to false — PHP curl\'s equivalent of disabling certificate verification. Only appropriate against endpoints you trust.' },
+];
+---
+<ToolLayout tool={tool}>
+  <CurlConverter lang="php" client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

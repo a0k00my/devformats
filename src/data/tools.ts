@@ -2,7 +2,7 @@
 // cards, category pages, search index, sitemap, and related-tools sections
 // all read from this file — never hardcode a tool list anywhere else.
 
-export type Category = 'json' | 'yaml' | 'xml' | 'converters' | 'generators' | 'encoding' | 'jwt';
+export type Category = 'json' | 'yaml' | 'xml' | 'converters' | 'generators' | 'encoding' | 'jwt' | 'api';
 
 export type Tool = {
   slug: string;
@@ -53,6 +53,11 @@ export const CATEGORY_META: Record<Category, { name: string; description: string
     name: 'JWT',
     description: 'Decode and inspect JSON Web Tokens.',
     icon: 'KeyRound',
+  },
+  api: {
+    name: 'cURL',
+    description: 'Convert a cURL command into working request code in your language of choice.',
+    icon: 'Terminal',
   },
 };
 
@@ -507,6 +512,71 @@ export const tools: Tool[] = [
     related: ['html-encode', 'url-decode'],
     status: 'live',
     addedAt: '2026-08-01',
+  },
+  {
+    slug: 'curl-to-python',
+    name: 'cURL to Python',
+    category: 'api',
+    description: 'Convert a cURL command into a Python requests call.',
+    metaTitle: 'cURL to Python (requests) Converter | DevFormats',
+    metaDescription: 'Convert a cURL command into Python requests code, all in your browser. No data leaves your device.',
+    keywords: ['curl to python', 'curl to requests', 'convert curl command to python'],
+    icon: 'Terminal',
+    related: ['curl-to-node', 'curl-to-go', 'json-formatter'],
+    status: 'live',
+    addedAt: '2026-07-26',
+  },
+  {
+    slug: 'curl-to-go',
+    name: 'cURL to Go',
+    category: 'api',
+    description: 'Convert a cURL command into a Go net/http request.',
+    metaTitle: 'cURL to Go (net/http) Converter | DevFormats',
+    metaDescription: 'Convert a cURL command into Go net/http code, all in your browser. No data leaves your device.',
+    keywords: ['curl to go', 'curl to golang', 'convert curl command to go'],
+    icon: 'Terminal',
+    related: ['curl-to-python', 'curl-to-rust', 'go-struct-generator'],
+    status: 'live',
+    addedAt: '2026-07-26',
+  },
+  {
+    slug: 'curl-to-node',
+    name: 'cURL to Node.js',
+    category: 'api',
+    description: 'Convert a cURL command into a Node.js fetch call.',
+    metaTitle: 'cURL to Node.js (fetch) Converter | DevFormats',
+    metaDescription: 'Convert a cURL command into Node.js fetch code, all in your browser. No data leaves your device.',
+    keywords: ['curl to node', 'curl to javascript', 'curl to fetch', 'convert curl command to node'],
+    icon: 'Terminal',
+    related: ['curl-to-python', 'curl-to-php', 'json-formatter'],
+    status: 'live',
+    addedAt: '2026-07-26',
+  },
+  {
+    slug: 'curl-to-php',
+    name: 'cURL to PHP',
+    category: 'api',
+    description: 'Convert a cURL command into a PHP curl_setopt call.',
+    metaTitle: 'cURL to PHP Converter | DevFormats',
+    metaDescription: 'Convert a cURL command into PHP curl code, all in your browser. No data leaves your device.',
+    keywords: ['curl to php', 'convert curl command to php', 'curl php code generator'],
+    icon: 'Terminal',
+    related: ['curl-to-node', 'curl-to-python', 'json-formatter'],
+    status: 'live',
+    addedAt: '2026-07-26',
+  },
+  {
+    slug: 'curl-to-rust',
+    name: 'cURL to Rust',
+    category: 'api',
+    description: 'Convert a cURL command into a Rust reqwest request.',
+    metaTitle: 'cURL to Rust (reqwest) Converter | DevFormats',
+    metaDescription: 'Convert a cURL command into Rust reqwest code, all in your browser. No data leaves your device.',
+    keywords: ['curl to rust', 'curl to reqwest', 'convert curl command to rust'],
+    icon: 'Terminal',
+    related: ['curl-to-go', 'json-to-rust', 'curl-to-python'],
+    status: 'live',
+    addedAt: '2026-07-26',
   },
 ];
 

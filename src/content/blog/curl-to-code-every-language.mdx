@@ -1,0 +1,105 @@
+---
+title: "Convert cURL to Python, Go, Node.js, PHP, or Rust — What Actually Changes"
+description: "Turn a copy-pasted cURL command from API docs or browser devtools into working Python, Go, Node.js, PHP, or Rust request code — and what each language's HTTP client actually needs that curl's flags don't spell out."
+pubDate: 2026-07-26
+tags: ["api", "curl"]
+relatedTools: ["curl-to-python", "curl-to-go", "curl-to-node", "curl-to-php", "curl-to-rust"]
+---
+
+Copy-pasting a `curl` command from API documentation or a browser's "Copy as cURL" devtools menu is fast — until you actually need that request running inside your application instead of a terminal. Translating curl's flags (`-X`, `-H`, `-d`, `-F`, `-u`) into a specific language's HTTP client is mechanical but easy to get subtly wrong by hand. Here's what changes across five languages, using the same source command:
+
+```bash
+curl -X POST https://api.example.com/v1/users \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{"name": "Alice", "email": "alice@example.com"}'
+```
+
+## [Python (requests)](/curl-to-python)
+
+```python
+import requests
+
+headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer YOUR_TOKEN',
+}
+data = '{"name": "Alice", "email": "alice@example.com"}'
+
+response = requests.request('POST', 'https://api.example.com/v1/users', headers=headers, data=data)
+print(response.status_code)
+print(response.text)
+```
+
+`requests.request()` takes the method as its first argument, which maps cleanly onto curl's `-X`. One deliberate choice worth calling out: the body is passed through as the exact raw string curl would send (`data=`), not re-parsed into a Python dict and reassembled with `json=`. That guarantees the bytes on the wire match curl's byte-for-byte — reconstructing it as a dict risks silently reordering keys or reformatting numbers.
+
+## [Go (net/http)](/curl-to-go)
+
+```go
+req, err := http.NewRequest("POST", "https://api.example.com/v1/users", strings.NewReader(`{"name": "Alice", "email": "alice@example.com"}`))
+if err != nil {
+    panic(err)
+}
+req.Header.Set("Content-Type", "application/json")
+req.Header.Set("Authorization", "Bearer YOUR_TOKEN")
+
+client := &http.Client{}
+resp, err := client.Do(req)
+```
+
+Go's `net/http` needs headers set individually via `req.Header.Set(...)` after constructing the request — there's no single options object like other languages have. The body becomes a backtick raw string (cleaner than escaping every quote in the JSON payload) passed to `strings.NewReader`.
+
+## [Node.js (fetch)](/curl-to-node)
+
+```js
+const response = await fetch('https://api.example.com/v1/users', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer YOUR_TOKEN',
+  },
+  body: '{"name": "Alice", "email": "alice@example.com"}',
+});
+```
+
+The closest 1:1 mapping of the five — `fetch`'s options object accepts `method`, `headers`, and `body` directly, which is essentially curl's flags already shaped as an object. Worth knowing: this needs **Node 18+**, since that's when `fetch` and `FormData` became built-in globals with no package install.
+
+## [PHP (curl)](/curl-to-php)
+
+```php
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL, 'https://api.example.com/v1/users');
+curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+curl_setopt($ch, CURLOPT_POSTFIELDS, '{"name": "Alice", "email": "alice@example.com"}');
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    'Content-Type: application/json',
+    'Authorization: Bearer YOUR_TOKEN',
+]);
+$response = curl_exec($ch);
+```
+
+PHP's own `curl` extension is the most literal translation — it's the same underlying library curl itself is built on, just called through `curl_setopt()` instead of command-line flags. Headers go in as `"Name: value"` strings in an array rather than repeated `-H` flags, and the method needs `CURLOPT_CUSTOMREQUEST` explicitly (PHP's curl defaults to GET, same as curl itself does without `-X`).
+
+## [Rust (reqwest)](/curl-to-rust)
+
+```rust
+let client = Client::new();
+let response = client
+    .request(reqwest::Method::from_bytes(b"POST")?, "https://api.example.com/v1/users")
+    .header("Content-Type", "application/json")
+    .header("Authorization", "Bearer YOUR_TOKEN")
+    .body(r#"{"name": "Alice", "email": "alice@example.com"}"#)
+    .send()
+    .await?;
+```
+
+Needs the `tokio` async runtime (`#[tokio::main]`) since reqwest's API is async-first. Using `Method::from_bytes(...)` rather than reqwest's named constructors (`.get()`, `.post()`) means any HTTP method from the original curl command — including unusual ones like `PATCH` or a custom verb — is handled the same way rather than needing special-cased branches per method.
+
+## What's common across all five
+
+Two details each generator gets right that are easy to miss doing this translation by hand:
+
+- **`-k` / `--insecure`** disables TLS certificate verification — `verify=False` in Python, a custom `Transport` in Go, `danger_accept_invalid_certs(true)` in Rust, `CURLOPT_SSL_VERIFYPEER`/`VERIFYHOST` false in PHP. This should only ever be used against endpoints you explicitly trust (e.g. local dev with a self-signed cert) — never in production code talking to a real API.
+- **`-u user:pass`** (Basic Auth) is handled by each language's native mechanism rather than hand-computing the base64 header — `auth=(user, pass)` in requests, `SetBasicAuth` in Go, `.basic_auth()` in reqwest, computed via `Buffer.from(...).toString('base64')` in Node, `CURLOPT_USERPWD` in PHP.
+
+All five converters run entirely in your browser — the command you paste, including any tokens or credentials in it, never leaves your machine.

@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import CurlConverter from '../components/CurlConverter';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('curl-to-python')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'Which HTTP library does the generated code use?', a: 'The popular requests library, since it\'s the de facto standard for HTTP in Python and its API maps directly onto curl\'s flags (headers, data, auth, files).' },
+  { q: 'Is the request body reconstructed or passed through as-is?', a: 'Passed through as the raw string exactly as curl would send it, rather than parsed and rebuilt as a Python dict — this avoids subtly changing the payload (key order, number formatting, whitespace) and matches what curl itself actually sends.' },
+  { q: 'Does it handle -F / --form (multipart) uploads?', a: 'Yes — non-file fields become a data dict and file fields (values starting with @) become a files dict using open(path, "rb"), combined in one requests.request() call.' },
+  { q: 'What about -k / --insecure?', a: 'Translated to verify=False on the request. Note this disables TLS certificate verification just like curl -k does — only use it against endpoints you trust (e.g. local dev with a self-signed cert).' },
+];
+---
+<ToolLayout tool={tool}>
+  <CurlConverter lang="python" client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>
