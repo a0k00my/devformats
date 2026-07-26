@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import JsonTypeGenerator from '../components/JsonTypeGenerator';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('json-to-rust')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'Why serde specifically?', a: 'serde with serde_json is the de facto standard for JSON (de)serialization in Rust — the generated struct derives Serialize and Deserialize so it works directly with serde_json::from_str / to_string with no extra glue code.' },
+  { q: 'Why are field names converted to snake_case?', a: 'Rust convention is snake_case struct fields. When a JSON key isn\'t already snake_case (e.g. camelCase from a JS-authored API), the generator adds a #[serde(rename = "...")] attribute so serde still maps to the original JSON key on the wire while your Rust code reads idiomatically.' },
+  { q: 'How are optional/nullable fields handled?', a: 'A field whose sample value is null is wrapped in Option<T>, matching how serde represents an absent or null JSON value in Rust.' },
+  { q: 'What type do numbers get?', a: 'Whole numbers become i64, numbers with a decimal point become f64. Narrow these to a smaller type (u32, f32, etc.) by hand if your use case needs it — the generator picks the safe, widest default.' },
+];
+---
+<ToolLayout tool={tool}>
+  <JsonTypeGenerator lang="rust" client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

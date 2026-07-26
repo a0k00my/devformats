@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import JsonTypeGenerator from '../components/JsonTypeGenerator';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('json-to-zod')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'Why generate a Zod schema instead of a plain TypeScript interface?', a: 'A TypeScript interface only checks shapes at compile time — it disappears at runtime. A Zod schema validates real data (an API response, form input) at runtime and can derive the exact same TypeScript type via z.infer, so you get both a runtime check and a static type from one definition.' },
+  { q: 'How are nullable fields handled?', a: 'A field whose sample value is null is generated as .nullable() on its base schema, matching Zod\'s own nullable API rather than making the field optional (missing), which is a different constraint.' },
+  { q: 'Does this handle nested objects?', a: 'Yes — each nested object gets its own named z.object() schema plus an inferred type, referenced by name from the parent schema, so deeply nested JSON produces multiple readable schema declarations instead of one giant inline object.' },
+  { q: 'What Zod version does the output target?', a: 'The generated code uses standard Zod v3/v4-compatible API (z.object, z.string, z.array, z.infer) with no version-specific syntax, so it should drop into any recent Zod install.' },
+];
+---
+<ToolLayout tool={tool}>
+  <JsonTypeGenerator lang="zod" client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

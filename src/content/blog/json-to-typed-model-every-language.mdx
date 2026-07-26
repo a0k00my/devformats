@@ -1,0 +1,113 @@
+---
+title: "JSON to Typed Models: TypeScript, Zod, Java, Rust, Kotlin, and C# from One JSON Sample"
+description: "Generate a TypeScript interface, Zod schema, Java POJO, Rust struct, Kotlin data class, or C# class straight from a JSON sample — what each one gets right and where you still need to double-check the output."
+pubDate: 2026-07-26
+tags: ["json", "codegen"]
+relatedTools: ["json-to-typescript", "json-to-zod", "json-to-java", "json-to-rust", "json-to-kotlin", "json-to-csharp"]
+---
+
+Hand-typing a model class from a sample API response is tedious and error-prone — you're reading a wall of JSON, guessing at types, and hoping you didn't typo a field name. We built one generator cluster that does this for six target languages/type systems from the same JSON sample, so here's what each one actually outputs and the caveats worth knowing before you paste the result into a real project.
+
+## The common input
+
+Every generator in this cluster takes the same kind of input — a representative JSON sample — and infers a type tree from it:
+
+```json
+{
+  "name": "DevFormats",
+  "version": "2.0",
+  "free": true,
+  "price": null,
+  "tags": ["json", "yaml"],
+  "author": { "type": "web-tool", "clientSide": true }
+}
+```
+
+Nested objects (`author`) become their own named type, not an inline blob — so deeply nested JSON produces multiple small, readable declarations instead of one unreadable giant type.
+
+## [TypeScript](/json-to-typescript)
+
+```ts
+export interface Author {
+  type: string;
+  clientSide: boolean;
+}
+export interface Root {
+  name: string;
+  version: string;
+  free: boolean;
+  price?: unknown;
+  tags: string[];
+  author: Author;
+}
+```
+
+Compile-time only — this interface disappears at runtime and validates nothing about data you actually receive.
+
+## [Zod](/json-to-zod)
+
+```ts
+export const AuthorSchema = z.object({ type: z.string(), clientSide: z.boolean() });
+export type Author = z.infer<typeof AuthorSchema>;
+```
+
+Zod is what you reach for when TypeScript's compile-time-only checking isn't enough — it validates real data at runtime (API responses, form input) and derives the exact same TypeScript type via `z.infer`, so you get both from one definition instead of maintaining an interface and a validator separately.
+
+## [Java POJO](/json-to-java)
+
+```java
+public class Author {
+    private String type;
+    private Boolean clientSide;
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
+    // ...
+}
+```
+
+Plain getters/setters, no Jackson/Gson annotations baked in — add `@JsonProperty` yourself if a field needs explicit mapping. One thing worth knowing: a JSON key that would PascalCase into a name colliding with a Java built-in — `list`, `object`, `string` — gets an automatic `Model` suffix (`ListModel`, not `List`) so the generated class doesn't collide with `java.util.List` or `java.lang.Object` and fail to compile.
+
+## [Rust struct](/json-to-rust)
+
+```rust
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Author {
+    pub r#type: String,
+    #[serde(rename = "clientSide")]
+    pub client_side: bool,
+}
+```
+
+Two Rust-specific details worth knowing: fields are converted to `snake_case` with a `#[serde(rename = "...")]` attribute added automatically whenever that differs from the original JSON key, so serialization still round-trips correctly. And `type` is a reserved keyword in Rust — the generator emits `r#type` (a raw identifier) rather than producing code that fails to compile.
+
+## [Kotlin data class](/json-to-kotlin)
+
+```kotlin
+data class Author(
+    val type: String,
+    val clientSide: Boolean
+)
+```
+
+Uses Kotlin's `@SerialName` annotation (kotlinx.serialization) whenever a field name has to change from the original JSON key — for a keyword collision (a field literally named `class` or `fun`) or an invalid identifier. Swap the annotation for Moshi's or Gson's equivalent if you're using a different serialization library; the class shape itself doesn't change.
+
+## [C# class](/json-to-csharp)
+
+```csharp
+public class Author
+{
+    [JsonPropertyName("type")]
+    public string Type { get; set; }
+
+    [JsonPropertyName("clientSide")]
+    public bool ClientSide { get; set; }
+}
+```
+
+Targets `System.Text.Json` (built into .NET since Core 3.0) — swap `[JsonPropertyName(...)]` for Newtonsoft's `[JsonProperty(...)]` if your project still uses that instead. C#'s PascalCase property convention means keyword collisions are a non-issue here (C# keywords are lowercase), but a class named `List` or `Object` would still collide with `System.Collections.Generic.List<T>` or `System.Object` — same fix applied as Java, with a `Model` suffix.
+
+## What none of these replace
+
+Every generator here infers types from **one sample**, not a formal schema — an array's element type comes from its first item, and a field is only marked optional/nullable when the sample value is literally `null`. If your real data has fields that are sometimes present and sometimes missing entirely (not just `null`), or arrays whose items vary in shape, the inferred type is a starting point to refine by hand, not a guarantee. For an actual contract to validate against, generate the [Zod schema](/json-to-zod) for runtime checks, or reach for [JSON Schema Validator](/json-schema-validator) if your team maintains a real JSON Schema document.
+
+All six generators run entirely client-side — the JSON sample you paste never leaves your browser.

@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import JsonTypeGenerator from '../components/JsonTypeGenerator';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('json-to-java')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'Does the output include Jackson or Gson annotations?', a: 'No — the generated POJO is plain Java with private fields and public getters/setters, so it works regardless of which JSON library you use. Add @JsonProperty or Gson\'s @SerializedName yourself if a field name needs a specific mapping.' },
+  { q: 'How are numbers typed — int or double?', a: 'The generator inspects the actual sample value: whole numbers (no decimal point) become Integer, and numbers with a fractional part become Double. Double-check fields where the sample happens to be a whole number but could realistically hold decimals later.' },
+  { q: 'What about nested objects and arrays?', a: 'Each nested object becomes its own public class, and arrays are typed as List<T> with the correct element type, imported from java.util.List.' },
+  { q: 'Why is a field typed as Object?', a: 'A field is typed Object when its sample value is null or the shape can\'t be inferred from one example — narrow it to a concrete type by hand once you know what it should be.' },
+];
+---
+<ToolLayout tool={tool}>
+  <JsonTypeGenerator lang="java" client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

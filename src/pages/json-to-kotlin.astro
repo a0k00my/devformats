@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import JsonTypeGenerator from '../components/JsonTypeGenerator';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('json-to-kotlin')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'Why a data class instead of a regular class?', a: 'Kotlin data classes automatically generate equals(), hashCode(), toString(), and copy() — exactly what you want for a plain JSON-backed model, without writing that boilerplate by hand.' },
+  { q: 'What does @SerialName do in the output?', a: 'When a JSON key isn\'t a valid or idiomatic Kotlin property name as-is, the generator adds @SerialName("original_key") (kotlinx.serialization\'s annotation) so the property can be camelCase in Kotlin while still deserializing the original JSON key correctly.' },
+  { q: 'How are nullable fields represented?', a: 'A field whose sample value is null becomes a nullable type (T?) with a default of null, matching idiomatic Kotlin null-safety rather than using a sentinel value.' },
+  { q: 'Does this work with Moshi or Gson instead of kotlinx.serialization?', a: 'The generated class itself (properties and types) works with any of them — only the @SerialName annotation is kotlinx.serialization-specific. Swap it for Moshi\'s @Json(name = ...) or Gson\'s @SerializedName if you\'re using a different library.' },
+];
+---
+<ToolLayout tool={tool}>
+  <JsonTypeGenerator lang="kotlin" client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>

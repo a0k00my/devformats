@@ -1,0 +1,28 @@
+---
+import ToolLayout from '../layouts/ToolLayout.astro';
+import JsonTypeGenerator from '../components/JsonTypeGenerator';
+import RelatedTools from '../components/RelatedTools.astro';
+import FAQ from '../components/FAQ.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getTool, getRelatedTools } from '../data/tools';
+
+const tool = getTool('json-to-csharp')!;
+const related = getRelatedTools(tool);
+
+const faqItems = [
+  { q: 'Why System.Text.Json attributes instead of Newtonsoft.Json?', a: 'System.Text.Json is the built-in serializer since .NET Core 3.0 and requires no extra package. If your project still uses Newtonsoft.Json, swap [JsonPropertyName("...")] for [JsonProperty("...")] — the class shape itself is identical either way.' },
+  { q: 'When does a property get the JsonPropertyName attribute?', a: 'Only when the PascalCase C# property name doesn\'t match the original JSON key exactly (e.g. a JSON key that\'s camelCase or snake_case) — that\'s when the explicit mapping is needed so serialization round-trips correctly.' },
+  { q: 'How are nested objects and arrays typed?', a: 'Nested objects become their own public class, and arrays are typed as List<T>, using System.Collections.Generic — both imports are included at the top of the generated output.' },
+  { q: 'Are properties nullable?', a: 'A property whose sample value was null in the input is generated as a nullable type (T?), matching C#\'s nullable reference/value type conventions.' },
+];
+---
+<ToolLayout tool={tool}>
+  <JsonTypeGenerator lang="csharp" client:load />
+
+  <AdSlot placement="below-tool" />
+
+  <div class="mx-auto w-full max-w-[860px] space-y-8 px-4 py-10">
+    <RelatedTools tools={related} />
+    <FAQ items={faqItems} />
+  </div>
+</ToolLayout>
